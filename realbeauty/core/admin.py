@@ -52,6 +52,18 @@ def yes_no_filter(
     return Filter
 
 
+def bot_link_badge(is_linked: bool) -> str:
+    """
+    The "is this customer reachable by the bot?" column.
+
+    Shared because more than one page lists customers, and two hand-written
+    copies of the same badge drift apart the first time a wording changes.
+    """
+    if is_linked:
+        return format_html('<span style="color:#059669">✅ Ulangan</span>')
+    return format_html('<span style="color:#f59e0b">⏳ Botga kirmagan</span>')
+
+
 class RBModelAdmin(ModelAdmin):
     """Base for every admin page in this project."""
 

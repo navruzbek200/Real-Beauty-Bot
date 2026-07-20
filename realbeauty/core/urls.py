@@ -6,6 +6,11 @@ from django.contrib import admin
 from django.urls import path
 from django.views.generic import RedirectView
 
+from apps.users.api import (
+    register_app_user_view,
+    request_phone_code_view,
+    verify_phone_code_view,
+)
 from core.views import telegram_file
 
 # Global admin polish: clean dash for empty cells + Uzbek titles.
@@ -21,6 +26,19 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     # Staff-only proxy to originals that live on Telegram's servers.
     path("tg-file/<str:file_id>/", telegram_file, name="telegram_file"),
+    # Mobile app signup hook — API-key authenticated, see apps/users/api.py.
+    path("api/app-users/register/", register_app_user_view, name="app_user_register"),
+    # Phone sign-in via Eskiz SMS + Firebase custom token — see apps/users/api.py.
+    path(
+        "api/auth/phone/request-code/",
+        request_phone_code_view,
+        name="phone_request_code",
+    ),
+    path(
+        "api/auth/phone/verify-code/",
+        verify_phone_code_view,
+        name="phone_verify_code",
+    ),
 ]
 
 if settings.DEBUG:

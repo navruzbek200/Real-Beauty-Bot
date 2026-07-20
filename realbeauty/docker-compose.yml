@@ -59,6 +59,9 @@ services:
     env_file: .env
     volumes:
       - media:/app/media
+      # Firebase service-account JSON (FIREBASE_SERVICE_ACCOUNT_JSON in .env)
+      # — put it at ./secrets/firebase-service-account.json on the host.
+      - ./secrets:/app/secrets:ro
     depends_on:
       migrate:
         condition: service_completed_successfully

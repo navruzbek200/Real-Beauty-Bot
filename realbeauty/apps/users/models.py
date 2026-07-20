@@ -66,6 +66,7 @@ class TelegramUser(models.Model):
     class RegistrationSource(models.TextChoices):
         SELF = "self", "O'zi ro'yxatdan o'tgan"
         ADMIN = "admin", "Admin yordamida"
+        APP = "app", "Mobil ilova"
 
     class RegistrationStatus(models.TextChoices):
         PENDING = "pending", "To'ldirilishi kerak"
@@ -198,6 +199,35 @@ class TelegramUser(models.Model):
             self.birth_date.day == today.day
             and self.birth_date.month == today.month
         )
+
+
+class AppUserManager(models.Manager):
+    """Keeps the app-users page showing only rows the mobile app created."""
+
+    def get_queryset(self) -> models.QuerySet:
+        return (
+            super()
+            .get_queryset()
+            .filter(source=TelegramUser.RegistrationSource.APP)
+        )
+
+
+class AppUser(TelegramUser):
+    """
+    Proxy over the customer table, so people who signed up in the Flutter app
+    get their own menu item instead of being something you have to remember to
+    filter for on the (much busier) "Xaridorlar" page.
+
+    Same rows, same table — "Xaridorlar" still lists everyone, this page is the
+    app slice of it.
+    """
+
+    objects = AppUserManager()
+
+    class Meta:
+        proxy = True
+        verbose_name = "App foydalanuvchisi"
+        verbose_name_plural = "App foydalanuvchilari"
 
 
 class UserProduct(models.Model):

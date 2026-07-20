@@ -20,6 +20,10 @@ SELLER_PERMISSIONS: list[tuple[str, str]] = [
     ("users", "view_telegramuser"),
     ("users", "add_telegramuser"),
     ("users", "change_telegramuser"),
+    # Proxy models carry their own permissions, so the app-users page stays a
+    # 403 for sellers unless these are granted alongside the customer ones.
+    ("users", "view_appuser"),
+    ("users", "change_appuser"),
     ("users", "view_userproduct"),
     ("users", "add_userproduct"),
     ("users", "change_userproduct"),

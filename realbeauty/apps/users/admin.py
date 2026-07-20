@@ -7,12 +7,16 @@ from django.http import HttpRequest
 from django.utils.html import format_html
 from unfold.admin import TabularInline
 
-from core.admin import RBModelAdmin, yes_no_filter
+from core.admin import RBModelAdmin, bot_link_badge, yes_no_filter
 
+from .forms import PhoneNumberUniqueMixin
 from .models import TelegramUser, UserProduct
 
 # Registers the staff-account admin that replaces Django's stock user page.
 from . import staff_admin  # noqa: F401,E402  (import for side effects)
+
+# Registers the app-only slice of the customer table as its own menu item.
+from . import app_user_admin  # noqa: F401,E402  (import for side effects)
 
 # The "Groups" (permission sets) page is not needed for this simple shop —
 # the staff page asks for a role instead. Login accounts live under "Xodimlar".
@@ -31,7 +35,7 @@ class UserProductInline(TabularInline):
     verbose_name_plural = "Sotib olingan mahsulotlar"
 
 
-class TelegramUserForm(forms.ModelForm):
+class TelegramUserForm(PhoneNumberUniqueMixin, forms.ModelForm):
     """
     Staff-facing customer card.
 
@@ -78,26 +82,6 @@ class TelegramUserForm(forms.ModelForm):
         # Staff type "@name" out of habit; store it the way Telegram reports it.
         return (self.cleaned_data.get("username") or "").lstrip("@").strip()
 
-    def clean_phone_number(self) -> str:
-        phone = (self.cleaned_data.get("phone_number") or "").strip()
-        if not phone:
-            return phone
-        tail = TelegramUser.phone_tail_of(phone)
-        if not tail:
-            raise forms.ValidationError(
-                "Raqam to'liq emas — kamida 9 ta raqam bo'lishi kerak."
-            )
-        # Two cards with the same number would both match the customer on /start.
-        clash = TelegramUser.objects.filter(phone_tail=tail)
-        if self.instance.pk:
-            clash = clash.exclude(pk=self.instance.pk)
-        existing = clash.first()
-        if existing is not None:
-            raise forms.ValidationError(
-                f"Bu raqam «{existing}» xaridorga biriktirilgan."
-            )
-        return phone
-
 
 @admin.register(TelegramUser)
 class TelegramUserAdmin(RBModelAdmin):
@@ -105,12 +89,14 @@ class TelegramUserAdmin(RBModelAdmin):
     list_display = [
         "full_name",
         "phone_number",
+        "source_badge",
         "products_list",
         "link_badge",
         "created_at",
     ]
     list_filter = [
         yes_no_filter("is_active", "Xaridor holati", "Faol", "O'chirilgan"),
+        "source",
         "face_condition",
     ]
     search_fields = ["full_name", "username", "phone_number"]
@@ -170,11 +156,23 @@ class TelegramUserAdmin(RBModelAdmin):
         names = [up.product.name for up in obj.userproduct_set.all()]
         return ", ".join(names) if names else "—"
 
+    @admin.display(description="Manba", ordering="source")
+    def source_badge(self, obj: TelegramUser) -> str:
+        colors = {
+            TelegramUser.RegistrationSource.SELF: "#6b7280",
+            TelegramUser.RegistrationSource.ADMIN: "#2b42aa",
+            TelegramUser.RegistrationSource.APP: "#059669",
+        }
+        color = colors.get(obj.source, "#6b7280")
+        return format_html(
+            '<span style="color:{}">{}</span>',
+            color,
+            obj.get_source_display(),
+        )
+
     @admin.display(description="Bot")
     def link_badge(self, obj: TelegramUser) -> str:
-        if obj.is_linked:
-            return format_html('<span style="color:#059669">✅ Ulangan</span>')
-        return format_html('<span style="color:#f59e0b">⏳ Botga kirmagan</span>')
+        return bot_link_badge(obj.is_linked)
 
     @admin.display(description="Bot bilan aloqa")
     def link_help(self, obj: TelegramUser) -> str:

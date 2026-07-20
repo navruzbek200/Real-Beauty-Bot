@@ -122,6 +122,24 @@ BOT_TOKEN = os.environ.get("BOT_TOKEN", "")
 BOT_USERNAME = os.environ.get("BOT_USERNAME", "RealBeautyBot")
 REDIS_URL = os.environ.get("REDIS_URL", "redis://redis:6379/0")
 
+# Shared secret the Flutter app sends in the X-Api-Key header when it posts a
+# new phone signup to apps.users.api.register_app_user_view.
+APP_API_KEY = os.environ.get("APP_API_KEY", "")
+
+# --- Eskiz.uz SMS gateway (phone-signup OTP) ---
+ESKIZ_EMAIL = os.environ.get("ESKIZ_EMAIL", "")
+ESKIZ_PASSWORD = os.environ.get("ESKIZ_PASSWORD", "")
+# Registered sender nickname. Eskiz's shared test nickname works only for
+# their sandbox test number until your own nickname/template is approved.
+ESKIZ_SMS_FROM = os.environ.get("ESKIZ_SMS_FROM", "4546")
+
+# --- Firebase Admin (mints custom tokens after OTP is verified, so the app
+# keeps using Firebase Auth as its one identity system even though the SMS
+# itself no longer goes through Firebase Phone Auth) ---
+# Path to the service-account JSON downloaded from Firebase Console →
+# Project settings → Service accounts → Generate new private key.
+FIREBASE_SERVICE_ACCOUNT_JSON = os.environ.get("FIREBASE_SERVICE_ACCOUNT_JSON", "")
+
 # --- django-unfold branding ---
 from django.templatetags.static import static  # noqa: E402
 from django.urls import reverse_lazy  # noqa: E402
@@ -183,6 +201,11 @@ UNFOLD = {
                         "title": "Xaridorlar",
                         "icon": "group",
                         "link": reverse_lazy("admin:users_telegramuser_changelist"),
+                    },
+                    {
+                        "title": "App foydalanuvchilari",
+                        "icon": "phone_android",
+                        "link": reverse_lazy("admin:users_appuser_changelist"),
                     },
                     {
                         "title": "Murojaatlar",
