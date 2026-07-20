@@ -235,6 +235,55 @@ a.rb-row-delete .material-symbols-outlined { font-size: 19px; }
 .dark a.rb-row-delete:hover { background-color: rgba(127, 29, 29, 0.35); color: #fca5a5; }
 
 /* =========================================================================
+ * BROADCAST confirmation page
+ * ========================================================================= */
+
+.rb-confirm {
+  max-width: 620px;
+  margin: 8px auto 0;
+  padding: 28px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background-color: #f8fafc;
+}
+.rb-confirm__h { font-size: 20px; font-weight: 700; color: #1a2564; }
+.rb-confirm__lead { margin-top: 12px; font-size: 15px; color: #334155; line-height: 1.5; }
+.rb-confirm__preview {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background-color: #fff;
+  border: 1px solid #e2e8f0;
+  color: #0f172a;
+  white-space: pre-wrap;
+}
+.rb-confirm__warn { margin-top: 14px; color: #b45309; font-weight: 600; }
+.rb-confirm__actions { display: flex; gap: 12px; margin-top: 22px; }
+
+.rb-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+.rb-btn--ghost { border-color: #cbd5e1; background: #fff; color: #334155; }
+.rb-btn--ghost:hover { background: #f1f5f9; }
+.rb-btn--danger { background: var(--rb-red); color: #fff; }
+.rb-btn--danger:hover { background: var(--rb-red-h); }
+
+.dark .rb-confirm { border-color: #374151; background-color: #111827; }
+.dark .rb-confirm__h { color: #c7d2fe; }
+.dark .rb-confirm__lead { color: #cbd5e1; }
+.dark .rb-confirm__preview { background-color: #1f2937; border-color: #374151; color: #e2e8f0; }
+.dark .rb-btn--ghost { background: #1f2937; border-color: #374151; color: #e2e8f0; }
+.dark .rb-btn--ghost:hover { background: #374151; }
+
+/* =========================================================================
  * DASHBOARD stat cards
  * Styled here, not with Tailwind utilities in the template: Unfold ships a
  * pre-compiled stylesheet, so any class it does not already use itself (and

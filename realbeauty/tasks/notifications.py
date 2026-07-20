@@ -10,6 +10,20 @@ from asgiref.sync import sync_to_async
 logger = logging.getLogger(__name__)
 
 
+def _fresh_bot():
+    """A Bot bound to the current asyncio.run() loop; caller closes its session."""
+    import os
+
+    from aiogram import Bot
+    from aiogram.client.default import DefaultBotProperties
+    from aiogram.enums import ParseMode
+
+    return Bot(
+        token=os.environ["BOT_TOKEN"],
+        default=DefaultBotProperties(parse_mode=ParseMode.HTML),
+    )
+
+
 @sync_to_async
 def _render(template_type: str, context: dict[str, Any]) -> tuple[Any, str, str]:
     """Load active template + render. Returns (template_obj, text, parse_mode)."""
@@ -43,10 +57,11 @@ async def _send_templated_message(
     reply_markup: InlineKeyboardMarkup | None = None,
 ) -> None:
     """Core async sender. Called from sync Celery task via asyncio.run()."""
-    from bot.main import get_bot
-
     template_obj, text, parse_mode = await _render(template_type, context)
-    bot = get_bot()
+    # A fresh Bot owned by this asyncio.run() loop, closed after — the shared
+    # polling singleton would leak an aiohttp session per scheduled send in the
+    # Celery worker.
+    bot = _fresh_bot()
     try:
         if text:
             await bot.send_message(
@@ -60,6 +75,8 @@ async def _send_templated_message(
         logger.exception("Failed to send %s to %s", template_type, telegram_id)
         await _log(user_id, template_obj, success=False, error=str(exc))
         raise
+    finally:
+        await bot.session.close()
 
 
 def send_templated_message_sync(

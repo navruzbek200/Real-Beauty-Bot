@@ -100,3 +100,114 @@ class CampaignLog(models.Model):
     def __str__(self) -> str:
         status = "OK" if self.success else "FAIL"
         return f"{self.user} — {self.template} [{status}]"
+
+
+class Broadcast(models.Model):
+    """
+    A one-off announcement the shop pushes to customers on demand: a seminar,
+    a new arrival, a flash sale — anything that is not one of the fixed
+    lifecycle templates.
+
+    Kept separate from MessageTemplate because the lifecycle templates are a
+    closed set the bot fires automatically, while these are composed and sent
+    by a person whenever news comes up.
+    """
+
+    class Status(models.TextChoices):
+        DRAFT = "draft", "Qoralama"
+        SENDING = "sending", "Yuborilmoqda"
+        SENT = "sent", "Yuborildi"
+        FAILED = "failed", "Xato"
+
+    class Audience(models.TextChoices):
+        ALL = "all", "Hamma (botga ulangan barcha xaridorlar)"
+        BY_SKIN = "by_skin", "Teri turi bo'yicha"
+        BY_PRODUCT = "by_product", "Mahsulot sotib olganlar"
+
+    title = models.CharField(
+        max_length=128,
+        verbose_name="Sarlavha (faqat siz uchun)",
+        help_text="Ro'yxatda ko'rinadi. Mijozga yuborilmaydi.",
+    )
+    body = models.TextField(
+        verbose_name="Xabar matni",
+        help_text="Mijozga boradigan matn. Telegram HTML: <b>qalin</b>, "
+        "<i>qiya</i>, <a href='...'>havola</a>.",
+    )
+    photo = models.ImageField(
+        upload_to="broadcasts/",
+        blank=True,
+        null=True,
+        verbose_name="Rasm (ixtiyoriy)",
+        help_text="Yuklasangiz, xabar rasm bilan boradi.",
+    )
+    audience = models.CharField(
+        max_length=16,
+        choices=Audience.choices,
+        default=Audience.ALL,
+        verbose_name="Kimlarga",
+    )
+    skin_condition = models.CharField(
+        max_length=20,
+        blank=True,
+        verbose_name="Teri turi",
+        help_text="«Teri turi bo'yicha» tanlansagina ishlaydi.",
+    )
+    product = models.ForeignKey(
+        "products.Product",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        verbose_name="Mahsulot",
+        help_text="«Mahsulot sotib olganlar» tanlansagina ishlaydi.",
+    )
+
+    status = models.CharField(
+        max_length=12,
+        choices=Status.choices,
+        default=Status.DRAFT,
+        editable=False,
+        verbose_name="Holat",
+    )
+    total = models.PositiveIntegerField(default=0, editable=False, verbose_name="Jami")
+    sent_count = models.PositiveIntegerField(
+        default=0, editable=False, verbose_name="Yuborildi"
+    )
+    failed_count = models.PositiveIntegerField(
+        default=0, editable=False, verbose_name="Yetmadi"
+    )
+
+    created_by = models.ForeignKey(
+        "auth.User",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        editable=False,
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Yaratilgan")
+    started_at = models.DateTimeField(null=True, blank=True, editable=False)
+    finished_at = models.DateTimeField(null=True, blank=True, editable=False)
+
+    class Meta:
+        verbose_name = "E'lon"
+        verbose_name_plural = "E'lonlar"
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return self.title
+
+    def recipients(self):
+        """
+        Active, bot-linked customers this broadcast targets.
+
+        Only linked users (telegram_id set) can be reached, and inactive ones
+        were switched off on purpose — both are excluded regardless of filter.
+        """
+        from apps.users.models import TelegramUser
+
+        qs = TelegramUser.objects.filter(is_active=True, telegram_id__isnull=False)
+        if self.audience == self.Audience.BY_SKIN and self.skin_condition:
+            qs = qs.filter(face_condition=self.skin_condition)
+        elif self.audience == self.Audience.BY_PRODUCT and self.product_id:
+            qs = qs.filter(userproduct__product_id=self.product_id)
+        return qs.distinct()

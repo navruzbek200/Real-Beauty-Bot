@@ -148,7 +148,7 @@ UNFOLD = {
     # Custom usability CSS (color-coded actions, bigger targets, readability)
     "STYLES": [
         # ?v bust keeps the browser from serving a stale cached copy.
-        lambda request: static("css/admin.css") + "?v=7",
+        lambda request: static("css/admin.css") + "?v=8",
     ],
     # Brand palette (navy → cyan), space-separated RGB per Unfold/Tailwind.
     "COLORS": {
@@ -207,6 +207,12 @@ UNFOLD = {
                 "title": "Marketing",
                 "separator": True,
                 "items": [
+                    {
+                        "title": "E'lonlar",
+                        "icon": "campaign",
+                        "link": reverse_lazy("admin:campaigns_broadcast_changelist"),
+                        "permission": _superuser,
+                    },
                     {
                         "title": "Xabar shablonlari",
                         "icon": "mail",
