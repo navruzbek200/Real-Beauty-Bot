@@ -19,11 +19,15 @@ def main_menu_keyboard() -> ReplyKeyboardMarkup:
         keyboard=[
             [
                 KeyboardButton(text=texts.MENU_TUTORIALS),
-                KeyboardButton(text=texts.MENU_DISCOUNTS),
+                KeyboardButton(text=texts.MENU_CATALOG),
             ],
             [
                 KeyboardButton(text=texts.MENU_FEEDBACK),
                 KeyboardButton(text=texts.MENU_SUPPORT),
+            ],
+            [
+                KeyboardButton(text=texts.MENU_DISCOUNTS),
+                KeyboardButton(text=texts.MENU_TIPS),
             ],
             [
                 KeyboardButton(text=texts.MENU_PROFILE),

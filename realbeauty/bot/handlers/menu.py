@@ -4,14 +4,15 @@ import html
 import logging
 
 from aiogram import Bot, F, Router
+from aiogram.exceptions import TelegramAPIError
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message
+from aiogram.types import FSInputFile, Message
 
 from bot import texts
 from bot.handlers.auth import send_tutorial_intros
 from bot.keyboards import inline, reply
-from bot.services import discount_service, user_service
+from bot.services import discount_service, product_service, user_service
 
 logger = logging.getLogger(__name__)
 router = Router(name="menu")
@@ -42,7 +43,7 @@ async def menu_tutorials(message: Message, bot: Bot, state: FSMContext) -> None:
     await send_tutorial_intros(bot, message.from_user.id)
 
 
-@router.message(F.text == texts.MENU_FEEDBACK)
+@router.message(F.text.in_({texts.MENU_FEEDBACK, texts.MENU_FEEDBACK_LEGACY}))
 async def menu_feedback(message: Message, state: FSMContext) -> None:
     await state.clear()
     if message.from_user is None:
@@ -55,6 +56,48 @@ async def menu_feedback(message: Message, state: FSMContext) -> None:
         [(up.product_id, up.product.name) for up in products], week=1
     )
     await message.answer(texts.FEEDBACK_PICK_PRODUCT, reply_markup=keyboard)
+
+
+@router.message(F.text == texts.MENU_CATALOG)
+async def menu_catalog(message: Message, state: FSMContext) -> None:
+    """Every active product — the shop window, not just what this user owns."""
+    await state.clear()
+    products = await product_service.get_active_products()
+    if not products:
+        await message.answer(texts.CATALOG_EMPTY)
+        return
+    await message.answer(texts.CATALOG_HEADER, parse_mode="HTML")
+    for product in products[:10]:
+        caption = f"<b>{html.escape(product.name)}</b>"
+        if product.description:
+            caption += f"\n\n{html.escape(product.description)}"
+        caption = caption[:1024]  # Telegram caption limit
+        try:
+            if product.photo and product.photo.name:
+                await message.answer_photo(
+                    FSInputFile(product.photo.path),
+                    caption=caption,
+                    parse_mode="HTML",
+                )
+            else:
+                await message.answer(caption, parse_mode="HTML")
+        except TelegramAPIError:
+            logger.exception("Failed to send catalog item %s", product.pk)
+    await message.answer(texts.CATALOG_FOOTER)
+
+
+@router.message(F.text == texts.MENU_TIPS)
+async def menu_tips(message: Message, state: FSMContext) -> None:
+    """Skin-care tips matched to the customer's stored skin type."""
+    await state.clear()
+    if message.from_user is None:
+        return
+    user = await user_service.get_user(message.from_user.id)
+    if user is None or not user.full_name:
+        await message.answer(texts.NOT_REGISTERED)
+        return
+    body = texts.TIPS_BY_SKIN.get(user.face_condition, texts.TIPS_GENERIC)
+    await message.answer(body + texts.TIPS_FOOTER, parse_mode="HTML")
 
 
 @router.message(F.text == texts.MENU_DISCOUNTS)

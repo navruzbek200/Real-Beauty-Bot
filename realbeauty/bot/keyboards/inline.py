@@ -11,6 +11,7 @@ CB_SKIP_PHOTO = "skip_photo"
 CB_TUTORIAL_STEP = "tutorial_step"  # tutorial_step:<product_id>:<step_id>
 CB_SUBMIT_FEEDBACK = "submit_feedback"  # submit_feedback:<week>:<product_id>
 CB_FEEDBACK_RATING = "feedback_rating"  # feedback_rating:<value>
+CB_SKIP_FEEDBACK_TEXT = "skip_fb_text"  # rating saved, no written comment
 CB_SEND_PROGRESS = "send_progress"  # send_progress:<product_id>
 CB_SUPPORT_REPLY = "support_reply"  # attached to admin replies in the bot
 
@@ -81,10 +82,22 @@ def rating_keyboard() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     for value in range(1, 6):
         builder.button(
-            text=str(value), callback_data=f"{CB_FEEDBACK_RATING}{SEP}{value}"
+            text="⭐️" * value, callback_data=f"{CB_FEEDBACK_RATING}{SEP}{value}"
         )
-    builder.adjust(5)
+    builder.adjust(1)
     return builder.as_markup()
+
+
+def skip_feedback_text_keyboard() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="⏭ O'tkazib yuborish", callback_data=CB_SKIP_FEEDBACK_TEXT
+                )
+            ]
+        ]
+    )
 
 
 def progress_button_keyboard(label: str, product_id: int) -> InlineKeyboardMarkup:

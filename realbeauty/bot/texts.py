@@ -10,9 +10,14 @@ from __future__ import annotations
 
 # --- Main menu (reply keyboard) labels ---
 MENU_TUTORIALS = "📚 Qo'llanmalar"
-MENU_FEEDBACK = "💬 Fikr bildirish"
+MENU_CATALOG = "🛍 Mahsulotlar"
+MENU_FEEDBACK = "⭐️ Mahsulotga baho"
+# Customers keep the old reply keyboard until the bot replaces it; the old
+# label must keep working or their button silently falls to the fallback.
+MENU_FEEDBACK_LEGACY = "💬 Fikr bildirish"
 MENU_SUPPORT = "✍️ Savol / Murojaat"
 MENU_DISCOUNTS = "🎁 Chegirmalar"
+MENU_TIPS = "💡 Maslahatlar"
 MENU_PROFILE = "👤 Profil"
 MENU_HELP = "ℹ️ Yordam"
 
@@ -79,13 +84,16 @@ TUTORIAL_INTRO_FALLBACK = "📘 <b>{product}</b> uchun qo'llanma"
 VIDEO_COMING_SOON = "⏳ Ushbu bosqich uchun video tez orada qo'shiladi."
 STEP_NOT_FOUND = "Bosqich topilmadi."
 
-# --- Feedback ---
-FEEDBACK_ASK_TEXT = "💬 Mahsulot haqida fikringizni yozing."
-FEEDBACK_ASK_TEXT_AGAIN = "Iltimos, fikringizni yozing."
-FEEDBACK_ASK_RATING = "⭐️ 1 dan 5 gacha baholang?"
+# --- Feedback (rating first — one tap; text after, optional) ---
+FEEDBACK_ASK_RATING = "⭐️ Mahsulotni 1 dan 5 gacha baholang:"
+FEEDBACK_ASK_TEXT = (
+    "💬 Qo'shimcha fikr yozasizmi? (ixtiyoriy)\n\n"
+    "Nima yoqdi, nima yoqmadi — yozib qoldiring, "
+    "yoki pastdagi tugma bilan o'tkazib yuboring."
+)
 FEEDBACK_THANKS_FALLBACK = "🙏 Fikringiz uchun rahmat!"
 FEEDBACK_SAVE_ERROR = "Fikrni saqlab bo'lmadi. Keyinroq urinib ko'ring."
-FEEDBACK_PICK_PRODUCT = "Qaysi mahsulot haqida fikr bildirmoqchisiz?"
+FEEDBACK_PICK_PRODUCT = "Qaysi mahsulotga baho bermoqchisiz?"
 
 # --- Support (free-form questions) ---
 SUPPORT_ASK = (
@@ -119,6 +127,76 @@ PROGRESS_DONE = "🙏 Rahmat! Jamoamiz natijangizni ko'rib chiqadi."
 NO_DISCOUNTS = "Hozircha faol chegirmalar yo'q."
 DISCOUNTS_HEADER = "🎁 <b>Faol chegirmalar:</b>"
 
+# --- Catalog (all active products, not just owned ones) ---
+CATALOG_HEADER = "🛍 <b>Bizning mahsulotlar:</b>"
+CATALOG_EMPTY = "Katalog hozircha bo'sh. Tez orada to'ldiriladi!"
+CATALOG_FOOTER = (
+    "📍 Xarid qilish uchun do'konimizga keling yoki "
+    "«✍️ Savol / Murojaat» orqali yozing — yordam beramiz."
+)
+
+# --- Skin-care tips (the \"beauty assistant\" section) ---
+TIPS_GENERIC = (
+    "💡 <b>Umumiy parvarish qoidalari</b>\n\n"
+    "1️⃣ Ketma-ketlik: tozalash → toner → serum → krem\n"
+    "2️⃣ Har kuni ertalab SPF ishlating — bulutli kunda ham\n"
+    "3️⃣ Natija 2–4 haftada ko'rinadi — muntazamlik muhim\n"
+    "4️⃣ Yangi mahsulotni avval bilak terisida sinab ko'ring\n"
+    "5️⃣ Kuniga kamida 1.5–2 litr suv iching\n\n"
+    "Teri turingizga mos maslahat olish uchun profilingizda "
+    "teri turini to'ldiring."
+)
+TIPS_BY_SKIN = {
+    "dry": (
+        "💡 <b>Quruq teri uchun maslahatlar</b>\n\n"
+        "• Yumshoq, ko'piksiz tozalovchi vositalar tanlang\n"
+        "• Spirtsiz toner ishlating\n"
+        "• Namlantiruvchi kremni nam teriga suring — namlikni qulflaydi\n"
+        "• Issiq suv bilan yuvmang — iliq suv yetarli\n"
+        "• Kechqurun boyroq (qalinroq) krem ishlating\n"
+        "• Ertalab SPF — albatta"
+    ),
+    "oily": (
+        "💡 <b>Yog'li teri uchun maslahatlar</b>\n\n"
+        "• Penka bilan kuniga 2 marta tozalang — ko'p emas, aks holda "
+        "teri yana ko'proq yog' ishlab chiqaradi\n"
+        "• Yengil, komedogen bo'lmagan namlantiruvchi tanlang — "
+        "yog'li teri ham namlikka muhtoj\n"
+        "• Matlashtiruvchi toner foydali\n"
+        "• Yuzga qo'l tekkizmaslikka harakat qiling\n"
+        "• SPF — yengil, gel formulada"
+    ),
+    "combined": (
+        "💡 <b>Aralash teri uchun maslahatlar</b>\n\n"
+        "• T-zona (peshona, burun, iyak) uchun yengil vositalar, "
+        "yonoqlarga boyroq krem\n"
+        "• Haftada 1 marta yumshoq eksfoliatsiya\n"
+        "• Toner butun yuzga, namlantiruvchi zonalarga qarab\n"
+        "• Og'ir, yog'li kremlardan saqlaning\n"
+        "• Ertalab SPF unutmang"
+    ),
+    "normal": (
+        "💡 <b>Normal teri uchun maslahatlar</b>\n\n"
+        "• Muvozanatni saqlang: tozalash → toner → namlantirish\n"
+        "• Haftada 1 marta yengil eksfoliatsiya kifoya\n"
+        "• Mavsumga qarab kremni almashtiring: qishda boyroq, "
+        "yozda yengilroq\n"
+        "• Ertalab SPF — teri yoshligini saqlaydi"
+    ),
+    "sensitive": (
+        "💡 <b>Sezgir teri uchun maslahatlar</b>\n\n"
+        "• Har yangi mahsulotni avval bilak terisida 24 soat sinang\n"
+        "• Atirsiz (fragrance-free) formulalarni tanlang\n"
+        "• Skrablardan saqlaning — kimyoviy yumshoq eksfoliantlar ma'qul\n"
+        "• Kam vosita — yaxshi: 3-4 bosqichli sodda parvarish\n"
+        "• Mineral (fizik) SPF ko'proq mos keladi"
+    ),
+}
+TIPS_FOOTER = (
+    "\n\n❓ Savolingiz bo'lsa — «✍️ Savol / Murojaat» tugmasini bosing, "
+    "mutaxassislarimiz javob beradi."
+)
+
 # --- Profile ---
 PROFILE_TEMPLATE = (
     "👤 <b>Profilingiz</b>\n\n"
@@ -134,10 +212,14 @@ NOT_REGISTERED = "Iltimos, avval /start bosib ro'yxatdan o'ting."
 MENU_OPENED = "Asosiy menyu. Kerakli bo'limni tanlang 👇"
 HELP_TEXT = (
     "ℹ️ <b>Real Beauty bot</b>\n\n"
-    "• 📚 Qo'llanmalar — mahsulot videolari\n"
-    "• 💬 Fikr bildirish — mahsulot haqida fikr va baho\n"
-    "• ✍️ Savol / Murojaat — jamoamizga savol yozing, javob shu yerda keladi\n"
-    "• 🎁 Chegirmalar — joriy aksiyalar\n"
+    "• 📚 Qo'llanmalar — siz olgan mahsulotlarning video darslari\n"
+    "• 🛍 Mahsulotlar — do'konimizdagi barcha mahsulotlar katalogi\n"
+    "• ⭐️ Mahsulotga baho — olgan mahsulotingizga yulduz va fikr "
+    "qoldirasiz (biz sifatni shu orqali kuzatamiz)\n"
+    "• ✍️ Savol / Murojaat — jamoamiz bilan jonli yozishma: savol "
+    "yozasiz, javob shu yerda keladi\n"
+    "• 🎁 Chegirmalar — joriy aksiyalar va promokodlar\n"
+    "• 💡 Maslahatlar — teri turingizga mos parvarish maslahatlari\n"
     "• 👤 Profil — ma'lumotlaringiz\n\n"
     "Menyuni ochish uchun /menu buyrug'ini yuboring."
 )

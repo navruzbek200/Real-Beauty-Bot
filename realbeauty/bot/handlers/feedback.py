@@ -15,6 +15,10 @@ from bot.states.registration import FeedbackState
 logger = logging.getLogger(__name__)
 router = Router(name="feedback")
 
+# Rating comes first (one tap, nobody drops off), the written comment second
+# and skippable — the reverse order lost customers who didn't feel like
+# composing a text just to leave 5 stars.
+
 
 @router.callback_query(F.data.startswith(f"{inline.CB_SUBMIT_FEEDBACK}{inline.SEP}"))
 async def start_feedback(callback: CallbackQuery, state: FSMContext) -> None:
@@ -24,20 +28,11 @@ async def start_feedback(callback: CallbackQuery, state: FSMContext) -> None:
     except ValueError:
         return
 
-    await state.set_state(FeedbackState.text)
-    await state.update_data(week=int(week), product_id=int(product_id))
-    await callback.message.answer(texts.FEEDBACK_ASK_TEXT)
-
-
-@router.message(FeedbackState.text)
-async def feedback_text(message: Message, state: FSMContext) -> None:
-    text = (message.text or "").strip()
-    if not text:
-        await message.answer(texts.FEEDBACK_ASK_TEXT_AGAIN)
-        return
-    await state.update_data(text=text)
     await state.set_state(FeedbackState.rating)
-    await message.answer(texts.FEEDBACK_ASK_RATING, reply_markup=inline.rating_keyboard())
+    await state.update_data(week=int(week), product_id=int(product_id))
+    await callback.message.answer(
+        texts.FEEDBACK_ASK_RATING, reply_markup=inline.rating_keyboard()
+    )
 
 
 @router.callback_query(
@@ -46,34 +41,53 @@ async def feedback_text(message: Message, state: FSMContext) -> None:
 async def feedback_rating(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
     rating = int((callback.data or "").split(inline.SEP, 1)[1])
+    await state.update_data(rating=rating)
+    await state.set_state(FeedbackState.text)
+    await callback.message.answer(
+        texts.FEEDBACK_ASK_TEXT, reply_markup=inline.skip_feedback_text_keyboard()
+    )
+
+
+@router.message(FeedbackState.text, F.text)
+async def feedback_text(message: Message, state: FSMContext) -> None:
+    await _finish(message, state, text=(message.text or "").strip())
+
+
+@router.callback_query(FeedbackState.text, F.data == inline.CB_SKIP_FEEDBACK_TEXT)
+async def feedback_skip_text(callback: CallbackQuery, state: FSMContext) -> None:
+    await callback.answer()
+    await _finish(callback.message, state, text="")
+
+
+async def _finish(message: Message, state: FSMContext, text: str) -> None:
     data = await state.get_data()
     await state.clear()
 
     try:
         await analytics_service.save_feedback(
-            telegram_id=callback.message.chat.id,
+            telegram_id=message.chat.id,
             product_id=data.get("product_id"),
             week=data.get("week", 1),
-            text=data.get("text", ""),
-            rating=rating,
+            text=text,
+            rating=data.get("rating"),
         )
         if data.get("product_id"):
             # Mark the week this feedback answered — hardcoding 1 here left
             # week-2 check-ins "unsent", so the scheduler re-asked forever.
             await analytics_service.mark_week_sent(
-                callback.message.chat.id,
+                message.chat.id,
                 data["product_id"],
                 week=data.get("week", 1),
             )
     except Exception:  # noqa: BLE001
-        logger.exception("Failed to save feedback for %s", callback.message.chat.id)
-        await callback.message.answer(texts.FEEDBACK_SAVE_ERROR)
+        logger.exception("Failed to save feedback for %s", message.chat.id)
+        await message.answer(texts.FEEDBACK_SAVE_ERROR)
         return
 
-    text, parse_mode = await template_service.render_template("feedback_thanks", {})
+    thanks, parse_mode = await template_service.render_template("feedback_thanks", {})
     try:
-        await callback.message.answer(
-            text or texts.FEEDBACK_THANKS_FALLBACK, parse_mode=parse_mode
+        await message.answer(
+            thanks or texts.FEEDBACK_THANKS_FALLBACK, parse_mode=parse_mode
         )
     except TelegramAPIError:
-        logger.exception("Failed to send thanks to %s", callback.message.chat.id)
+        logger.exception("Failed to send thanks to %s", message.chat.id)
