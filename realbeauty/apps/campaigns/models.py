@@ -56,13 +56,17 @@ class MessageTemplate(models.Model):
         hand in the admin, and one unclosed brace must degrade to a slightly
         odd message — not crash the campaign task into a retry loop that
         leaves every customer without their message.
+
+        For HTML templates the substituted values are escaped (autoescape):
+        a customer named "<3" would otherwise produce invalid HTML and make
+        Telegram reject every campaign message addressed to them.
         """
         import logging
 
         from jinja2 import Environment
 
         try:
-            env = Environment(autoescape=False)
+            env = Environment(autoescape=self.parse_mode == "HTML")
             template = env.from_string(self.body)
             return template.render(**context)
         except Exception:  # noqa: BLE001 — syntax or undefined-variable errors

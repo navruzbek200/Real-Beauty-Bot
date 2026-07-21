@@ -1,115 +1,88 @@
+"""
+One-off announcement delivery.
+
+Synchronous like tasks/notifications.py, and for the same reason: aiogram +
+asyncio.run() inside the Celery prefork worker ends in "Event loop is closed".
+Sequential HTTP at ~4-6 msg/s clears a thousand customers in a few minutes,
+which is the right trade for a shop this size.
+"""
+
 from __future__ import annotations
 
-import asyncio
 import logging
+import time
 
 from celery import shared_task
 from django.utils import timezone
 
+from core.telegram import TelegramError, send_message, send_photo
+
 logger = logging.getLogger(__name__)
 
-# Telegram allows ~30 messages/second to distinct users before it starts
-# replying 429. Staying at 20/s leaves headroom and still clears 10k users in
-# under nine minutes.
-_PER_SECOND = 20
-_DELAY = 1.0 / _PER_SECOND
+# Pause between recipients. Telegram allows ~30 msg/s; HTTP round-trip time
+# already paces us well below that, this just adds headroom.
+_DELAY = 0.05
+_MAX_FLOOD_RETRIES = 3
 
 
-async def _deliver_one(bot, chat_id: int, text: str, photo_path: str | None):
+def _deliver_one(chat_id: int, text: str, photo_path: str | None) -> tuple[bool, str]:
     """Send one broadcast message. Returns (ok, error_str)."""
-    from aiogram.exceptions import TelegramRetryAfter
-    from aiogram.types import FSInputFile
-
-    try:
-        if photo_path:
-            await bot.send_photo(
-                chat_id=chat_id,
-                photo=FSInputFile(photo_path),
-                caption=text or None,
-                parse_mode="HTML",
-            )
-        else:
-            await bot.send_message(chat_id=chat_id, text=text, parse_mode="HTML")
-        return True, ""
-    except TelegramRetryAfter as exc:
-        # Flood limit hit — wait exactly as long as Telegram asks, then retry
-        # this one recipient so nobody is silently skipped.
-        await asyncio.sleep(exc.retry_after + 1)
-        return await _deliver_one(bot, chat_id, text, photo_path)
-    except Exception as exc:  # noqa: BLE001 — blocked bot, deleted account, etc.
-        return False, str(exc)
+    for _ in range(_MAX_FLOOD_RETRIES):
+        try:
+            if photo_path:
+                send_photo(chat_id, photo_path, caption=text, parse_mode="HTML")
+            else:
+                send_message(chat_id, text, parse_mode="HTML")
+            return True, ""
+        except TelegramError as exc:
+            if exc.retry_after is not None:
+                # Flood limit — wait exactly as long as Telegram asks, then
+                # retry this recipient so nobody is silently skipped.
+                time.sleep(exc.retry_after + 1)
+                continue
+            return False, str(exc)
+        except Exception as exc:  # noqa: BLE001
+            return False, str(exc)
+    return False, "flood limit — max retries"
 
 
-def _fresh_bot():
-    """
-    A Bot for one task run, owned by this event loop.
-
-    The polling process's shared get_bot() singleton binds its aiohttp session
-    to that process's loop; reusing it from asyncio.run() here would leak a
-    session per call in the Celery worker. A local Bot we close in `finally`
-    does not.
-    """
-    import os
-
-    from aiogram import Bot
-    from aiogram.client.default import DefaultBotProperties
-    from aiogram.enums import ParseMode
-
-    return Bot(
-        token=os.environ["BOT_TOKEN"],
-        default=DefaultBotProperties(parse_mode=ParseMode.HTML),
-    )
-
-
-async def _run(broadcast_id: int) -> None:
-    from asgiref.sync import sync_to_async
-
+def _run(broadcast_id: int) -> None:
     from apps.campaigns.models import Broadcast, CampaignLog
 
-    broadcast = await sync_to_async(Broadcast.objects.get)(pk=broadcast_id)
+    broadcast = Broadcast.objects.get(pk=broadcast_id)
+    recipients = list(broadcast.recipients().values_list("pk", "telegram_id"))
+    photo_path = broadcast.photo.path if broadcast.photo else None
 
-    recipients = await sync_to_async(
-        lambda: list(broadcast.recipients().values_list("pk", "telegram_id"))
-    )()
-    photo_path = await sync_to_async(
-        lambda: broadcast.photo.path if broadcast.photo else None
-    )()
+    Broadcast.objects.filter(pk=broadcast_id).update(total=len(recipients))
 
-    bot = _fresh_bot()
     sent = failed = 0
     fail_logs: list[CampaignLog] = []
-
-    try:
-        for user_pk, chat_id in recipients:
-            ok, error = await _deliver_one(bot, chat_id, broadcast.body, photo_path)
-            if ok:
-                sent += 1
-            else:
-                failed += 1
-                # Log only failures: a full per-recipient log of a 10k blast
-                # would bury the table, but "who didn't get it and why" is
-                # worth keeping.
-                fail_logs.append(
-                    CampaignLog(user_id=user_pk, template=None, success=False,
-                                error_detail=error[:500])
+    for user_pk, chat_id in recipients:
+        ok, error = _deliver_one(chat_id, broadcast.body, photo_path)
+        if ok:
+            sent += 1
+        else:
+            failed += 1
+            # Log only failures: a full per-recipient log of a 10k blast would
+            # bury the table, but "who didn't get it and why" is worth keeping.
+            fail_logs.append(
+                CampaignLog(
+                    user_id=user_pk,
+                    template=None,
+                    success=False,
+                    error_detail=error[:500],
                 )
-            await asyncio.sleep(_DELAY)
-    finally:
-        await bot.session.close()
+            )
+        time.sleep(_DELAY)
 
     if fail_logs:
-        await sync_to_async(CampaignLog.objects.bulk_create)(fail_logs)
+        CampaignLog.objects.bulk_create(fail_logs)
 
-    def _finalize() -> None:
-        broadcast.sent_count = sent
-        broadcast.failed_count = failed
-        broadcast.status = Broadcast.Status.SENT
-        broadcast.finished_at = timezone.now()
-        broadcast.save(
-            update_fields=["sent_count", "failed_count", "status", "finished_at"]
-        )
-
-    await sync_to_async(_finalize)()
+    broadcast.sent_count = sent
+    broadcast.failed_count = failed
+    broadcast.status = Broadcast.Status.SENT
+    broadcast.finished_at = timezone.now()
+    broadcast.save(update_fields=["sent_count", "failed_count", "status", "finished_at"])
     logger.info("Broadcast %s done: %s sent, %s failed", broadcast_id, sent, failed)
 
 
@@ -125,15 +98,7 @@ def send_test(broadcast_id: int, chat_id: int) -> tuple[bool, str]:
 
     broadcast = Broadcast.objects.get(pk=broadcast_id)
     photo_path = broadcast.photo.path if broadcast.photo else None
-
-    async def _once() -> tuple[bool, str]:
-        bot = _fresh_bot()
-        try:
-            return await _deliver_one(bot, chat_id, broadcast.body, photo_path)
-        finally:
-            await bot.session.close()
-
-    return asyncio.run(_once())
+    return _deliver_one(chat_id, broadcast.body, photo_path)
 
 
 @shared_task
@@ -141,9 +106,7 @@ def send_broadcast(broadcast_id: int) -> None:
     """
     Deliver a broadcast to its audience.
 
-    Marks the row SENDING up front so a second click cannot start it twice,
-    then runs the whole blast inside one event loop (one Bot HTTP session for
-    all recipients, not one per message).
+    Marks the row SENDING up front so a second click cannot start it twice.
     """
     from apps.campaigns.models import Broadcast
 
@@ -155,10 +118,8 @@ def send_broadcast(broadcast_id: int) -> None:
         return
 
     try:
-        asyncio.run(_run(broadcast_id))
+        _run(broadcast_id)
     except Exception:  # noqa: BLE001
         logger.exception("Broadcast %s crashed", broadcast_id)
-        Broadcast.objects.filter(pk=broadcast_id).update(
-            status=Broadcast.Status.FAILED
-        )
+        Broadcast.objects.filter(pk=broadcast_id).update(status=Broadcast.Status.FAILED)
         raise

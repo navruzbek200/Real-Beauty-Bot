@@ -71,6 +71,10 @@ def generate_and_send_code(phone_number: str) -> None:
 
 def verify_code(phone_number: str, code: str) -> bool:
     """Returns True and burns the code on a match; raises OtpInvalid otherwise."""
+    # Guard before compare_digest: non-ASCII input makes it raise TypeError,
+    # turning a bad guess into a 500.
+    if not code.isascii() or not code.isdigit():
+        raise OtpInvalid("wrong_code")
     stored = cache.get(_code_key(phone_number))
     if stored is None:
         raise OtpInvalid("expired_or_missing")

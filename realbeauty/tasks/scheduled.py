@@ -6,91 +6,105 @@ from datetime import timedelta
 from celery import shared_task
 from django.utils import timezone
 
+from core.telegram import TelegramError
+
 logger = logging.getLogger(__name__)
 
+# A purchase this much older than the campaign delay predates the customer
+# linking their Telegram (staff enter purchases before the customer ever opens
+# the bot). Greeting them with "it's been a week — how is it going?" months
+# later reads as a broken bot, so such rows are marked done without sending.
+_STALE_GRACE_DAYS = 30
 
-@shared_task(bind=True, max_retries=3, default_retry_delay=300)
-def send_week1_checkins(self) -> int:
+
+def _mark(up, week: int) -> None:
+    field = "week1_sent" if week == 1 else "week2_sent"
+    setattr(up, field, True)
+    up.save(update_fields=[field])
+
+
+def _send_checkin_batch(week: int) -> int:
+    """
+    Shared engine for the week-1/week-2 check-ins.
+
+    Every recipient is handled independently: one dead chat (customer blocked
+    the bot, deleted Telegram…) must not abort the rest of the batch — the
+    first version called self.retry() inside the loop, which raised out of it
+    and starved everyone queued after the failing row, every single day.
+    """
+    from apps.bot_settings.models import GlobalSettings
+    from apps.users.models import UserProduct
+    from bot.keyboards.inline import CB_SEND_PROGRESS, CB_SUBMIT_FEEDBACK, SEP
+    from tasks.notifications import send_templated_message_sync
+
+    settings = GlobalSettings.get()
+    delay_days = settings.week1_delay_days if week == 1 else settings.week2_delay_days
+    template_type = "week1_checkin" if week == 1 else "week2_progress"
+    sent_flag = "week1_sent" if week == 1 else "week2_sent"
+
+    now = timezone.now()
+    cutoff = now - timedelta(days=delay_days)
+    stale_cutoff = now - timedelta(days=delay_days + _STALE_GRACE_DAYS)
+
+    qs = UserProduct.objects.select_related("user", "product").filter(
+        purchased_at__lte=cutoff,
+        # Only customers the bot can actually reach; unlinked cards used to
+        # produce a guaranteed-failing send that blocked the whole batch.
+        user__telegram_id__isnull=False,
+        user__is_active=True,
+        **{sent_flag: False},
+    )
+
+    sent = 0
+    for up in qs:
+        if up.purchased_at < stale_cutoff:
+            _mark(up, week)
+            continue
+
+        if week == 1:
+            label = settings.feedback_button_label
+            callback = f"{CB_SUBMIT_FEEDBACK}{SEP}1{SEP}{up.product_id}"
+        else:
+            label = settings.before_after_button_label
+            callback = f"{CB_SEND_PROGRESS}{SEP}{up.product_id}"
+        keyboard = {
+            "inline_keyboard": [[{"text": label, "callback_data": callback}]]
+        }
+        context = {"user": up.user, "product": up.product, "week": week}
+
+        try:
+            send_templated_message_sync(
+                up.user.telegram_id, up.user_id, template_type, context, keyboard
+            )
+        except TelegramError as exc:
+            # Permanent failures (blocked bot, deleted account) are marked done
+            # so they stop being retried forever; transient ones stay unsent
+            # and tomorrow's run picks them up again.
+            if exc.is_permanent:
+                _mark(up, week)
+            continue
+        except Exception:  # noqa: BLE001
+            logger.exception("week%s send crashed for user_product %s", week, up.pk)
+            continue
+        _mark(up, week)
+        sent += 1
+    return sent
+
+
+@shared_task
+def send_week1_checkins() -> int:
     """Send week-1 check-in to eligible purchases. Returns count sent."""
-    from apps.bot_settings.models import GlobalSettings
-    from apps.users.models import UserProduct
-    from bot.keyboards import inline
-    from tasks.notifications import send_templated_message_sync
-
-    settings = GlobalSettings.get()
-    cutoff = timezone.now() - timedelta(days=settings.week1_delay_days)
-
-    qs = UserProduct.objects.select_related("user", "product").filter(
-        purchased_at__lte=cutoff, week1_sent=False
-    )
-    sent = 0
-    for up in qs:
-        context = {"user": up.user, "product": up.product, "week": 1}
-        keyboard = inline.feedback_button_keyboard(
-            settings.feedback_button_label, 1, up.product_id
-        )
-        try:
-            send_templated_message_sync(
-                up.user.telegram_id,
-                up.user_id,
-                "week1_checkin",
-                context,
-                keyboard,
-            )
-            up.week1_sent = True
-            up.save(update_fields=["week1_sent"])
-            sent += 1
-        except Exception as exc:  # noqa: BLE001
-            logger.exception("week1 send failed for user_product %s", up.pk)
-            try:
-                self.retry(exc=exc)
-            except self.MaxRetriesExceededError:
-                logger.error("week1 max retries exceeded for %s", up.pk)
-    return sent
+    return _send_checkin_batch(week=1)
 
 
-@shared_task(bind=True, max_retries=3, default_retry_delay=300)
-def send_week2_progress(self) -> int:
+@shared_task
+def send_week2_progress() -> int:
     """Send week-2 progress request to eligible purchases. Returns count sent."""
-    from apps.bot_settings.models import GlobalSettings
-    from apps.users.models import UserProduct
-    from bot.keyboards import inline
-    from tasks.notifications import send_templated_message_sync
-
-    settings = GlobalSettings.get()
-    cutoff = timezone.now() - timedelta(days=settings.week2_delay_days)
-
-    qs = UserProduct.objects.select_related("user", "product").filter(
-        purchased_at__lte=cutoff, week2_sent=False
-    )
-    sent = 0
-    for up in qs:
-        context = {"user": up.user, "product": up.product, "week": 2}
-        keyboard = inline.progress_button_keyboard(
-            settings.before_after_button_label, up.product_id
-        )
-        try:
-            send_templated_message_sync(
-                up.user.telegram_id,
-                up.user_id,
-                "week2_progress",
-                context,
-                keyboard,
-            )
-            up.week2_sent = True
-            up.save(update_fields=["week2_sent"])
-            sent += 1
-        except Exception as exc:  # noqa: BLE001
-            logger.exception("week2 send failed for user_product %s", up.pk)
-            try:
-                self.retry(exc=exc)
-            except self.MaxRetriesExceededError:
-                logger.error("week2 max retries exceeded for %s", up.pk)
-    return sent
+    return _send_checkin_batch(week=2)
 
 
-@shared_task(bind=True, max_retries=3, default_retry_delay=300)
-def send_birthday_messages(self) -> int:
+@shared_task
+def send_birthday_messages() -> int:
     """Send birthday-sale message to users whose birthday is today (Asia/Tashkent)."""
     from apps.bot_settings.models import GlobalSettings
     from apps.campaigns.models import CampaignLog
@@ -112,23 +126,23 @@ def send_birthday_messages(self) -> int:
 
     qs = TelegramUser.objects.filter(
         is_active=True,
+        telegram_id__isnull=False,
         birth_date__day=today.day,
         birth_date__month=today.month,
     ).exclude(pk__in=already_sent)
+
     sent = 0
     for user in qs:
         context = {"user": user, "discount": settings.birthday_discount_percent}
         try:
-            send_templated_message_sync(
+            if send_templated_message_sync(
                 user.telegram_id, user.pk, "birthday_sale", context
-            )
-            sent += 1
-        except Exception as exc:  # noqa: BLE001
-            logger.exception("birthday send failed for user %s", user.pk)
-            try:
-                self.retry(exc=exc)
-            except self.MaxRetriesExceededError:
-                logger.error("birthday max retries exceeded for %s", user.pk)
+            ):
+                sent += 1
+        except TelegramError:
+            continue  # logged by the sender; nothing more to do for this user
+        except Exception:  # noqa: BLE001
+            logger.exception("birthday send crashed for user %s", user.pk)
     return sent
 
 

@@ -1,16 +1,21 @@
 from __future__ import annotations
 
+import logging
+
 from django import forms
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.auth.models import Group
 from django.http import HttpRequest
 from django.utils.html import format_html
 from unfold.admin import TabularInline
 
 from core.admin import RBModelAdmin, bot_link_badge, yes_no_filter
+from core.telegram import TelegramError, send_message
 
 from .forms import PhoneNumberUniqueMixin
 from .models import TelegramUser, UserProduct
+
+logger = logging.getLogger(__name__)
 
 # Registers the staff-account admin that replaces Django's stock user page.
 from . import staff_admin  # noqa: F401,E402  (import for side effects)
@@ -82,6 +87,13 @@ class TelegramUserForm(PhoneNumberUniqueMixin, forms.ModelForm):
         # Staff type "@name" out of habit; store it the way Telegram reports it.
         return (self.cleaned_data.get("username") or "").lstrip("@").strip()
 
+    def clean_full_name(self) -> str:
+        name = (self.cleaned_data.get("full_name") or "").strip()
+        # "<" or ">" would break every HTML-mode bot message embedding the name.
+        if "<" in name or ">" in name:
+            raise forms.ValidationError("Ismda < yoki > belgisi bo'lmasin.")
+        return name
+
 
 @admin.register(TelegramUser)
 class TelegramUserAdmin(RBModelAdmin):
@@ -150,6 +162,89 @@ class TelegramUserAdmin(RBModelAdmin):
             # Cards born in the CRM, not from the bot's own /start flow.
             obj.source = TelegramUser.RegistrationSource.ADMIN
         super().save_model(request, obj, form, change)
+
+    def save_related(self, request, form, formsets, change):
+        super().save_related(request, form, formsets, change)
+        user: TelegramUser = form.instance
+        new_products = [
+            up.product
+            for fs in formsets
+            if fs.model is UserProduct
+            for up in getattr(fs, "new_objects", [])
+        ]
+        if not new_products:
+            return
+        if not user.telegram_id:
+            messages.info(
+                request,
+                "Mahsulot saqlandi. Mijoz botga ulanganida qo'llanma va "
+                "eslatmalar avtomatik boradi.",
+            )
+            return
+        for product in new_products:
+            if self._send_purchase_message(user, product):
+                messages.success(
+                    request,
+                    f"«{product.name}» uchun tabrik va qo'llanma mijozga "
+                    "botda yuborildi ✅",
+                )
+            else:
+                messages.warning(
+                    request,
+                    f"«{product.name}» qo'llanmasini yuborib bo'lmadi — mijoz "
+                    "botni bloklagan bo'lishi mumkin. 1-hafta eslatmasi "
+                    "baribir rejalashtirilgan.",
+                )
+
+    @staticmethod
+    def _send_purchase_message(user: TelegramUser, product) -> bool:
+        """
+        Thank the customer for the purchase and hand them the tutorial, the
+        moment the seller records it — the same content the bot sends after
+        self-registration, so both entry paths feel identical.
+        """
+        from apps.campaigns.models import MessageTemplate
+        from bot import texts
+        from bot.keyboards.inline import CB_TUTORIAL_STEP, SEP
+
+        intro = ""
+        parse_mode = "HTML"
+        template = MessageTemplate.objects.filter(
+            template_type="product_intro", is_active=True
+        ).first()
+        if template is not None:
+            intro = template.render({"product": product, "user": user})
+            parse_mode = template.parse_mode
+        if not intro.strip():
+            intro = texts.TUTORIAL_INTRO_FALLBACK.format(product=product.name)
+
+        steps = list(product.tutorial_steps.order_by("order"))
+        keyboard = None
+        if steps:
+            keyboard = {
+                "inline_keyboard": [
+                    [
+                        {
+                            "text": step.button_label,
+                            "callback_data": (
+                                f"{CB_TUTORIAL_STEP}{SEP}{product.pk}{SEP}{step.pk}"
+                            ),
+                        }
+                    ]
+                    for step in steps
+                ]
+            }
+        try:
+            send_message(user.telegram_id, texts.PURCHASE_THANKS)
+            send_message(
+                user.telegram_id, intro, parse_mode=parse_mode, reply_markup=keyboard
+            )
+        except TelegramError as exc:
+            logger.warning(
+                "Purchase message to %s failed: %s", user.telegram_id, exc
+            )
+            return False
+        return True
 
     @admin.display(description="Mahsulotlar")
     def products_list(self, obj: TelegramUser) -> str:

@@ -104,9 +104,12 @@ fi
 # A bot instance left over from a previous run holds Telegram's getUpdates
 # lock — the new bot then gets TelegramConflictError and every button looks
 # dead. Clear them before starting.
-if pgrep -f "python.*-m bot.main" >/dev/null 2>&1; then
+# Case-insensitive: macOS runs the venv python as ".../MacOS/Python" (capital
+# P), which a lowercase pattern silently misses — leaving a zombie poller that
+# gives every new bot TelegramConflictError.
+if pgrep -if "python.*-m bot.main" >/dev/null 2>&1; then
   warn "Eski bot nusxalari topildi — o'chirilmoqda…"
-  pkill -f "python.*-m bot.main" || true
+  pkill -if "python.*-m bot.main" || true
   sleep 1
 fi
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from django.contrib import admin
+from django.core.exceptions import PermissionDenied
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.urls import reverse
 from django.utils.html import format_html
@@ -34,6 +35,11 @@ class GlobalSettingsAdmin(RBModelAdmin):
     )
 
     def changelist_view(self, request: HttpRequest, extra_context=None) -> HttpResponse:
+        # The redirect skips the stock changelist (and its permission check),
+        # so the check has to happen here — otherwise a seller's visit both
+        # 403s confusingly *after* a redirect and creates the settings row.
+        if not self.has_view_permission(request):
+            raise PermissionDenied
         settings = GlobalSettings.get()
         return HttpResponseRedirect(
             reverse("admin:bot_settings_globalsettings_change", args=[settings.pk])

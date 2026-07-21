@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import html
 import logging
 
 from aiogram import Bot, F, Router
@@ -19,6 +20,13 @@ router = Router(name="menu")
 @router.message(Command("menu"))
 async def open_menu(message: Message, state: FSMContext) -> None:
     await state.clear()
+    if message.from_user is not None:
+        user = await user_service.get_user(message.from_user.id)
+        # Showing the menu to somebody unregistered just leads every button to
+        # "avval ro'yxatdan o'ting" — send them to /start once, up front.
+        if user is None or not user.full_name:
+            await message.answer(texts.NOT_REGISTERED)
+            return
     await message.answer(texts.MENU_OPENED, reply_markup=reply.main_menu_keyboard())
 
 
@@ -79,11 +87,13 @@ async def menu_profile(message: Message, state: FSMContext) -> None:
         await message.answer(texts.NOT_REGISTERED)
         return
     products = await user_service.get_user_products(message.from_user.id)
-    product_names = ", ".join(up.product.name for up in products) or "—"
+    product_names = (
+        html.escape(", ".join(up.product.name for up in products)) or "—"
+    )
     face = user.get_face_condition_display() if user.face_condition else "—"
     await message.answer(
         texts.PROFILE_TEMPLATE.format(
-            full_name=user.full_name,
+            full_name=html.escape(user.full_name),
             phone=user.phone_number or "—",
             birth_date=user.birth_date.strftime("%d.%m.%Y") if user.birth_date else "—",
             face=face,

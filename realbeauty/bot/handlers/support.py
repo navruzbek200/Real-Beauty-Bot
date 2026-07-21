@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import html
 import logging
 
 from aiogram import F, Router
@@ -90,10 +91,13 @@ async def _notify_staff(message: Message, thread, text: str) -> None:
     """
     try:
         staff_ids = await support_service.get_staff_telegram_ids()
-        preview = text[:100] if text else "📷 rasm"
+        # Escaped: the bot's default parse mode is HTML, and a customer typing
+        # "<" would otherwise make Telegram reject the whole notification.
+        preview = html.escape(text[:100]) if text else "📷 rasm"
+        who = html.escape(str(thread.user.full_name or thread.user.telegram_id))
         note = (
             f"🔔 Yangi murojaat\n"
-            f"👤 {thread.user.full_name or thread.user.telegram_id}\n"
+            f"👤 {who}\n"
             f"💬 {preview}\n\n"
             f"Javob berish: CRM → Murojaatlar"
         )

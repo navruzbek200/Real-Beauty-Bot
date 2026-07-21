@@ -27,6 +27,7 @@ GREETING_ADMIN = (
 )
 ASK_FULL_NAME = "Iltimos, to'liq ismingizni yozing."
 NAME_TOO_SHORT = "Ism juda qisqa. To'liq ismingizni yozing."
+NAME_INVALID = "Ismda faqat harflar bo'lsin. Qayta yozing."
 ASK_BIRTH_DATE = "📅 Tug'ilgan sanangiz? (kk.oo.yyyy)"
 INVALID_DATE = (
     "❌ Sana noto'g'ri. <b>kk.oo.yyyy</b> ko'rinishida yozing (masalan: 25.12.1995)."
@@ -68,6 +69,11 @@ ADMIN_USER_STARTED = (
 ADMIN_USER_REGISTERED = "✅ <b>{full_name}</b> muvaffaqiyatli ro'yxatdan o'tdi."
 
 # --- Tutorials / products ---
+PURCHASE_THANKS = (
+    "🛍 Xaridingiz uchun rahmat!\n\n"
+    "Quyida mahsulotdan qanday foydalanish bo'yicha qo'llanma. "
+    "Bir haftadan so'ng natijangizni so'raymiz 😊"
+)
 NO_PRODUCTS = "Sizda hozircha mahsulotlar yo'q."
 TUTORIAL_INTRO_FALLBACK = "📘 <b>{product}</b> uchun qo'llanma"
 VIDEO_COMING_SOON = "⏳ Ushbu bosqich uchun video tez orada qo'shiladi."

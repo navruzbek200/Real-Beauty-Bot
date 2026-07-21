@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import html
 import logging
 from datetime import date, datetime
 
@@ -75,7 +76,7 @@ async def _handled_as_returning(message: Message, state: FSMContext) -> bool:
 
     await state.clear()
     await message.answer(
-        texts.WELCOME_BACK.format(name=user.full_name),
+        texts.WELCOME_BACK.format(name=html.escape(user.full_name)),
         reply_markup=reply.main_menu_keyboard(),
     )
     return True
@@ -132,7 +133,9 @@ async def _begin_admin_assisted(
 
     await state.set_state(AdminAssistedReg.full_name)
     await message.answer(
-        texts.GREETING_ADMIN.format(admin_name=seller.display_name or "Admin"),
+        texts.GREETING_ADMIN.format(
+            admin_name=html.escape(seller.display_name or "Admin")
+        ),
         reply_markup=reply.remove_keyboard(),
     )
 
@@ -149,6 +152,11 @@ async def step_full_name(message: Message, state: FSMContext) -> None:
         return
     if len(name) < 3:
         await message.answer(texts.NAME_TOO_SHORT)
+        return
+    # "<" or ">" in a name breaks every later HTML-mode message that embeds
+    # it (welcome, campaigns, profile) — Telegram rejects the whole send.
+    if "<" in name or ">" in name:
+        await message.answer(texts.NAME_INVALID)
         return
     await state.update_data(full_name=name)
     await _advance(state, SelfReg.birth_date, AdminAssistedReg.birth_date)
@@ -325,7 +333,9 @@ async def _finalize_registration(
         await _safe_send(
             bot,
             int(data["admin_telegram_id"]),
-            texts.ADMIN_USER_REGISTERED.format(full_name=user.full_name),
+            texts.ADMIN_USER_REGISTERED.format(
+                full_name=html.escape(user.full_name)
+            ),
             "HTML",
         )
 

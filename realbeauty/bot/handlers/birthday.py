@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import html
 import logging
 
 from aiogram import Router
@@ -30,7 +31,7 @@ async def birthday_preview(message: Message) -> None:
     context = {"user": user, "discount": settings.birthday_discount_percent}
     text, parse_mode = await template_service.render_template("birthday_sale", context)
     body = text or (
-        f"🎉 Tug'ilgan kuningiz muborak, {user.full_name}! "
+        f"🎉 Tug'ilgan kuningiz muborak, {html.escape(user.full_name)}! "
         f"Bugun siz uchun {settings.birthday_discount_percent}% chegirma."
     )
     await message.answer(body, parse_mode=parse_mode)

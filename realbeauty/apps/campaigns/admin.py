@@ -144,6 +144,21 @@ class BroadcastForm(forms.ModelForm):
             self.add_error("skin_condition", "Teri turini tanlang.")
         if audience == Broadcast.Audience.BY_PRODUCT and not cleaned.get("product"):
             self.add_error("product", "Mahsulotni tanlang.")
+        # Telegram limits: 4096 chars for a message, 1024 for a photo caption.
+        # Catch it here — otherwise every single send fails at blast time.
+        body = cleaned.get("body") or ""
+        if cleaned.get("photo") and len(body) > 1024:
+            self.add_error(
+                "body",
+                f"Rasmli xabar matni 1024 belgidan oshmasligi kerak "
+                f"(hozir {len(body)}). Matnni qisqartiring yoki rasmni olib "
+                "tashlang.",
+            )
+        elif len(body) > 4096:
+            self.add_error(
+                "body",
+                f"Xabar matni 4096 belgidan oshmasligi kerak (hozir {len(body)}).",
+            )
         return cleaned
 
 

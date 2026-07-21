@@ -6,12 +6,20 @@ from .base import *  # noqa: F401,F403
 
 DEBUG = False
 
-# Fail loudly at boot rather than serve production traffic on the fallback
-# key that ships in the repo.
-if SECRET_KEY == "insecure-dev-key":  # noqa: F405
+# Fail loudly at boot rather than serve production traffic on a fallback or
+# placeholder key. The length check catches "mysecret"-grade values too.
+_PLACEHOLDER_KEYS = {"insecure-dev-key", "change-me-in-production", "dev-insecure-secret"}
+if SECRET_KEY in _PLACEHOLDER_KEYS or len(SECRET_KEY) < 32:  # noqa: F405
     raise RuntimeError(
-        "DJANGO_SECRET_KEY o'rnatilmagan. .env ga kuchli kalit yozing: "
-        "python -c \"import secrets; print(secrets.token_urlsafe(50))\""
+        "DJANGO_SECRET_KEY o'rnatilmagan yoki juda zaif. .env ga kuchli kalit "
+        "yozing: python -c \"import secrets; print(secrets.token_urlsafe(50))\""
+    )
+
+# Same for the database password — the compose db container uses this value.
+if os.environ.get("POSTGRES_PASSWORD", "") in {"", "strongpassword"}:
+    raise RuntimeError(
+        "POSTGRES_PASSWORD bo'sh yoki namunaviy qiymatda. .env ga kuchli parol "
+        "yozing: python -c \"import secrets; print(secrets.token_urlsafe(24))\""
     )
 
 # Explicit hosts only — the base "*" default is for local runs.
