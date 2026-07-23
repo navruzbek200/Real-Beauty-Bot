@@ -198,10 +198,6 @@ async def menu_profile(message: Message, state: FSMContext, lang: str) -> None:
     if user is None or not user.full_name:
         await message.answer(t("user.not_registered", lang))
         return
-    products = await user_service.get_user_products(message.from_user.id)
-    product_names = (
-        html.escape(", ".join(pick(up.product, "name", lang) for up in products)) or "—"
-    )
     face = t(f"skin.type.{user.face_condition}", lang) if user.face_condition else "—"
     points, tier_key = await loyalty_service.get_summary(message.from_user.id)
     await message.answer(
@@ -212,7 +208,6 @@ async def menu_profile(message: Message, state: FSMContext, lang: str) -> None:
             phone=user.phone_number or "—",
             birth_date=user.birth_date.strftime("%d.%m.%Y") if user.birth_date else "—",
             face=face,
-            products=product_names,
             points=points,
             tier=t(tier_key, lang),
         ),
@@ -237,6 +232,14 @@ async def open_language_picker(event: Message | CallbackQuery, lang: str) -> Non
     message = event if isinstance(event, Message) else event.message
     if isinstance(event, CallbackQuery):
         await event.answer()
+    user_id = event.from_user.id
+    user = await user_service.get_user(user_id)
+    if user is None or not user.full_name:
+        # /language typed mid-registration (or by a stranger) must not open a
+        # picker whose callback would otherwise stand ready to short-circuit
+        # whatever step the customer is actually on.
+        await message.answer(t("user.not_registered", lang))
+        return
     await message.answer(
         t("lang.choose", lang),
         parse_mode="HTML",
@@ -245,14 +248,21 @@ async def open_language_picker(event: Message | CallbackQuery, lang: str) -> Non
 
 
 @router.callback_query(F.data.startswith(f"{inline.CB_LANGUAGE}{inline.SEP}"))
-async def change_language(callback: CallbackQuery, state: FSMContext) -> None:
+async def change_language(callback: CallbackQuery, state: FSMContext, lang: str) -> None:
     """
     Language switch outside registration.
 
-    Registration has its own handler filtered on the reg state, and routers are
-    included in order, so a mid-signup pick never reaches this one.
+    Registration's own picker uses a different callback prefix
+    (CB_LANGUAGE_SETUP) precisely so a stale tap on it can never land here —
+    but this handler still checks registration is actually finished before
+    touching FSM state or handing out the main menu, in case some other path
+    (a stray /language mid-flow) ever reaches it.
     """
     await callback.answer()
+    user = await user_service.get_user(callback.from_user.id)
+    if user is None or not user.full_name:
+        await callback.message.answer(t("user.not_registered", lang))
+        return
     chosen = normalize((callback.data or "").split(inline.SEP, 1)[1])
     await user_service.set_language(callback.from_user.id, chosen)
     await state.clear()

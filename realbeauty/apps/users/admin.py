@@ -99,6 +99,7 @@ class TelegramUserForm(PhoneNumberUniqueMixin, forms.ModelForm):
 class TelegramUserAdmin(RBModelAdmin):
     form = TelegramUserForm
     list_display = [
+        "photo_thumb",
         "full_name",
         "phone_number",
         "source_badge",
@@ -112,7 +113,7 @@ class TelegramUserAdmin(RBModelAdmin):
         "face_condition",
     ]
     search_fields = ["full_name", "username", "phone_number"]
-    readonly_fields = ["created_at", "link_help"]
+    readonly_fields = ["created_at", "link_help", "photo_preview"]
     inlines = [UserProductInline]
     date_hierarchy = "created_at"
     list_per_page = 25
@@ -151,6 +152,7 @@ class TelegramUserAdmin(RBModelAdmin):
                         "birth_date",
                         "face_condition",
                         "photo",
+                        "photo_preview",
                     ]
                 },
             ),
@@ -251,6 +253,37 @@ class TelegramUserAdmin(RBModelAdmin):
             )
             return False
         return True
+
+    @admin.display(description="")
+    def photo_thumb(self, obj: TelegramUser) -> str:
+        """A small round avatar in the list, so a face is recognisable at a glance."""
+        if not (obj.photo and obj.photo.name):
+            return format_html(
+                '<span style="color:#d1d5db;font-size:20px">👤</span>'
+            )
+        return format_html(
+            '<img src="{}" style="width:32px;height:32px;border-radius:50%;'
+            'object-fit:cover" />',
+            obj.photo.url,
+        )
+
+    @admin.display(description="Mijoz yuklagan rasm")
+    def photo_preview(self, obj: TelegramUser) -> str:
+        """
+        The registration selfie, shown right on the card.
+
+        Django's stock ImageField widget only offers a bare "Currently:
+        <filename>" link — nothing a seller would click to actually look at
+        the customer's face before handing over a product.
+        """
+        if not (obj.photo and obj.photo.name):
+            return "Mijoz hali rasm yubormagan."
+        return format_html(
+            '<a href="{0}" target="_blank">'
+            '<img src="{0}" style="max-width:220px;max-height:220px;'
+            'border-radius:8px;object-fit:cover" /></a>',
+            obj.photo.url,
+        )
 
     @admin.display(description="Mahsulotlar")
     def products_list(self, obj: TelegramUser) -> str:

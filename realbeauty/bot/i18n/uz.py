@@ -326,6 +326,7 @@ STRINGS: dict[str, str] = {
         "• Do'stingizni taklif qilsangiz — {referral} ball\n"
         "• Tug'ilgan kuningizda — {birthday} ball"
     ),
+        "loyalty.invite_label": "\n🔗 <b>Sizning taklif havolangiz</b> — do'stingizga yuboring:",
     "loyalty.rewards_btn": "🎁 Ballni sarflash",
     "loyalty.history_btn": "🧾 Tarix",
     "loyalty.rewards_header": (
@@ -373,7 +374,6 @@ STRINGS: dict[str, str] = {
         "Telefon: {phone}\n"
         "Tug'ilgan sana: {birth_date}\n"
         "Teri turi: {face}\n"
-        "Mahsulotlar: {products}\n"
         "Bonus: {points} ball · {tier}"
     ),
     # ------------------------------------------------------------- fallback

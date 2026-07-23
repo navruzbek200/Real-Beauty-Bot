@@ -283,3 +283,59 @@ class RegistrationRewardTests(TestCase):
         self.assertEqual(
             LoyaltyAccount.objects.get(user=inviter).balance, conf.points_referral
         )
+
+
+class TierValidatorTests(TestCase):
+    """Admin-facing guard rails on the tier ladder itself."""
+
+    def test_cashback_over_100_is_rejected(self):
+        from django.core.exceptions import ValidationError
+
+        settings = LoyaltySettings.get()
+        settings.bronze_cashback = 150
+        with self.assertRaises(ValidationError):
+            settings.full_clean()
+
+    def test_cashback_at_exactly_100_is_allowed(self):
+        settings = LoyaltySettings.get()
+        settings.platinum_cashback = 100
+        settings.full_clean()  # must not raise
+
+    def test_thresholds_out_of_order_are_rejected(self):
+        from django.core.exceptions import ValidationError
+
+        settings = LoyaltySettings.get()
+        settings.gold_from = 500  # below silver_from's default of 1000
+        with self.assertRaises(ValidationError):
+            settings.full_clean()
+
+    def test_admin_form_surfaces_the_threshold_error(self):
+        from django.contrib.auth.models import User
+        from django.urls import reverse
+
+        boss = User.objects.create_superuser("boss5", "b5@example.com", "pw")
+        self.client.force_login(boss)
+        settings = LoyaltySettings.get()
+
+        response = self.client.post(
+            reverse("admin:loyalty_loyaltysettings_change", args=[settings.pk]),
+            {
+                "is_enabled": "on",
+                "points_registration": 50,
+                "points_purchase": 100,
+                "points_feedback": 30,
+                "points_progress": 50,
+                "points_referral": 150,
+                "points_birthday": 200,
+                "points_quiz": 20,
+                "bronze_cashback": 3,
+                "silver_from": 1000,
+                "silver_cashback": 5,
+                "gold_from": 500,  # invalid: below silver_from
+                "gold_cashback": 7,
+                "platinum_from": 7000,
+                "platinum_cashback": 10,
+            },
+        )
+        self.assertEqual(response.status_code, 200)  # re-rendered with errors
+        self.assertContains(response, "ortib borishi kerak")

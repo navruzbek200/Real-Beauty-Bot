@@ -315,6 +315,7 @@ STRINGS: dict[str, str] = {
         "• Inviting a friend — {referral} points\n"
         "• On your birthday — {birthday} points"
     ),
+        "loyalty.invite_label": "\n🔗 <b>Your referral link</b> — send it to a friend:",
     "loyalty.rewards_btn": "🎁 Spend points",
     "loyalty.history_btn": "🧾 History",
     "loyalty.rewards_header": (
@@ -362,7 +363,6 @@ STRINGS: dict[str, str] = {
         "Phone: {phone}\n"
         "Date of birth: {birth_date}\n"
         "Skin type: {face}\n"
-        "Products: {products}\n"
         "Bonuses: {points} points · {tier}"
     ),
     # ------------------------------------------------------------- fallback

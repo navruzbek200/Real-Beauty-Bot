@@ -9,6 +9,8 @@ sidebar link pointing at a url name that no longer exists.
 
 from __future__ import annotations
 
+from unittest.mock import patch
+
 from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
@@ -256,3 +258,94 @@ class RetiredTemplateTests(TestCase):
             MessageTemplate.objects.filter(template_type="welcome").exists()
         )
         self.assertIn("welcome", listed)
+
+
+class OneStepPurchaseTests(TestCase):
+    """
+    "Customer walks in, buys something" has to be one save: name, phone,
+    product — and the tutorial-thanks message plus the cashback points and
+    notification all fire from that single form submit, not a follow-up step.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.boss = User.objects.create_superuser("boss3", "b3@example.com", "pw")
+        cls.product = Product.objects.create(name="Toner")
+
+    def setUp(self):
+        self.client.force_login(self.boss)
+
+    def _add_customer_with_purchase(self, telegram_id=None):
+        from apps.users.models import TelegramUser as TU
+
+        data = {
+            "full_name": "Yangi Mijoz",
+            "phone_number": "+998907654321",
+            "username": "",
+            "birth_date": "",
+            "face_condition": "",
+            "userproduct_set-TOTAL_FORMS": "1",
+            "userproduct_set-INITIAL_FORMS": "0",
+            "userproduct_set-MIN_NUM_FORMS": "0",
+            "userproduct_set-MAX_NUM_FORMS": "1000",
+            "userproduct_set-0-product": str(self.product.pk),
+            "userproduct_set-0-id": "",
+        }
+        with patch("core.telegram.send_message"):
+            response = self.client.post(
+                reverse("admin:users_telegramuser_add"), data, follow=True
+            )
+        self.assertEqual(response.status_code, 200)
+        return TU.objects.get(full_name="Yangi Mijoz")
+
+    def test_a_single_save_creates_the_customer_and_the_purchase(self):
+        from apps.users.models import UserProduct
+
+        customer = self._add_customer_with_purchase()
+        self.assertTrue(
+            UserProduct.objects.filter(user=customer, product=self.product).exists()
+        )
+
+    def test_the_purchase_credits_loyalty_points_automatically(self):
+        from apps.loyalty.models import LoyaltyAccount, LoyaltySettings
+
+        conf = LoyaltySettings.get()
+        customer = self._add_customer_with_purchase()
+        account = LoyaltyAccount.objects.get(user=customer)
+        self.assertEqual(account.balance, conf.points_purchase)
+
+    def test_customers_not_yet_linked_to_telegram_still_get_the_purchase_saved(self):
+        # No telegram_id yet (they haven't opened the bot) — must not error
+        # out or silently drop the product.
+        from apps.users.models import UserProduct
+
+        customer = self._add_customer_with_purchase()
+        self.assertIsNone(customer.telegram_id)
+        self.assertTrue(UserProduct.objects.filter(user=customer).exists())
+
+
+class PhotoPreviewTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.boss = User.objects.create_superuser("boss4", "b4@example.com", "pw")
+
+    def setUp(self):
+        self.client.force_login(self.boss)
+
+    def test_a_customer_with_no_photo_shows_a_plain_placeholder(self):
+        customer = TelegramUser.objects.create(full_name="Rasmsiz", phone_number="+998900000000")
+        response = self.client.get(
+            reverse("admin:users_telegramuser_change", args=[customer.pk])
+        )
+        self.assertContains(response, "hali rasm yubormagan")
+
+    def test_a_customer_with_a_photo_gets_a_clickable_preview(self):
+        from django.core.files.base import ContentFile
+
+        customer = TelegramUser.objects.create(full_name="Rasmli", phone_number="+998900000001")
+        customer.photo.save("face.jpg", ContentFile(b"fake-image-bytes"), save=True)
+        response = self.client.get(
+            reverse("admin:users_telegramuser_change", args=[customer.pk])
+        )
+        self.assertContains(response, "<img")
+        customer.photo.delete(save=False)

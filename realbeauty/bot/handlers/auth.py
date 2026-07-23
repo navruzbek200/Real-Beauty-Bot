@@ -5,7 +5,7 @@ import logging
 from datetime import date, datetime
 
 from aiogram import Bot, F, Router
-from aiogram.exceptions import TelegramAPIError
+from aiogram.exceptions import TelegramAPIError, TelegramBadRequest
 from aiogram.filters import CommandObject, CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
@@ -174,22 +174,25 @@ async def _ask_language(message: Message, state: FSMContext, target_state) -> No
     await message.answer(
         t("lang.choose", "uz"),
         parse_mode="HTML",
-        reply_markup=inline.language_keyboard(),
+        reply_markup=inline.language_setup_keyboard(),
     )
 
 
 @router.callback_query(
-    SelfReg.language, F.data.startswith(f"{inline.CB_LANGUAGE}{inline.SEP}")
+    SelfReg.language, F.data.startswith(f"{inline.CB_LANGUAGE_SETUP}{inline.SEP}")
 )
 @router.callback_query(
     AdminAssistedReg.language,
-    F.data.startswith(f"{inline.CB_LANGUAGE}{inline.SEP}"),
+    F.data.startswith(f"{inline.CB_LANGUAGE_SETUP}{inline.SEP}"),
 )
 async def step_language(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
     chosen = normalize((callback.data or "").split(inline.SEP, 1)[1])
     await state.update_data(language=chosen)
     await user_service.set_language(callback.from_user.id, chosen)
+    # A second tap on this same message later must do nothing — the FSM has
+    # already moved past it, and Telegram never expires old inline buttons.
+    await _clear_keyboard(callback)
 
     data = await state.get_data()
     if "seller_id" in data:
@@ -322,6 +325,7 @@ async def step_face_condition(callback: CallbackQuery, state: FSMContext) -> Non
     await callback.answer()
     value = (callback.data or "").split(inline.SEP, 1)[1]
     await state.update_data(face_condition=value)
+    await _clear_keyboard(callback)
     await continue_after_skin(callback.message, state, callback.bot)
 
 
@@ -478,6 +482,20 @@ async def _reg_language(state: FSMContext) -> str:
     """
     data = await state.get_data()
     return normalize(data.get("language"))
+
+
+async def _clear_keyboard(callback: CallbackQuery) -> None:
+    """
+    Strip the inline keyboard off a used registration-step message.
+
+    Telegram never expires an inline button on its own, so without this a
+    customer could scroll back days later and tap "til" or "teri turi" again
+    on a message the FSM has long since moved past.
+    """
+    try:
+        await callback.message.edit_reply_markup(reply_markup=None)
+    except TelegramBadRequest:
+        pass  # already edited, or too old to edit — nothing worth reporting
 
 
 async def _advance(state: FSMContext, self_state, admin_state) -> None:

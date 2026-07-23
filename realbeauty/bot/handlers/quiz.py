@@ -71,21 +71,35 @@ def render_question(index: int, lang: str) -> tuple[str, InlineKeyboardMarkup]:
 # ---------------------------------------------------------------------------
 # The fork: do you already know your type?
 # ---------------------------------------------------------------------------
-@router.callback_query(F.data == f"{inline.CB_KNOW_SKIN}{inline.SEP}yes")
+# State-filtered to exactly where `ask_skin_step` (auth.py) puts a customer:
+# the "Bilasizmi?" screen is only ever shown mid-registration, so a stale tap
+# on it after registration moved on (Telegram never expires old buttons) must
+# fall through to the "this button is out of date" fallback instead of a
+# handler here re-driving a flow that no longer applies.
+_KNOW_SKIN_STATES = (SelfReg.face_condition, AdminAssistedReg.face_condition)
+
+
+@router.callback_query(
+    *_KNOW_SKIN_STATES, F.data == f"{inline.CB_KNOW_SKIN}{inline.SEP}yes"
+)
 async def knows_skin_type(callback: CallbackQuery, state: FSMContext, lang: str) -> None:
     from bot.handlers.auth import face_choices
 
     await callback.answer()
     lang = await _language(state, lang)
+    await _strip_keyboard(callback)
     await callback.message.answer(
         t("skin.pick", lang), reply_markup=inline.face_condition_keyboard(face_choices(lang))
     )
 
 
-@router.callback_query(F.data == f"{inline.CB_KNOW_SKIN}{inline.SEP}no")
+@router.callback_query(
+    *_KNOW_SKIN_STATES, F.data == f"{inline.CB_KNOW_SKIN}{inline.SEP}no"
+)
 async def wants_the_quiz(callback: CallbackQuery, state: FSMContext, lang: str) -> None:
     await callback.answer()
     lang = await _language(state, lang)
+    await _strip_keyboard(callback)
     await state.set_state(SkinQuizState.intro)
     await callback.message.answer(
         t("quiz.intro", lang),
@@ -97,23 +111,31 @@ async def wants_the_quiz(callback: CallbackQuery, state: FSMContext, lang: str) 
 @router.callback_query(F.data.startswith(f"{inline.CB_FACE_CONDITION}{inline.SEP}"))
 async def set_skin_type_directly(callback: CallbackQuery, lang: str) -> None:
     """
-    A skin type picked outside registration.
+    A skin type re-picked from the profile screen's retake flow, or a stale
+    tap on a much older message.
 
-    Registration has its own handler filtered on the reg state and the auth
-    router is included first, so this only ever sees taps on a message left
-    over from an earlier session — which would otherwise answer "this button
-    is out of date" and silently drop a perfectly good answer.
+    Registration itself is handled entirely by auth.py's state-filtered
+    handler; this one only ever fires once that state no longer applies. It
+    must not act as if the customer is a finished, registered user until it
+    has actually checked — otherwise a stale tap mid-registration would show
+    the main menu to somebody who never finished signing up.
     """
     await callback.answer()
     value = (callback.data or "").split(inline.SEP, 1)[1]
     valid = {c.value for c in TelegramUser.FaceCondition}
     if value not in valid:
         return
+
+    user = await user_service.get_user(callback.from_user.id)
+    if user is None or not user.full_name:
+        await callback.answer(t("fallback.stale_button", lang), show_alert=False)
+        return
+
     await user_service.set_face_condition(callback.from_user.id, value)
     await callback.message.answer(
         t("quiz.result_type", lang, skin_type=t(f"skin.type.{value}", lang)),
         parse_mode="HTML",
-        reply_markup=reply.main_menu_keyboard(lang),
+        reply_markup=reply.main_menu_keyboard(user.language),
     )
 
 

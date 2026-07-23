@@ -8,6 +8,14 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from bot.i18n import language_choices, t
 
 # --- Callback data prefixes (no magic strings in handlers) ---
+# Two distinct prefixes for what looks like "the same" language picker:
+# CB_LANGUAGE_SETUP only ever matches inside the registration FSM states, so a
+# stale tap on that first-screen message (Telegram keeps old messages tappable
+# forever) cannot do anything once registration has moved on. CB_LANGUAGE is
+# the profile "change language" button, which is state-free by design and
+# would otherwise catch that stale tap, clear whatever state the customer was
+# in, and drop a half-registered person straight onto the main menu.
+CB_LANGUAGE_SETUP = "lang_setup"    # lang_setup:<code>
 CB_LANGUAGE = "lang"                # lang:<code>
 CB_FACE_CONDITION = "face"          # face:<value>
 CB_KNOW_SKIN = "know_skin"          # know_skin:yes | know_skin:no
@@ -31,8 +39,17 @@ CB_LOYALTY_REDEEM = "loy_redeem"    # loy_redeem:<reward_id>
 SEP = ":"
 
 
+def language_setup_keyboard() -> InlineKeyboardMarkup:
+    """The very first screen, during registration — deliberately not translated."""
+    builder = InlineKeyboardBuilder()
+    for code, label in language_choices():
+        builder.button(text=label, callback_data=f"{CB_LANGUAGE_SETUP}{SEP}{code}")
+    builder.adjust(1)
+    return builder.as_markup()
+
+
 def language_keyboard() -> InlineKeyboardMarkup:
-    """The very first screen — deliberately not translated."""
+    """The profile "change language" screen — outside registration."""
     builder = InlineKeyboardBuilder()
     for code, label in language_choices():
         builder.button(text=label, callback_data=f"{CB_LANGUAGE}{SEP}{code}")

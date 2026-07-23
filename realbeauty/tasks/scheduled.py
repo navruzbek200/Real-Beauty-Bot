@@ -180,9 +180,13 @@ def send_birthday_messages() -> int:
             ):
                 sent += 1
         except TelegramError:
-            continue  # logged by the sender; nothing more to do for this user
+            pass  # logged by the sender — but they still earned the points below
         except Exception:  # noqa: BLE001
             logger.exception("birthday send crashed for user %s", user.pk)
+        # Deliberately unconditional: a `continue` in either except branch
+        # above would skip this and silently deny the birthday bonus to
+        # exactly the customers who blocked the bot — the one case the
+        # comment on `_credit_birthday_points` promises still gets paid.
         _credit_birthday_points(user, today)
     return sent
 

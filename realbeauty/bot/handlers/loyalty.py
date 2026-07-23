@@ -82,8 +82,11 @@ def _card_text(card: loyalty_service.LoyaltyCard, lang: str, telegram_id: int) -
         )
     )
     # The invite link is the one earning action the customer can take right
-    # now, so it sits under the list that mentions it.
-    blocks.append(f"🔗 <code>{_invite_link(telegram_id)}</code>")
+    # now, so it sits under the list that mentions it — labelled, not just a
+    # bare code block nobody would guess the purpose of.
+    blocks.append(
+        t("loyalty.invite_label", lang) + f"\n<code>{_invite_link(telegram_id)}</code>"
+    )
     return "\n\n".join(blocks)
 
 

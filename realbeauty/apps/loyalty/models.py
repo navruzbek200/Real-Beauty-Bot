@@ -25,6 +25,7 @@ import secrets
 import string
 from typing import Any
 
+from django.core.validators import MaxValueValidator
 from django.db import models
 from django.utils import timezone
 
@@ -67,32 +68,63 @@ class LoyaltySettings(models.Model):
         default=20, verbose_name="Teri testini topshirgani uchun"
     )
 
-    # Tier thresholds are lifetime totals; bronze always starts at 0.
+    # Tier thresholds are lifetime totals; bronze always starts at 0. Cashback
+    # doubles as the "e'lon qilinadigan chegirma" (announced discount) the
+    # shop shows off per tier — capped at 100% since anything past that is a
+    # typo, not a promotion.
     bronze_cashback = models.PositiveSmallIntegerField(
-        default=3, verbose_name="Bronza keshbek (%)"
+        default=3,
+        validators=[MaxValueValidator(100)],
+        verbose_name="Bronza keshbek / chegirma (%)",
     )
     silver_from = models.PositiveIntegerField(
         default=1000, verbose_name="Kumush darajasi (balldan)"
     )
     silver_cashback = models.PositiveSmallIntegerField(
-        default=5, verbose_name="Kumush keshbek (%)"
+        default=5,
+        validators=[MaxValueValidator(100)],
+        verbose_name="Kumush keshbek / chegirma (%)",
     )
     gold_from = models.PositiveIntegerField(
         default=3000, verbose_name="Oltin darajasi (balldan)"
     )
     gold_cashback = models.PositiveSmallIntegerField(
-        default=7, verbose_name="Oltin keshbek (%)"
+        default=7,
+        validators=[MaxValueValidator(100)],
+        verbose_name="Oltin keshbek / chegirma (%)",
     )
     platinum_from = models.PositiveIntegerField(
         default=7000, verbose_name="Platina darajasi (balldan)"
     )
     platinum_cashback = models.PositiveSmallIntegerField(
-        default=10, verbose_name="Platina keshbek (%)"
+        default=10,
+        validators=[MaxValueValidator(100)],
+        verbose_name="Platina keshbek / chegirma (%)",
     )
 
     class Meta:
         verbose_name = "Bonus dasturi sozlamalari"
         verbose_name_plural = "Bonus dasturi sozlamalari"
+
+    def clean(self) -> None:
+        """
+        Thresholds must climb: bronze(0) < silver < gold < platinum.
+
+        `tier_for` picks a tier by scanning this ladder in a fixed order and
+        keeping the last one the balance clears — if the admin ever sets, say,
+        Gold's threshold below Silver's, a 700-point customer would jump
+        straight past Silver into Gold, and everyone above Silver would sit in
+        whichever tier happens to have the lowest number. Free configuration
+        is the point; a config that silently breaks the ladder isn't.
+        """
+        from django.core.exceptions import ValidationError
+
+        if not (0 < self.silver_from < self.gold_from < self.platinum_from):
+            raise ValidationError(
+                "Darajalar ortib borishi kerak: Kumush < Oltin < Platina "
+                f"(hozir: {self.silver_from} / {self.gold_from} / "
+                f"{self.platinum_from})."
+            )
 
     def save(self, *args: Any, **kwargs: Any) -> None:
         self.pk = 1  # enforce singleton
