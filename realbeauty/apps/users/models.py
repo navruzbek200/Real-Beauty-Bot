@@ -72,6 +72,11 @@ class TelegramUser(models.Model):
         PENDING = "pending", "To'ldirilishi kerak"
         COMPLETED = "completed", "To'ldirilgan"
 
+    class Language(models.TextChoices):
+        UZ = "uz", "O'zbekcha"
+        RU = "ru", "Русский"
+        EN = "en", "English"
+
     # Empty until the customer opens the bot. Staff add customers by name and
     # phone; the bot fills this in on /start by matching the phone number.
     telegram_id = models.BigIntegerField(
@@ -97,6 +102,15 @@ class TelegramUser(models.Model):
     # strings never compare equal — this column is what we actually match on.
     phone_tail = models.CharField(
         max_length=9, blank=True, db_index=True, editable=False
+    )
+    # Picked on the very first /start, before anything else is asked — every
+    # later message, button and campaign is rendered in it.
+    language = models.CharField(
+        max_length=5,
+        choices=Language.choices,
+        default=Language.UZ,
+        verbose_name="Til",
+        help_text="Mijoz botda tanlagan til. Xabarlar shu tilda yuboriladi.",
     )
     face_condition = models.CharField(
         max_length=20,
@@ -141,6 +155,12 @@ class TelegramUser(models.Model):
     )
     is_active = models.BooleanField(default=True, verbose_name="Faol")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Qo'shilgan sana")
+    # When the customer finished registration in the bot. `created_at` can be
+    # months earlier — staff enter customer cards long before the person opens
+    # Telegram — so anything counting "N days after signing up" has to use this.
+    registered_at = models.DateTimeField(
+        null=True, blank=True, editable=False, verbose_name="Ro'yxatdan o'tgan vaqt"
+    )
 
     class Meta:
         verbose_name = "Xaridor"

@@ -6,7 +6,7 @@ from aiogram import BaseMiddleware
 from aiogram.types import CallbackQuery, Message, TelegramObject, Update
 from asgiref.sync import sync_to_async
 
-from bot import texts
+from bot.i18n import t
 
 
 @sync_to_async
@@ -42,8 +42,12 @@ class ActiveUserMiddleware(BaseMiddleware):
         if not await _is_blocked(user.id):
             return await handler(event, data)
 
+        # Runs after LanguageMiddleware, so `lang` is already the blocked
+        # customer's own — being switched off is not a reason to be told so in
+        # a language they don't read.
+        lang = data.get("lang", "uz")
         if isinstance(inner, CallbackQuery):
-            await inner.answer(texts.ACCOUNT_DISABLED, show_alert=True)
+            await inner.answer(t("user.disabled", lang), show_alert=True)
         elif isinstance(inner, Message):
-            await inner.answer(texts.ACCOUNT_DISABLED)
+            await inner.answer(t("user.disabled", lang))
         return None

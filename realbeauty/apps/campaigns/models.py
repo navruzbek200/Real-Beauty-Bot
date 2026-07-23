@@ -1,8 +1,33 @@
 from __future__ import annotations
 
+import logging
+from datetime import timedelta
 from typing import Any
 
 from django.db import models
+
+logger = logging.getLogger(__name__)
+
+
+def render_body(body: str, context: dict[str, Any], *, html: bool) -> str:
+    """
+    Fill `{{ placeholders }}` in an admin-written message body.
+
+    Falls back to the raw text on any Jinja error: bodies are typed by hand in
+    the CRM, and one unclosed brace must degrade to a slightly odd message —
+    not crash the campaign task and leave every customer with nothing.
+
+    With `html=True` substituted values are escaped, so a customer named "<3"
+    can't produce markup Telegram rejects.
+    """
+    from jinja2 import Environment
+
+    try:
+        env = Environment(autoescape=html)
+        return env.from_string(body).render(**context)
+    except Exception:  # noqa: BLE001 — syntax or undefined-variable errors
+        logger.exception("Template body failed to render; sending raw text")
+        return body
 
 
 class MessageTemplate(models.Model):
@@ -35,6 +60,10 @@ class MessageTemplate(models.Model):
         "Masalan: {{ user.full_name }}, {{ product.name }}, {{ discount }}. "
         "Telegram HTML formatidan foydalaning.",
     )
+    # Optional — an empty translation falls back to the Uzbek body, so the
+    # shop can add languages one at a time instead of all at once.
+    body_ru = models.TextField(blank=True, verbose_name="Xabar matni (ruscha)")
+    body_en = models.TextField(blank=True, verbose_name="Xabar matni (inglizcha)")
     parse_mode = models.CharField(
         max_length=8,
         default="HTML",
@@ -48,32 +77,13 @@ class MessageTemplate(models.Model):
         verbose_name = "Xabar shabloni"
         verbose_name_plural = "Xabar shablonlari"
 
-    def render(self, context: dict[str, Any]) -> str:
-        """
-        Render template body with given context dict.
+    def render(self, context: dict[str, Any], lang: str = "uz") -> str:
+        """Render this template's body for `lang`, filling in `context`."""
+        from core.i18n import pick
 
-        Falls back to the raw body on any Jinja error: templates are edited by
-        hand in the admin, and one unclosed brace must degrade to a slightly
-        odd message — not crash the campaign task into a retry loop that
-        leaves every customer without their message.
-
-        For HTML templates the substituted values are escaped (autoescape):
-        a customer named "<3" would otherwise produce invalid HTML and make
-        Telegram reject every campaign message addressed to them.
-        """
-        import logging
-
-        from jinja2 import Environment
-
-        try:
-            env = Environment(autoescape=self.parse_mode == "HTML")
-            template = env.from_string(self.body)
-            return template.render(**context)
-        except Exception:  # noqa: BLE001 — syntax or undefined-variable errors
-            logging.getLogger(__name__).exception(
-                "Template %s failed to render; sending raw body", self.pk
-            )
-            return self.body
+        return render_body(
+            pick(self, "body", lang), context, html=self.parse_mode == "HTML"
+        )
 
     def __str__(self) -> str:
         return f"[{self.template_type}] {self.name}"
@@ -104,6 +114,221 @@ class CampaignLog(models.Model):
     def __str__(self) -> str:
         status = "OK" if self.success else "FAIL"
         return f"{self.user} — {self.template} [{status}]"
+
+
+class AutoMessage(models.Model):
+    """
+    A message the bot sends by itself, N minutes/hours/days after something
+    happened to the customer.
+
+    Replaces the two hard-coded week-1/week-2 campaigns. The shop controls the
+    wording, the delay *and its unit*, and the button — which is what makes
+    this testable: set the unit to "daqiqa", the value to 1, switch on test
+    mode, and the whole pipeline can be verified in a minute instead of a week.
+    """
+
+    class Trigger(models.TextChoices):
+        AFTER_PURCHASE = "after_purchase", "Mahsulot sotib olingandan keyin"
+        AFTER_REGISTRATION = "after_registration", "Ro'yxatdan o'tgandan keyin"
+
+    class Unit(models.TextChoices):
+        MINUTE = "minute", "daqiqa"
+        HOUR = "hour", "soat"
+        DAY = "day", "kun"
+
+    class Action(models.TextChoices):
+        NONE = "none", "Tugmasiz (faqat matn)"
+        FEEDBACK = "feedback", "«Fikr bildirish» tugmasi"
+        PROGRESS = "progress", "«Rasm yuborish» tugmasi"
+        DISCOUNTS = "discounts", "«Chegirmalarni ko'rish» tugmasi"
+
+    _UNIT_SECONDS = {Unit.MINUTE: 60, Unit.HOUR: 3600, Unit.DAY: 86400}
+
+    # An anchor this much older than the delay predates the campaign itself
+    # (staff enter purchases long before the customer opens the bot). Greeting
+    # somebody months late reads as a broken bot, so those are marked done
+    # without sending.
+    STALE_GRACE_DAYS = 30
+
+    name = models.CharField(
+        max_length=128,
+        verbose_name="Nomi",
+        help_text="Faqat siz uchun. Masalan: «1 hafta — keshbek taklifi».",
+    )
+    trigger = models.CharField(
+        max_length=24,
+        choices=Trigger.choices,
+        default=Trigger.AFTER_PURCHASE,
+        verbose_name="Qachondan hisoblanadi",
+    )
+    delay_value = models.PositiveSmallIntegerField(
+        default=7,
+        verbose_name="Qancha vaqtdan keyin",
+        help_text="Raqam. Masalan: 7.",
+    )
+    delay_unit = models.CharField(
+        max_length=8,
+        choices=Unit.choices,
+        default=Unit.DAY,
+        verbose_name="Vaqt birligi",
+        help_text="«daqiqa» — sinash uchun qulay, «kun» — haqiqiy ish uchun.",
+    )
+
+    body = models.TextField(
+        verbose_name="Xabar matni",
+        help_text="Mijozga boradigan matn. {{ user.full_name }} va "
+        "{{ product.name }} ishlaydi. Telegram HTML: <b>qalin</b>, <i>qiya</i>.",
+    )
+    body_ru = models.TextField(blank=True, verbose_name="Xabar matni (ruscha)")
+    body_en = models.TextField(blank=True, verbose_name="Xabar matni (inglizcha)")
+
+    button_action = models.CharField(
+        max_length=16,
+        choices=Action.choices,
+        default=Action.NONE,
+        verbose_name="Xabar ostidagi tugma",
+    )
+    button_label = models.CharField(
+        max_length=64,
+        blank=True,
+        verbose_name="Tugma matni",
+        help_text="«Tugmasiz» tanlansa, bu maydon e'tiborga olinmaydi.",
+    )
+    button_label_ru = models.CharField(
+        max_length=64, blank=True, verbose_name="Tugma matni (ruscha)"
+    )
+    button_label_en = models.CharField(
+        max_length=64, blank=True, verbose_name="Tugma matni (inglizcha)"
+    )
+
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="Yoqilgan",
+        help_text="O'chirilsa bot bu xabarni umuman yubormaydi.",
+    )
+    # Test mode exists because the natural way to try a campaign — drop the
+    # delay to one minute — would otherwise fire it at every customer who
+    # bought something in the last month.
+    is_test_mode = models.BooleanField(
+        default=False,
+        verbose_name="Sinov rejimi",
+        help_text="Yoqilsa xabar FAQAT quyida tanlangan mijozga boradi. "
+        "Vaqtni «1 daqiqa» qilib sinab ko'rish uchun.",
+    )
+    test_user = models.ForeignKey(
+        "users.TelegramUser",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+        verbose_name="Sinov mijozi",
+        help_text="Sinov rejimida xabar shu mijozga yuboriladi.",
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Yaratilgan")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Yangilangan")
+
+    class Meta:
+        verbose_name = "Avtomatik xabar"
+        verbose_name_plural = "Avtomatik xabarlar"
+        ordering = ["trigger", "delay_value"]
+
+    def __str__(self) -> str:
+        return self.name
+
+    # --- timing -------------------------------------------------------------
+    @property
+    def delay(self) -> timedelta:
+        seconds = self._UNIT_SECONDS[self.delay_unit] * self.delay_value
+        return timedelta(seconds=seconds)
+
+    @property
+    def stale_grace(self) -> timedelta:
+        return timedelta(days=self.STALE_GRACE_DAYS)
+
+    @property
+    def schedule_label(self) -> str:
+        """"7 kun o'tgach" — how the delay reads in the CRM."""
+        return f"{self.delay_value} {self.get_delay_unit_display()} o'tgach"
+
+    # --- rendering ----------------------------------------------------------
+    def render(self, context: dict[str, Any], lang: str = "uz") -> str:
+        from core.i18n import pick
+
+        return render_body(pick(self, "body", lang), context, html=True)
+
+    def label_for(self, lang: str = "uz") -> str:
+        from core.i18n import pick
+
+        return pick(self, "button_label", lang)
+
+    def keyboard_for(self, lang: str, product_id: int | None) -> dict | None:
+        """
+        The inline keyboard this message carries, as a raw Bot API dict.
+
+        Returns None when there is no button to draw — including when the
+        chosen action needs a product and this send has none, since a callback
+        with a missing id would just error in the customer's face.
+        """
+        from bot.keyboards.inline import (
+            CB_OPEN_DISCOUNTS,
+            CB_SEND_PROGRESS,
+            CB_SUBMIT_FEEDBACK,
+            SEP,
+        )
+
+        label = self.label_for(lang)
+        if self.button_action == self.Action.NONE or not label:
+            return None
+
+        if self.button_action == self.Action.DISCOUNTS:
+            callback = CB_OPEN_DISCOUNTS
+        elif product_id is None:
+            return None
+        elif self.button_action == self.Action.FEEDBACK:
+            callback = f"{CB_SUBMIT_FEEDBACK}{SEP}1{SEP}{product_id}"
+        else:
+            callback = f"{CB_SEND_PROGRESS}{SEP}{product_id}"
+
+        return {"inline_keyboard": [[{"text": label, "callback_data": callback}]]}
+
+
+class AutoMessageLog(models.Model):
+    """
+    Proof that one auto-message already went to one anchor.
+
+    `anchor` is what makes a send happen exactly once: "up:42" for a purchase,
+    "user:7" for a registration. A plain (message, user) pair would be wrong —
+    a customer who buys two products should get the check-in for both.
+    """
+
+    auto_message = models.ForeignKey(
+        AutoMessage,
+        on_delete=models.CASCADE,
+        related_name="logs",
+        verbose_name="Avtomatik xabar",
+    )
+    user = models.ForeignKey(
+        "users.TelegramUser", on_delete=models.CASCADE, verbose_name="Mijoz"
+    )
+    anchor = models.CharField(max_length=32, editable=False)
+    sent_at = models.DateTimeField(auto_now_add=True, verbose_name="Yuborilgan vaqt")
+    success = models.BooleanField(default=True, verbose_name="Yetkazildi")
+    error_detail = models.TextField(blank=True, verbose_name="Xato")
+
+    class Meta:
+        verbose_name = "Avtomatik xabar jurnali"
+        verbose_name_plural = "Avtomatik xabarlar jurnali"
+        ordering = ["-sent_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["auto_message", "anchor"], name="uniq_automessage_anchor"
+            )
+        ]
+        indexes = [models.Index(fields=["-sent_at"])]
+
+    def __str__(self) -> str:
+        return f"{self.auto_message} → {self.user}"
 
 
 class Broadcast(models.Model):

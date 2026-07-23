@@ -11,6 +11,22 @@ def get_active_products() -> list[Product]:
 
 
 @sync_to_async
+def get_top_products() -> list[Product]:
+    """
+    This month's curated top list.
+
+    Deactivated products are filtered out even when still flagged as top: the
+    shop switches a product off when it stops selling it, and forgetting to
+    untick the top flag must not keep advertising it.
+    """
+    return list(
+        Product.objects.filter(is_top=True, is_active=True).order_by(
+            "top_order", "name"
+        )
+    )
+
+
+@sync_to_async
 def get_product(product_id: int) -> Product | None:
     return Product.objects.filter(pk=product_id).first()
 

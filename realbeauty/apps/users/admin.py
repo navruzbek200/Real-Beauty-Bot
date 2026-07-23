@@ -6,7 +6,7 @@ from django import forms
 from django.contrib import admin, messages
 from django.contrib.auth.models import Group
 from django.http import HttpRequest
-from django.utils.html import format_html
+from django.utils.html import escape, format_html
 from unfold.admin import TabularInline
 
 from core.admin import RBModelAdmin, bot_link_badge, yes_no_filter
@@ -204,19 +204,25 @@ class TelegramUserAdmin(RBModelAdmin):
         self-registration, so both entry paths feel identical.
         """
         from apps.campaigns.models import MessageTemplate
-        from bot import texts
+        from bot.i18n import t
         from bot.keyboards.inline import CB_TUTORIAL_STEP, SEP
+        from core.i18n import pick
 
+        lang = user.language
         intro = ""
         parse_mode = "HTML"
         template = MessageTemplate.objects.filter(
             template_type="product_intro", is_active=True
         ).first()
         if template is not None:
-            intro = template.render({"product": product, "user": user})
+            intro = template.render({"product": product, "user": user}, lang)
             parse_mode = template.parse_mode
         if not intro.strip():
-            intro = texts.TUTORIAL_INTRO_FALLBACK.format(product=product.name)
+            intro = t(
+                "tutorial.intro_fallback",
+                lang,
+                product=escape(pick(product, "name", lang)),
+            )
 
         steps = list(product.tutorial_steps.order_by("order"))
         keyboard = None
@@ -225,7 +231,7 @@ class TelegramUserAdmin(RBModelAdmin):
                 "inline_keyboard": [
                     [
                         {
-                            "text": step.button_label,
+                            "text": pick(step, "button_label", lang),
                             "callback_data": (
                                 f"{CB_TUTORIAL_STEP}{SEP}{product.pk}{SEP}{step.pk}"
                             ),
@@ -235,7 +241,7 @@ class TelegramUserAdmin(RBModelAdmin):
                 ]
             }
         try:
-            send_message(user.telegram_id, texts.PURCHASE_THANKS)
+            send_message(user.telegram_id, t("purchase.thanks", lang))
             send_message(
                 user.telegram_id, intro, parse_mode=parse_mode, reply_markup=keyboard
             )

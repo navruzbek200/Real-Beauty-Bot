@@ -3,9 +3,24 @@ from __future__ import annotations
 from django.db import models
 
 
+class TopProductManager(models.Manager):
+    """Keeps the "top of the month" page showing only the picked products."""
+
+    def get_queryset(self) -> models.QuerySet:
+        return super().get_queryset().filter(is_top=True)
+
+
 class Product(models.Model):
     name = models.CharField(max_length=256, verbose_name="Nomi")
+    name_ru = models.CharField(
+        max_length=256, blank=True, verbose_name="Nomi (ruscha)"
+    )
+    name_en = models.CharField(
+        max_length=256, blank=True, verbose_name="Nomi (inglizcha)"
+    )
     description = models.TextField(blank=True, verbose_name="Tavsif")
+    description_ru = models.TextField(blank=True, verbose_name="Tavsif (ruscha)")
+    description_en = models.TextField(blank=True, verbose_name="Tavsif (inglizcha)")
     photo = models.ImageField(
         upload_to="products/",
         blank=True,
@@ -13,6 +28,37 @@ class Product(models.Model):
         verbose_name="Rasm (ixtiyoriy)",
     )
     is_active = models.BooleanField(default=True, verbose_name="Faol")
+
+    # --- "Bu oydagi top mahsulotlar" ---------------------------------------
+    # A flag on the product rather than a separate table: the shop picks from
+    # the products it already sells, and a parallel list would let the two
+    # drift apart (a renamed or deactivated product still showing in the top).
+    is_top = models.BooleanField(
+        default=False,
+        db_index=True,
+        verbose_name="Bu oyning top mahsuloti",
+        help_text="Belgilansa, botdagi «Bu oydagi top mahsulotlar» ro'yxatida "
+        "chiqadi.",
+    )
+    top_order = models.PositiveSmallIntegerField(
+        default=1,
+        verbose_name="Top ro'yxatdagi o'rni",
+        help_text="1 — birinchi bo'lib chiqadi, keyin 2, 3 ...",
+    )
+    top_note = models.CharField(
+        max_length=200,
+        blank=True,
+        verbose_name="Top izohi",
+        help_text="Ixtiyoriy: «Eng ko'p sotilgan», «Yangi kelgan» kabi qisqa "
+        "yozuv. Mahsulot ostida ko'rinadi.",
+    )
+    top_note_ru = models.CharField(
+        max_length=200, blank=True, verbose_name="Top izohi (ruscha)"
+    )
+    top_note_en = models.CharField(
+        max_length=200, blank=True, verbose_name="Top izohi (inglizcha)"
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -21,6 +67,23 @@ class Product(models.Model):
 
     def __str__(self) -> str:
         return self.name
+
+
+class TopProduct(Product):
+    """
+    Proxy over Product giving the monthly top list its own CRM page.
+
+    Same rows, same table — this page is just the slice with `is_top` set, so
+    the shop can curate the list without hunting through the full catalogue.
+    """
+
+    objects = TopProductManager()
+
+    class Meta:
+        proxy = True
+        ordering = ["top_order", "name"]
+        verbose_name = "Top mahsulot"
+        verbose_name_plural = "Bu oydagi top mahsulotlar"
 
 
 class ProductTutorialStep(models.Model):
@@ -46,9 +109,21 @@ class ProductTutorialStep(models.Model):
         verbose_name="Tugma matni",
         help_text="Botda ko'rinadigan tugma, masalan: «1-qadam: Tozalash».",
     )
+    button_label_ru = models.CharField(
+        max_length=64, blank=True, verbose_name="Tugma matni (ruscha)"
+    )
+    button_label_en = models.CharField(
+        max_length=64, blank=True, verbose_name="Tugma matni (inglizcha)"
+    )
     intro_text = models.TextField(
         verbose_name="Video oldidan matn",
         help_text="Video yuborilishidan oldin ko'rsatiladigan qisqa izoh.",
+    )
+    intro_text_ru = models.TextField(
+        blank=True, verbose_name="Video oldidan matn (ruscha)"
+    )
+    intro_text_en = models.TextField(
+        blank=True, verbose_name="Video oldidan matn (inglizcha)"
     )
     video_file = models.FileField(
         upload_to="videos/",

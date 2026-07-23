@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     "apps.bot_settings",
     "apps.analytics",
     "apps.support",
+    "apps.loyalty",
 ]
 
 MIDDLEWARE = [
@@ -166,7 +167,7 @@ UNFOLD = {
     # Custom usability CSS (color-coded actions, bigger targets, readability)
     "STYLES": [
         # ?v bust keeps the browser from serving a stale cached copy.
-        lambda request: static("css/admin.css") + "?v=8",
+        lambda request: static("css/admin.css") + "?v=9",
     ],
     # Brand palette (navy → cyan), space-separated RGB per Unfold/Tailwind.
     "COLORS": {
@@ -224,12 +225,23 @@ UNFOLD = {
                         "icon": "inventory_2",
                         "link": reverse_lazy("admin:products_product_changelist"),
                     },
+                    {
+                        "title": "Bu oydagi top",
+                        "icon": "local_fire_department",
+                        "link": reverse_lazy("admin:products_topproduct_changelist"),
+                    },
                 ],
             },
             {
                 "title": "Marketing",
                 "separator": True,
                 "items": [
+                    {
+                        "title": "Avtomatik xabarlar",
+                        "icon": "schedule_send",
+                        "link": reverse_lazy("admin:campaigns_automessage_changelist"),
+                        "permission": _superuser,
+                    },
                     {
                         "title": "E'lonlar",
                         "icon": "campaign",
@@ -256,6 +268,55 @@ UNFOLD = {
                         "link": reverse_lazy("admin:campaigns_campaignlog_changelist"),
                         "permission": _superuser,
                     },
+                    {
+                        "title": "Avto xabarlar jurnali",
+                        "icon": "history",
+                        "link": reverse_lazy(
+                            "admin:campaigns_automessagelog_changelist"
+                        ),
+                        "permission": _superuser,
+                    },
+                ],
+            },
+            {
+                "title": "Bonus dasturi",
+                "separator": True,
+                "items": [
+                    {
+                        "title": "Bonus hisoblari",
+                        "icon": "loyalty",
+                        "link": reverse_lazy("admin:loyalty_loyaltyaccount_changelist"),
+                        "permission": _superuser,
+                    },
+                    {
+                        "title": "Sovg'alar",
+                        "icon": "redeem",
+                        "link": reverse_lazy("admin:loyalty_reward_changelist"),
+                        "permission": _superuser,
+                    },
+                    {
+                        "title": "Almashtirilgan sovg'alar",
+                        "icon": "confirmation_number",
+                        "link": reverse_lazy(
+                            "admin:loyalty_rewardredemption_changelist"
+                        ),
+                    },
+                    {
+                        "title": "Ball harakatlari",
+                        "icon": "swap_vert",
+                        "link": reverse_lazy(
+                            "admin:loyalty_pointstransaction_changelist"
+                        ),
+                        "permission": _superuser,
+                    },
+                    {
+                        "title": "Bonus sozlamalari",
+                        "icon": "tune",
+                        "link": reverse_lazy(
+                            "admin:loyalty_loyaltysettings_changelist"
+                        ),
+                        "permission": _superuser,
+                    },
                 ],
             },
             {
@@ -266,6 +327,13 @@ UNFOLD = {
                         "title": "Fikrlar",
                         "icon": "reviews",
                         "link": reverse_lazy("admin:analytics_userfeedback_changelist"),
+                    },
+                    {
+                        "title": "Teri testi natijalari",
+                        "icon": "science",
+                        "link": reverse_lazy(
+                            "admin:analytics_skinquizresult_changelist"
+                        ),
                     },
                     {
                         "title": "Natija rasmlari",
@@ -292,6 +360,20 @@ UNFOLD = {
                         "title": "Xodimlar",
                         "icon": "badge",
                         "link": reverse_lazy("admin:users_staff_changelist"),
+                        "permission": _superuser,
+                    },
+                    {
+                        "title": "Telegram guruh",
+                        "icon": "forum",
+                        "link": reverse_lazy(
+                            "admin:support_supportsettings_changelist"
+                        ),
+                        "permission": _superuser,
+                    },
+                    {
+                        "title": "Guruh adminlari",
+                        "icon": "admin_panel_settings",
+                        "link": reverse_lazy("admin:support_supportadmin_changelist"),
                         "permission": _superuser,
                     },
                 ],

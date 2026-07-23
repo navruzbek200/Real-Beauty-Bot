@@ -34,17 +34,24 @@ if not ALLOWED_HOSTS:
         "ALLOWED_HOSTS=crm.realbeauty.uz"
     )
 
+# No TLS cert exists until a domain is pointed at this host and `certbot
+# --nginx` runs (see docker/nginx/realbeauty.conf). Until then nginx only
+# listens on :80, so forcing HTTPS redirect/secure-cookies would make the
+# site unreachable. Flip TLS_ENABLED=True in .env once certbot is set up.
+TLS_ENABLED = os.environ.get("TLS_ENABLED", "False").lower() == "true"
+
 # Django 4+ validates the Origin header on POSTs; without this every form
-# submit behind HTTPS fails with a CSRF error.
-CSRF_TRUSTED_ORIGINS = [f"https://{host}" for host in ALLOWED_HOSTS]
+# submit fails with a CSRF error. Scheme must match what's actually served.
+_scheme = "https" if TLS_ENABLED else "http"
+CSRF_TRUSTED_ORIGINS = [f"{_scheme}://{host}" for host in ALLOWED_HOSTS]
 
 # TLS terminates at nginx; trust its forwarded-proto header.
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-SECURE_SSL_REDIRECT = True
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+SECURE_SSL_REDIRECT = TLS_ENABLED
+SESSION_COOKIE_SECURE = TLS_ENABLED
+CSRF_COOKIE_SECURE = TLS_ENABLED
 SECURE_CONTENT_TYPE_NOSNIFF = True
-SECURE_HSTS_SECONDS = 60 * 60 * 24 * 30  # start at 30 days, raise once stable
+SECURE_HSTS_SECONDS = 60 * 60 * 24 * 30 if TLS_ENABLED else 0  # start at 30 days, raise once stable
 SECURE_HSTS_INCLUDE_SUBDOMAINS = False
 
 # Whitenoise serves the admin's static files straight from gunicorn, so the

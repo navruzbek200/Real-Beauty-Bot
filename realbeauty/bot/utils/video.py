@@ -1,23 +1,61 @@
 from __future__ import annotations
 
+import asyncio
+import json
 import logging
+import shutil
 from typing import TYPE_CHECKING
 
 from aiogram import Bot
 from aiogram.exceptions import TelegramAPIError
 from aiogram.types import FSInputFile
 
-from bot import texts
+from bot.i18n import t
 from bot.services import product_service
+from core.i18n import pick
 
 if TYPE_CHECKING:
     from apps.products.models import ProductTutorialStep
 
 logger = logging.getLogger(__name__)
 
+_FFPROBE = shutil.which("ffprobe")
+
+
+async def _probe_video_meta(path: str) -> dict[str, int]:
+    """Read width/height/duration so Telegram keeps the original aspect ratio."""
+    if not _FFPROBE:
+        return {}
+    try:
+        proc = await asyncio.create_subprocess_exec(
+            _FFPROBE,
+            "-v", "error",
+            "-select_streams", "v:0",
+            "-show_entries", "stream=width,height",
+            "-show_entries", "format=duration",
+            "-of", "json",
+            path,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.DEVNULL,
+        )
+        stdout, _ = await proc.communicate()
+        data = json.loads(stdout)
+        stream = (data.get("streams") or [{}])[0]
+        duration = data.get("format", {}).get("duration")
+        meta: dict[str, int] = {}
+        if stream.get("width") and stream.get("height"):
+            meta["width"] = int(stream["width"])
+            meta["height"] = int(stream["height"])
+        if duration:
+            meta["duration"] = int(float(duration))
+        return meta
+    except Exception:  # noqa: BLE001
+        logger.exception("Failed to probe video metadata for %s", path)
+        return {}
+
 
 async def send_protected_video(
-    bot: Bot, chat_id: int, step: "ProductTutorialStep"
+    bot: Bot, chat_id: int, step: "ProductTutorialStep", lang: str = "uz"
 ) -> None:
     """
     Send a tutorial step: intro text, then its protected video.
@@ -29,26 +67,35 @@ async def send_protected_video(
       3. nothing                  → "coming soon" placeholder
     """
     try:
-        await bot.send_message(chat_id=chat_id, text=step.intro_text, parse_mode="HTML")
+        await bot.send_message(
+            chat_id=chat_id,
+            text=pick(step, "intro_text", lang),
+            parse_mode="HTML",
+        )
 
         if step.video_file_id:
             await bot.send_video(
                 chat_id=chat_id,
                 video=step.video_file_id,
-                caption=step.button_label,
+                caption=pick(step, "button_label", lang),
                 protect_content=step.protect_content,
             )
         elif step.video_file and step.video_file.name:
+            meta = await _probe_video_meta(step.video_file.path)
             sent = await bot.send_video(
                 chat_id=chat_id,
                 video=FSInputFile(step.video_file.path),
-                caption=step.button_label,
+                caption=pick(step, "button_label", lang),
                 protect_content=step.protect_content,
+                width=meta.get("width"),
+                height=meta.get("height"),
+                duration=meta.get("duration"),
+                supports_streaming=True,
             )
             if sent.video:
                 await product_service.cache_video_file_id(step.pk, sent.video.file_id)
         else:
-            await bot.send_message(chat_id=chat_id, text=texts.VIDEO_COMING_SOON)
+            await bot.send_message(chat_id=chat_id, text=t("tutorial.video_soon", lang))
     except TelegramAPIError:
         logger.exception("Failed to send protected video to %s", chat_id)
     except Exception:  # noqa: BLE001

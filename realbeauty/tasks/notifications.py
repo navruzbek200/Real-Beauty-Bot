@@ -23,6 +23,7 @@ def send_templated_message_sync(
     template_type: str,
     context: dict[str, Any],
     reply_markup: dict[str, Any] | None = None,
+    lang: str = "uz",
 ) -> bool:
     """
     Render the active template of `template_type` and send it to the customer.
@@ -41,7 +42,7 @@ def send_templated_message_sync(
         logger.info("No active %s template — nothing sent", template_type)
         return False
 
-    text = template.render(context)
+    text = template.render(context, lang)
     if not text.strip():
         logger.info("Template %s rendered empty — nothing sent", template_type)
         return False

@@ -12,13 +12,13 @@ app.config_from_object("django.conf:settings", namespace="CELERY")
 app.autodiscover_tasks()
 
 app.conf.beat_schedule = {
-    "week1-checkin": {
-        "task": "tasks.scheduled.send_week1_checkins",
-        "schedule": crontab(hour=10, minute=0),  # 10:00 Tashkent
-    },
-    "week2-progress": {
-        "task": "tasks.scheduled.send_week2_progress",
-        "schedule": crontab(hour=10, minute=30),
+    # Every minute, because the delay on an automatic message is admin-editable
+    # down to one minute. A daily beat would quietly turn "1 daqiqa" into
+    # "tomorrow at 10:00" — the exact thing that makes a campaign untestable.
+    # The task itself is cheap when nothing is due: one indexed query per rule.
+    "auto-messages": {
+        "task": "tasks.scheduled.dispatch_auto_messages",
+        "schedule": crontab(minute="*"),
     },
     "birthday-messages": {
         "task": "tasks.scheduled.send_birthday_messages",

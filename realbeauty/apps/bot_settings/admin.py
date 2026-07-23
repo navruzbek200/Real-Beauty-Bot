@@ -21,16 +21,13 @@ class GlobalSettingsAdmin(RBModelAdmin):
 
     fieldsets = (
         (
-            "Bot mijozdan qachon so'rasin",
+            "Tug'ilgan kun",
             {
-                "fields": ["week1_delay_days", "week2_delay_days"],
-                "description": "Mahsulot sotib olingan kundan boshlab hisoblanadi.",
+                "fields": ["birthday_discount_percent"],
+                "description": "Avtomatik xabarlar (1-hafta, 2-hafta va "
+                "boshqalar) endi «Marketing → Avtomatik xabarlar» bo'limida "
+                "sozlanadi.",
             },
-        ),
-        ("Tug'ilgan kun", {"fields": ["birthday_discount_percent"]}),
-        (
-            "Botdagi tugma matnlari",
-            {"fields": ["feedback_button_label", "before_after_button_label"]},
         ),
     )
 

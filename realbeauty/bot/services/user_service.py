@@ -33,6 +33,19 @@ def refresh_on_start(*, telegram_id: int, username: str | None) -> TelegramUser 
 
 
 @sync_to_async
+def set_language(telegram_id: int, language: str) -> None:
+    """Persist the language the customer picked, if we know them at all."""
+    TelegramUser.objects.filter(telegram_id=telegram_id).update(language=language)
+
+
+@sync_to_async
+def set_face_condition(telegram_id: int, face_condition: str) -> None:
+    TelegramUser.objects.filter(telegram_id=telegram_id).update(
+        face_condition=face_condition
+    )
+
+
+@sync_to_async
 def get_seller_by_telegram_id(telegram_id: int) -> SellerProfile | None:
     return (
         SellerProfile.objects.select_related("user")
@@ -63,6 +76,15 @@ def _find_preregistered(
     if tail:
         return unlinked.filter(phone_tail=tail).first()
     return None
+
+
+@sync_to_async
+def get_user_by_telegram_id(telegram_id: int) -> TelegramUser | None:
+    """A completed customer, or None — used to validate a customer invite link."""
+    return TelegramUser.objects.filter(
+        telegram_id=telegram_id,
+        registration_status=TelegramUser.RegistrationStatus.COMPLETED,
+    ).first()
 
 
 @sync_to_async
@@ -116,9 +138,13 @@ def complete_user(
     phone_number: str,
     face_condition: str,
     source: str,
+    language: str = "uz",
     referred_by_seller_id: int | None = None,
+    registered_by_id: int | None = None,
 ) -> TelegramUser:
     """Fill in registration data and mark the user COMPLETED (idempotent)."""
+    from django.utils import timezone
+
     with transaction.atomic():
         # The phone is only known now, so this is the last chance to notice the
         # customer already has a card that staff filled in by hand.
@@ -140,6 +166,7 @@ def complete_user(
             "birth_date": birth_date,
             "phone_number": phone_number,
             "face_condition": face_condition,
+            "language": language,
             "registration_status": TelegramUser.RegistrationStatus.COMPLETED,
         }
         # A pre-registered card already carries the seller who created it —
@@ -147,11 +174,46 @@ def complete_user(
         if preregistered is None:
             defaults["source"] = source
             defaults["referred_by_seller_id"] = referred_by_seller_id
+        if registered_by_id is not None:
+            defaults["registered_by_id"] = registered_by_id
+
+        existing = TelegramUser.objects.filter(telegram_id=telegram_id).first()
+        # Only the first completion sets this: re-running registration must not
+        # restart every "N days after signing up" campaign for this customer.
+        if existing is None or existing.registered_at is None:
+            defaults["registered_at"] = timezone.now()
 
         user, _ = TelegramUser.objects.update_or_create(
             telegram_id=telegram_id, defaults=defaults
         )
+
+    _award_registration_points(user)
     return user
+
+
+def _award_registration_points(user: TelegramUser) -> None:
+    """
+    Welcome bonus for the customer, referral bonus for whoever brought them.
+
+    Runs after the transaction commits so a loyalty problem can never undo a
+    registration — the customer being in the CRM matters more than the points.
+    """
+    from apps.loyalty.models import PointsTransaction
+    from apps.loyalty.services import award
+
+    award(
+        user,
+        PointsTransaction.Reason.REGISTRATION,
+        reference=f"registration:{user.pk}",
+        notify=False,  # the welcome message lands in the same second
+    )
+    if user.registered_by_id:
+        award(
+            user.registered_by,
+            PointsTransaction.Reason.REFERRAL,
+            reference=f"referral:{user.pk}",
+            note=user.full_name[:200],
+        )
 
 
 @sync_to_async

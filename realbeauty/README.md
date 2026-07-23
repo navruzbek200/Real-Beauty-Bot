@@ -1,8 +1,9 @@
 # Real Beauty — Telegram Marketing Bot + CRM
 
 Telegram bot (aiogram 3) + Django 5 admin panel (django-unfold), bitta PostgreSQL
-bazada. Celery rejalashtirilgan xabarlarni yuboradi: 1-hafta fikr so'rovi,
-2-hafta natija rasmi, tug'ilgan kun chegirmasi.
+bazada. Bot uch tilda ishlaydi (o'zbek / rus / ingliz), teri turini 10 savollik
+test bilan aniqlaydi, bonus (ball + keshbek) dasturini yuritadi. Celery
+avtomatik xabarlarni yuboradi — vaqti va matni admin panelda sozlanadi.
 
 ## Arxitektura
 
@@ -19,15 +20,41 @@ bazada. Celery rejalashtirilgan xabarlarni yuboradi: 1-hafta fikr so'rovi,
 
 - `apps.users` — Xaridorlar (`TelegramUser`), sotib olingan mahsulotlar,
   Xodimlar (auth `User` proxy) va sotuvchi profillari (referal havola).
-- `apps.products` — Mahsulotlar va qo'llanma qadamlari (himoyalangan video).
-- `apps.campaigns` — Xabar shablonlari (har turdan bittadan, Jinja2),
-  yuborilganlar jurnali.
+- `apps.products` — Mahsulotlar, qo'llanma qadamlari (himoyalangan video) va
+  «Bu oydagi top» ro'yxati (`TopProduct` — o'sha jadvalning proxy'si).
+- `apps.campaigns` — Avtomatik xabarlar (`AutoMessage` + jurnal), xabar
+  shablonlari (Jinja2), e'lonlar, yuborilganlar jurnali.
 - `apps.support` — Murojaatlar: bot ↔ admin ikki tomonlama chat.
-- `apps.analytics` — Fikrlar (baho 1-5) va natija rasmlari (original
-  Telegramda `file_id` orqali, diskda faqat thumbnail).
+- `apps.analytics` — Fikrlar (baho 1-5), teri testi natijalari va natija
+  rasmlari (original Telegramda `file_id` orqali, diskda faqat thumbnail).
+- `apps.loyalty` — Bonus dasturi: ball hisobi, harakatlar tarixi, darajalar,
+  sovg'alar va promokodlar.
 - `apps.bot_settings` — Umumiy sozlamalar (singleton) va chegirmalar.
 
 ### Muhim dizayn qarorlari
+
+- **Uch til:** mijoz `/start` bosgach birinchi savol — til. Tanlov
+  `TelegramUser.language`da saqlanadi, `LanguageMiddleware` uni har bir
+  handlerga `lang` bo'lib beradi. Barcha qat'iy matnlar `bot/i18n/`da
+  (uz/ru/en bir xil kalitlar bilan), adminda yozilgan matnlar esa bazada
+  `_ru`/`_en` ustunlarda — bo'sh bo'lsa o'zbekchaga qaytadi (`core.i18n.pick`).
+  Menyu tugmalari `MenuText` filtri orqali uch tilda ham topiladi: mijozning
+  ekranida eski klaviatura qolishi mumkin.
+- **Avtomatik xabarlar:** vaqt, matn va tugma — bitta `AutoMessage` qatori.
+  Vaqt birligi **daqiqa / soat / kun** bo'lgani uchun kampaniyani 1 daqiqaga
+  qo'yib sinab ko'rish mumkin; «Sinov rejimi» esa xabarni faqat tanlangan
+  bitta mijozga yuboradi, shuning uchun sinov paytida boshqalarga tegmaydi.
+  Celery beat har daqiqada yuritiladi, takrorlanmaslik `AutoMessageLog`dagi
+  `anchor` (`up:<id>` yoki `user:<id>`) bilan ta'minlanadi.
+- **Teri testi:** teri turi faqat **1-savoldan** aniqlanadi (0–1 quruq,
+  2 aralash, 3 normal, 4–5 yog'li); qolgan 9 savol javobi 3 dan katta bo'lsa
+  o'z tavsiya blokini qo'shadi. Qoidalar `apps/analytics/skin_logic.py`da —
+  Django'dan mustaqil, shuning uchun mobil ilova ham shu mantiqni ishlatadi.
+- **Bonus dasturi:** daraja **jami yig'ilgan** ballga qarab beriladi, balansga
+  emas — aks holda sovg'a olish darajani pasaytirar va hech kim ball
+  sarflamas edi. Har bir ball harakati `PointsTransaction`da; takroriy
+  to'lovni `reference` (masalan `userproduct:42`) bo'yicha unique cheklov
+  to'xtatadi.
 
 - **Xaridor qo'shish:** faqat ism + telefon. Mijoz botga kirib raqamini
   yuborganda kartasi telefonning oxirgi 9 raqami (`phone_tail`) orqali avtomatik
@@ -108,7 +135,16 @@ saqlasangiz rasmlarga havolalar ham saqlanadi. Cron'ga qo'ying.
 | Rol           | Ko'radi                                                        |
 | ------------- | -------------------------------------------------------------- |
 | Administrator | Hammasi                                                         |
-| Sotuvchi      | Xaridorlar (qo'shish/tahrirlash), Murojaatlar (javob), Fikrlar, Natija rasmlari, Mahsulotlar (ko'rish) |
+| Sotuvchi      | Xaridorlar (qo'shish/tahrirlash), Murojaatlar (javob), Fikrlar, Teri testi natijalari, Natija rasmlari, Mahsulotlar (ko'rish), Bonus promokodlari (tekshirish/belgilash) |
 
 Sotuvchi ruxsatlari kodda: `apps/users/roles.py` (`SELLER_PERMISSIONS`) —
 migratsiya 0009 mavjud bazani shu ro'yxatga tenglashtiradi.
+
+## Testlar
+
+```bash
+DJANGO_SETTINGS_MODULE=core.settings.test ./.venv/bin/python manage.py test tests
+```
+
+`core/settings/test.py` `BOT_TOKEN`ni bo'shatadi (test paytida hech kimga
+haqiqiy xabar ketmasligi uchun) va Redis o'rniga xotiradagi kesh ishlatadi.

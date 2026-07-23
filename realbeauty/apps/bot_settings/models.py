@@ -12,35 +12,15 @@ class GlobalSettings(models.Model):
     All values are editable from admin panel.
     """
 
+    # The timed check-ins used to live here as four fixed fields. They are now
+    # rows in `campaigns.AutoMessage`, where the shop controls the wording, the
+    # delay *and* its unit — see the 0009 migration, which carried the old
+    # values over.
     birthday_discount_percent = models.PositiveSmallIntegerField(
         default=30,
         verbose_name="Tug'ilgan kun chegirmasi (%)",
         help_text="Tug'ilgan kun xabaridagi foiz. Xabar matnida {{ discount }} "
         "o'rniga shu raqam qo'yiladi.",
-    )
-    week1_delay_days = models.PositiveSmallIntegerField(
-        default=7,
-        verbose_name="Fikr so'rash muddati (kun)",
-        help_text="Mahsulot sotib olingandan necha kun keyin bot mijozdan fikr "
-        "so'rasin. Odatda 7.",
-    )
-    week2_delay_days = models.PositiveSmallIntegerField(
-        default=14,
-        verbose_name="Natija rasmi so'rash muddati (kun)",
-        help_text="Mahsulot sotib olingandan necha kun keyin bot «oldin/keyin» "
-        "rasmlarini so'rasin. Odatda 14.",
-    )
-    feedback_button_label = models.CharField(
-        max_length=64,
-        default="Fikr bildirish",
-        verbose_name="Fikr tugmasi matni",
-        help_text="Fikr so'rash xabari ostidagi tugmada shu matn chiqadi.",
-    )
-    before_after_button_label = models.CharField(
-        max_length=64,
-        default="Rasmlarni yuborish",
-        verbose_name="Rasm tugmasi matni",
-        help_text="Natija rasmi so'rash xabari ostidagi tugma matni.",
     )
 
     class Meta:

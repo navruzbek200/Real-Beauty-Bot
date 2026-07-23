@@ -6,50 +6,57 @@ from aiogram import Bot, F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
-from bot import texts
+from bot.i18n import t
 from bot.keyboards import inline
 from bot.services import analytics_service
 from bot.states.registration import ProgressState
 
 logger = logging.getLogger(__name__)
 router = Router(name="progress")
+router.message.filter(F.chat.type == "private")
 
 
 @router.callback_query(F.data.startswith(f"{inline.CB_SEND_PROGRESS}{inline.SEP}"))
-async def start_progress(callback: CallbackQuery, state: FSMContext) -> None:
+async def start_progress(
+    callback: CallbackQuery, state: FSMContext, lang: str
+) -> None:
     await callback.answer()
     product_id = int((callback.data or "").split(inline.SEP, 1)[1])
     await state.set_state(ProgressState.before_photo)
     await state.update_data(product_id=product_id)
-    await callback.message.answer(texts.PROGRESS_ASK_BEFORE)
+    await callback.message.answer(t("progress.ask_before", lang))
 
 
 @router.message(ProgressState.before_photo, F.photo)
-async def before_photo(message: Message, state: FSMContext, bot: Bot) -> None:
+async def before_photo(
+    message: Message, state: FSMContext, bot: Bot, lang: str
+) -> None:
     data = await state.get_data()
     ok = await _save_photo(message, bot, data.get("product_id"), "before")
     if not ok:
-        await message.answer(texts.PROGRESS_SAVE_ERROR)
+        await message.answer(t("progress.save_error", lang))
         return
     await state.set_state(ProgressState.after_photo)
-    await message.answer(texts.PROGRESS_ASK_AFTER)
+    await message.answer(t("progress.ask_after", lang))
 
 
 @router.message(ProgressState.after_photo, F.photo)
-async def after_photo(message: Message, state: FSMContext, bot: Bot) -> None:
+async def after_photo(
+    message: Message, state: FSMContext, bot: Bot, lang: str
+) -> None:
     data = await state.get_data()
     ok = await _save_photo(message, bot, data.get("product_id"), "after")
     await state.clear()
     if not ok:
-        await message.answer(texts.PROGRESS_SAVE_ERROR)
+        await message.answer(t("progress.save_error", lang))
         return
-    await message.answer(texts.PROGRESS_DONE)
+    await message.answer(t("progress.done", lang))
 
 
 @router.message(ProgressState.before_photo)
 @router.message(ProgressState.after_photo)
-async def not_a_photo(message: Message) -> None:
-    await message.answer(texts.PROGRESS_NOT_PHOTO)
+async def not_a_photo(message: Message, lang: str) -> None:
+    await message.answer(t("progress.not_photo", lang))
 
 
 async def _save_photo(

@@ -3,13 +3,14 @@ from __future__ import annotations
 from django import forms
 from django.contrib import admin
 from django.db.models import Max
+from django.http import HttpRequest
 from django.forms.models import BaseInlineFormSet
 from django.utils.html import format_html
 from unfold.admin import StackedInline
 
 from core.admin import RBModelAdmin, yes_no_filter
 
-from .models import Product, ProductTutorialStep
+from .models import Product, ProductTutorialStep, TopProduct
 
 
 class TutorialStepForm(forms.ModelForm):
@@ -21,6 +22,10 @@ class TutorialStepForm(forms.ModelForm):
             "intro_text",
             "video_file",
             "protect_content",
+            "button_label_ru",
+            "button_label_en",
+            "intro_text_ru",
+            "intro_text_en",
         ]
         labels = {
             "order": "Tartib raqami",
@@ -83,7 +88,17 @@ class ProductTutorialStepInline(StackedInline):
     form = TutorialStepForm
     formset = TutorialStepFormSet
     extra = 1
-    fields = ["order", "button_label", "intro_text", "video_file", "protect_content"]
+    fields = [
+        "order",
+        "button_label",
+        "intro_text",
+        "video_file",
+        "protect_content",
+        "button_label_ru",
+        "button_label_en",
+        "intro_text_ru",
+        "intro_text_en",
+    ]
     ordering = ["order"]
     verbose_name = "Qo'llanma qadami"
     verbose_name_plural = "Qo'llanma qadamlari (mijoz botda ko'radigan video darslar)"
@@ -92,7 +107,21 @@ class ProductTutorialStepInline(StackedInline):
 class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
-        fields = ["name", "description", "photo", "is_active"]
+        fields = [
+            "name",
+            "description",
+            "photo",
+            "is_active",
+            "name_ru",
+            "name_en",
+            "description_ru",
+            "description_en",
+            "is_top",
+            "top_order",
+            "top_note",
+            "top_note_ru",
+            "top_note_en",
+        ]
         labels = {
             "name": "Mahsulot nomi",
             "description": "Tavsif",
@@ -106,19 +135,71 @@ class ProductForm(forms.ModelForm):
         }
 
 
+_PRODUCT_FIELDSETS = (
+    ("Mahsulot", {"fields": ["name", "description", "photo", "is_active"]}),
+    (
+        "Boshqa tillar (ixtiyoriy)",
+        {
+            "fields": ["name_ru", "name_en", "description_ru", "description_en"],
+            "classes": ["collapse"],
+            "description": "Bo'sh qoldirsangiz mijozga o'zbekcha matn ko'rinadi.",
+        },
+    ),
+    (
+        "Bu oydagi top ro'yxati",
+        {
+            "fields": ["is_top", "top_order", "top_note", "top_note_ru", "top_note_en"],
+            "description": "Belgilansa, botdagi «🔥 Bu oydagi top mahsulotlar» "
+            "tugmasi ostida chiqadi.",
+        },
+    ),
+)
+
+
 @admin.register(Product)
 class ProductAdmin(RBModelAdmin):
     form = ProductForm
-    list_display = ["name", "steps_summary", "buyers_count", "active_badge"]
+    list_display = ["name", "steps_summary", "buyers_count", "top_badge", "active_badge"]
     list_display_links = ["name"]
-    list_filter = [yes_no_filter("is_active", "Mahsulot holati", "Faol", "O'chirilgan")]
+    list_filter = [
+        yes_no_filter("is_active", "Mahsulot holati", "Faol", "O'chirilgan"),
+        yes_no_filter("is_top", "Top ro'yxati", "Topda", "Topda emas"),
+    ]
     search_fields = ["name", "description"]
     inlines = [ProductTutorialStepInline]
     list_per_page = 25
-    fields = ["name", "description", "photo", "is_active"]
+    fieldsets = _PRODUCT_FIELDSETS
+    actions = ["add_to_top", "remove_from_top"]
 
     def get_queryset(self, request):
         return super().get_queryset(request).prefetch_related("tutorial_steps")
+
+    @admin.display(description="Top")
+    def top_badge(self, obj: Product) -> str:
+        if not obj.is_top:
+            return "—"
+        return format_html(
+            '<span style="color:#d97706;font-weight:600">🔥 #{}</span>', obj.top_order
+        )
+
+    @admin.action(description="🔥 Bu oydagi topga qo'shish")
+    def add_to_top(self, request, queryset) -> None:
+        # New entries land at the end of the list rather than fighting over
+        # position 1 with whatever is already there.
+        start = (
+            Product.objects.filter(is_top=True).aggregate(top=Max("top_order"))["top"]
+            or 0
+        )
+        for offset, product in enumerate(queryset.filter(is_top=False), start=1):
+            product.is_top = True
+            product.top_order = start + offset
+            product.save(update_fields=["is_top", "top_order"])
+        self.message_user(request, "Top ro'yxatiga qo'shildi ✅")
+
+    @admin.action(description="Topdan olib tashlash")
+    def remove_from_top(self, request, queryset) -> None:
+        updated = queryset.update(is_top=False)
+        self.message_user(request, f"{updated} ta mahsulot topdan olindi.")
 
     @admin.display(description="Qo'llanma")
     def steps_summary(self, obj: Product) -> str:
@@ -154,3 +235,50 @@ class ProductAdmin(RBModelAdmin):
                 '<span style="color:#059669;font-weight:600">✅ Faol</span>'
             )
         return format_html('<span style="color:#9ca3af">⏸ O\'chirilgan</span>')
+
+
+@admin.register(TopProduct)
+class TopProductAdmin(RBModelAdmin):
+    """
+    The monthly top list on its own page.
+
+    Same rows as the catalogue, filtered to the ones flagged as top and sorted
+    the way the bot shows them — so curating the list is reading one screen
+    top to bottom, not scanning a full product table for ticks.
+    """
+
+    form = ProductForm
+    list_display = ["top_position", "name", "top_note", "buyers_count", "active_badge"]
+    list_display_links = ["name"]
+    search_fields = ["name", "top_note"]
+    ordering = ["top_order", "name"]
+    fieldsets = _PRODUCT_FIELDSETS
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related("tutorial_steps")
+
+    @admin.display(description="O'rni", ordering="top_order")
+    def top_position(self, obj: TopProduct) -> str:
+        return format_html(
+            '<span style="font-weight:700;color:#d97706">#{}</span>', obj.top_order
+        )
+
+    @admin.display(description="Xaridorlar")
+    def buyers_count(self, obj: TopProduct) -> str:
+        return f"{obj.userproduct_set.count()} ta"
+
+    @admin.display(description="Holat")
+    def active_badge(self, obj: TopProduct) -> str:
+        if obj.is_active:
+            return format_html(
+                '<span style="color:#059669;font-weight:600">✅ Botda ko\'rinadi</span>'
+            )
+        # A deactivated product is hidden by the bot even while flagged top;
+        # saying so here beats wondering why the list looks short.
+        return format_html(
+            '<span style="color:#dc2626">⏸ O\'chirilgan — botda chiqmaydi</span>'
+        )
+
+    def has_add_permission(self, request: HttpRequest) -> bool:
+        # Products are created on the catalogue page; this one curates them.
+        return False

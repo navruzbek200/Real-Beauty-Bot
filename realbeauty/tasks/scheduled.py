@@ -6,101 +6,141 @@ from datetime import timedelta
 from celery import shared_task
 from django.utils import timezone
 
-from core.telegram import TelegramError
+from core.telegram import TelegramError, send_message
 
 logger = logging.getLogger(__name__)
 
-# A purchase this much older than the campaign delay predates the customer
-# linking their Telegram (staff enter purchases before the customer ever opens
-# the bot). Greeting them with "it's been a week — how is it going?" months
-# later reads as a broken bot, so such rows are marked done without sending.
-_STALE_GRACE_DAYS = 30
 
-
-def _mark(up, week: int) -> None:
-    field = "week1_sent" if week == 1 else "week2_sent"
-    setattr(up, field, True)
-    up.save(update_fields=[field])
-
-
-def _send_checkin_batch(week: int) -> int:
-    """
-    Shared engine for the week-1/week-2 check-ins.
-
-    Every recipient is handled independently: one dead chat (customer blocked
-    the bot, deleted Telegram…) must not abort the rest of the batch — the
-    first version called self.retry() inside the loop, which raised out of it
-    and starved everyone queued after the failing row, every single day.
-    """
-    from apps.bot_settings.models import GlobalSettings
+def _due_purchases(rule, window):
+    """(anchor key, user, product) for purchases inside this rule's window."""
     from apps.users.models import UserProduct
-    from bot.keyboards.inline import CB_SEND_PROGRESS, CB_SUBMIT_FEEDBACK, SEP
-    from tasks.notifications import send_templated_message_sync
 
-    settings = GlobalSettings.get()
-    delay_days = settings.week1_delay_days if week == 1 else settings.week2_delay_days
-    template_type = "week1_checkin" if week == 1 else "week2_progress"
-    sent_flag = "week1_sent" if week == 1 else "week2_sent"
-
-    now = timezone.now()
-    cutoff = now - timedelta(days=delay_days)
-    stale_cutoff = now - timedelta(days=delay_days + _STALE_GRACE_DAYS)
-
+    oldest, newest = window
     qs = UserProduct.objects.select_related("user", "product").filter(
-        purchased_at__lte=cutoff,
+        purchased_at__lte=newest,
+        purchased_at__gte=oldest,
         # Only customers the bot can actually reach; unlinked cards used to
         # produce a guaranteed-failing send that blocked the whole batch.
         user__telegram_id__isnull=False,
         user__is_active=True,
-        **{sent_flag: False},
+    )
+    if rule.is_test_mode:
+        qs = qs.filter(user_id=rule.test_user_id) if rule.test_user_id else qs.none()
+    return [(f"up:{up.pk}", up.user, up.product) for up in qs]
+
+
+def _due_registrations(rule, window):
+    from apps.users.models import TelegramUser
+
+    oldest, newest = window
+    qs = TelegramUser.objects.filter(
+        registered_at__lte=newest,
+        registered_at__gte=oldest,
+        telegram_id__isnull=False,
+        is_active=True,
+    )
+    if rule.is_test_mode:
+        qs = qs.filter(pk=rule.test_user_id) if rule.test_user_id else qs.none()
+    return [(f"user:{user.pk}", user, None) for user in qs]
+
+
+_ANCHORS = {
+    "after_purchase": _due_purchases,
+    "after_registration": _due_registrations,
+}
+
+
+def _dispatch_rule(rule) -> int:
+    """
+    Send one auto-message to everyone it has come due for.
+
+    The candidate window has a floor as well as a ceiling. Without the floor
+    this task would re-read every purchase ever made, once a minute, forever —
+    and on the day a new rule is created it would greet customers who bought
+    two years ago with "how was your first week?". `stale_grace` past the delay
+    is where a message stops being welcome and starts reading as a broken bot.
+
+    Every recipient is handled independently: one dead chat (customer blocked
+    the bot, deleted Telegram…) must not abort the rest of the batch — an
+    earlier version raised out of the loop and starved everyone queued behind
+    the failing row, every single day.
+    """
+    from apps.campaigns.models import AutoMessageLog
+
+    now = timezone.now()
+    newest = now - rule.delay
+    window = (newest - rule.stale_grace, newest)
+
+    candidates = _ANCHORS[rule.trigger](rule, window)
+    if not candidates:
+        return 0
+
+    already = set(
+        AutoMessageLog.objects.filter(
+            auto_message=rule, anchor__in=[anchor for anchor, _u, _p in candidates]
+        ).values_list("anchor", flat=True)
     )
 
     sent = 0
-    for up in qs:
-        if up.purchased_at < stale_cutoff:
-            _mark(up, week)
+    for anchor, user, product in candidates:
+        if anchor in already:
             continue
 
-        if week == 1:
-            label = settings.feedback_button_label
-            callback = f"{CB_SUBMIT_FEEDBACK}{SEP}1{SEP}{up.product_id}"
-        else:
-            label = settings.before_after_button_label
-            callback = f"{CB_SEND_PROGRESS}{SEP}{up.product_id}"
-        keyboard = {
-            "inline_keyboard": [[{"text": label, "callback_data": callback}]]
-        }
-        context = {"user": up.user, "product": up.product, "week": week}
+        lang = user.language
+        text = rule.render({"user": user, "product": product}, lang)
+        if not text.strip():
+            continue
+        keyboard = rule.keyboard_for(lang, product.pk if product else None)
 
         try:
-            send_templated_message_sync(
-                up.user.telegram_id, up.user_id, template_type, context, keyboard
+            send_message(
+                user.telegram_id, text, parse_mode="HTML", reply_markup=keyboard
             )
         except TelegramError as exc:
-            # Permanent failures (blocked bot, deleted account) are marked done
-            # so they stop being retried forever; transient ones stay unsent
-            # and tomorrow's run picks them up again.
+            # Permanent failures (blocked bot, deleted account) are logged as
+            # done so they stop being retried forever; transient ones are left
+            # alone and the next run picks them up again.
             if exc.is_permanent:
-                _mark(up, week)
+                AutoMessageLog.objects.get_or_create(
+                    auto_message=rule,
+                    anchor=anchor,
+                    defaults={
+                        "user": user,
+                        "success": False,
+                        "error_detail": str(exc)[:500],
+                    },
+                )
             continue
         except Exception:  # noqa: BLE001
-            logger.exception("week%s send crashed for user_product %s", week, up.pk)
+            logger.exception("auto-message %s crashed on %s", rule.pk, anchor)
             continue
-        _mark(up, week)
+
+        AutoMessageLog.objects.get_or_create(
+            auto_message=rule, anchor=anchor, defaults={"user": user}
+        )
         sent += 1
     return sent
 
 
 @shared_task
-def send_week1_checkins() -> int:
-    """Send week-1 check-in to eligible purchases. Returns count sent."""
-    return _send_checkin_batch(week=1)
+def dispatch_auto_messages() -> int:
+    """
+    Fire every automatic message that has come due. Returns the count sent.
 
+    Runs once a minute rather than once a day: the delay is admin-editable
+    down to a single minute, and a daily beat would silently turn "1 daqiqa"
+    into "tomorrow at 10:00" — which is exactly what makes a campaign
+    impossible to test.
+    """
+    from apps.campaigns.models import AutoMessage
 
-@shared_task
-def send_week2_progress() -> int:
-    """Send week-2 progress request to eligible purchases. Returns count sent."""
-    return _send_checkin_batch(week=2)
+    total = 0
+    for rule in AutoMessage.objects.filter(is_active=True).select_related("test_user"):
+        try:
+            total += _dispatch_rule(rule)
+        except Exception:  # noqa: BLE001 — one bad rule must not stop the rest
+            logger.exception("auto-message rule %s failed", rule.pk)
+    return total
 
 
 @shared_task
@@ -136,14 +176,36 @@ def send_birthday_messages() -> int:
         context = {"user": user, "discount": settings.birthday_discount_percent}
         try:
             if send_templated_message_sync(
-                user.telegram_id, user.pk, "birthday_sale", context
+                user.telegram_id, user.pk, "birthday_sale", context, lang=user.language
             ):
                 sent += 1
         except TelegramError:
             continue  # logged by the sender; nothing more to do for this user
         except Exception:  # noqa: BLE001
             logger.exception("birthday send crashed for user %s", user.pk)
+        _credit_birthday_points(user, today)
     return sent
+
+
+def _credit_birthday_points(user, today) -> None:
+    """
+    The birthday bonus, once a year.
+
+    Keyed on the year so a beat restart cannot pay twice, and deliberately
+    separate from the message: a customer who blocked the bot still turns a
+    year older and still earns their points.
+    """
+    from apps.loyalty.models import PointsTransaction
+    from apps.loyalty.services import award
+
+    try:
+        award(
+            user,
+            PointsTransaction.Reason.BIRTHDAY,
+            reference=f"birthday:{today.year}",
+        )
+    except Exception:  # noqa: BLE001
+        logger.exception("birthday points failed for user %s", user.pk)
 
 
 @shared_task

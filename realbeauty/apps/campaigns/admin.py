@@ -12,18 +12,29 @@ from unfold.decorators import action
 
 from core.admin import RBModelAdmin, yes_no_filter
 
-from .models import Broadcast, CampaignLog, MessageTemplate
+from .models import AutoMessage, AutoMessageLog, Broadcast, CampaignLog, MessageTemplate
 
 
 @admin.register(MessageTemplate)
 class MessageTemplateAdmin(RBModelAdmin):
     """
-    The six automatic messages, one row each.
+    The messages the bot sends at fixed moments, one row each.
 
-    They are a fixed set the bot sends at fixed moments, so this page is for
-    editing wording only — adding a seventh or deleting one would just leave
-    the bot with nothing to send.
+    They are a fixed set, so this page is for editing wording only — adding a
+    row or deleting one would just leave the bot with nothing to send.
     """
+
+    # The week-1 and week-2 texts moved to "Avtomatik xabarlar", where the
+    # delay is editable too. Their rows still exist (the seed migration copied
+    # the wording across) but nothing reads them any more — leaving them on
+    # screen would mean somebody edits one and waits for a change that never
+    # comes.
+    RETIRED_TYPES = ("week1_checkin", "week2_progress")
+
+    def get_queryset(self, request: HttpRequest):
+        return super().get_queryset(request).exclude(
+            template_type__in=self.RETIRED_TYPES
+        )
 
     list_display = ["when_sent", "preview", "active_badge", "updated_at"]
     list_display_links = ["when_sent"]
@@ -31,9 +42,23 @@ class MessageTemplateAdmin(RBModelAdmin):
         yes_no_filter("is_active", "Yuborilishi", "Yuborilyapti", "O'chirilgan")
     ]
     search_fields = ["name", "body"]
-    fields = ["template_type", "name", "body", "parse_mode", "is_active"]
     readonly_fields = ["template_type"]
     ordering = ["template_type"]
+    fieldsets = (
+        (
+            "Xabar",
+            {"fields": ["template_type", "name", "body", "parse_mode", "is_active"]},
+        ),
+        (
+            "Boshqa tillar (ixtiyoriy)",
+            {
+                "fields": ["body_ru", "body_en"],
+                "classes": ["collapse"],
+                "description": "Bo'sh qoldirsangiz — mijozga o'zbekcha matn "
+                "yuboriladi.",
+            },
+        ),
+    )
 
     @admin.display(description="Qachon yuboriladi", ordering="template_type")
     def when_sent(self, obj: MessageTemplate) -> str:
@@ -115,6 +140,292 @@ class CampaignLogAdmin(RBModelAdmin):
 
     def has_view_permission(
         self, request: HttpRequest, obj: CampaignLog | None = None
+    ) -> bool:
+        return request.user.is_superuser
+
+
+class AutoMessageForm(forms.ModelForm):
+    class Meta:
+        model = AutoMessage
+        fields = "__all__"
+
+    def clean(self):
+        cleaned = super().clean()
+        action = cleaned.get("button_action")
+        if action and action != AutoMessage.Action.NONE and not cleaned.get(
+            "button_label"
+        ):
+            self.add_error(
+                "button_label",
+                "Tugma tanlandi — tugma matnini ham yozing (yoki «Tugmasiz» "
+                "ni tanlang).",
+            )
+        if cleaned.get("is_test_mode") and not cleaned.get("test_user"):
+            self.add_error(
+                "test_user", "Sinov rejimi uchun mijozni tanlang."
+            )
+        # 4096 is Telegram's hard limit; the send fails outright above it.
+        for field in ("body", "body_ru", "body_en"):
+            body = cleaned.get(field) or ""
+            if len(body) > 4096:
+                self.add_error(
+                    field, f"Matn 4096 belgidan oshmasligi kerak (hozir {len(body)})."
+                )
+        return cleaned
+
+
+@admin.register(AutoMessage)
+class AutoMessageAdmin(RBModelAdmin):
+    """
+    The bot's timed messages: what it says, and how long after what.
+
+    Built around one question — "will this actually go out, and when?" — so
+    every screen answers it in words rather than leaving the reader to work it
+    out from a number and a unit. The pair of per-object actions is the whole
+    testing story: send it to yourself now, or set the unit to minutes and
+    watch it arrive.
+    """
+
+    form = AutoMessageForm
+    list_display = [
+        "name",
+        "when_label",
+        "trigger_label",
+        "button_summary",
+        "status_badge",
+        "sent_total",
+    ]
+    list_display_links = ["name"]
+    list_filter = [
+        yes_no_filter("is_active", "Holati", "Yoqilgan", "O'chirilgan"),
+        "trigger",
+    ]
+    search_fields = ["name", "body"]
+    readonly_fields = ["plain_summary", "sent_total"]
+    # A plain select would render every customer in the shop into the page.
+    autocomplete_fields = ["test_user"]
+    actions_detail = ["action_test_to_me"]
+
+    fieldsets = (
+        (
+            "1. Nomi",
+            {
+                "fields": ["name"],
+                "description": "Faqat siz ko'rasiz. Masalan: «1 hafta — "
+                "keshbek taklifi».",
+            },
+        ),
+        (
+            "2. Qachon yuborilsin",
+            {
+                "fields": ["trigger", "delay_value", "delay_unit", "plain_summary"],
+                "description": "Sinash uchun: birlikni «daqiqa», raqamni 1 "
+                "qilib qo'ying va pastdagi «Sinov rejimi»ni yoqing.",
+            },
+        ),
+        (
+            "3. Xabar matni",
+            {
+                "fields": ["body"],
+                "description": "Mijozga boradigan matn. {{ user.full_name }} "
+                "va {{ product.name }} ishlaydi.",
+            },
+        ),
+        (
+            "3a. Boshqa tillar (ixtiyoriy)",
+            {
+                "fields": ["body_ru", "body_en"],
+                "classes": ["collapse"],
+                "description": "Bo'sh qoldirsangiz — o'zbekcha matn yuboriladi.",
+            },
+        ),
+        (
+            "4. Xabar ostidagi tugma",
+            {
+                "fields": [
+                    "button_action",
+                    "button_label",
+                    "button_label_ru",
+                    "button_label_en",
+                ]
+            },
+        ),
+        (
+            "5. Yoqish va sinash",
+            {
+                "fields": ["is_active", "is_test_mode", "test_user", "sent_total"],
+            },
+        ),
+    )
+
+    def get_queryset(self, request: HttpRequest):
+        return super().get_queryset(request).select_related("test_user")
+
+    # --- read-only explanations --------------------------------------------
+    @admin.display(description="Qachon")
+    def when_label(self, obj: AutoMessage) -> str:
+        return obj.schedule_label
+
+    @admin.display(description="Nimadan keyin", ordering="trigger")
+    def trigger_label(self, obj: AutoMessage) -> str:
+        return obj.get_trigger_display()
+
+    @admin.display(description="Tugma")
+    def button_summary(self, obj: AutoMessage) -> str:
+        if obj.button_action == AutoMessage.Action.NONE:
+            return "—"
+        return obj.button_label or obj.get_button_action_display()
+
+    @admin.display(description="Holat")
+    def status_badge(self, obj: AutoMessage) -> str:
+        if not obj.is_active:
+            return format_html('<span style="color:#9ca3af">⏸ O\'chirilgan</span>')
+        if obj.is_test_mode:
+            who = obj.test_user or "—"
+            return format_html(
+                '<span style="color:#f59e0b;font-weight:600">🧪 Sinov rejimi</span>'
+                '<div style="font-size:11px;color:#6b7280">faqat: {}</div>',
+                who,
+            )
+        return format_html(
+            '<span style="color:#059669;font-weight:600">✅ Ishlayapti</span>'
+        )
+
+    @admin.display(description="Yuborilgan")
+    def sent_total(self, obj: AutoMessage) -> str:
+        if obj.pk is None:
+            return "—"
+        return f"{obj.logs.filter(success=True).count()} ta"
+
+    @admin.display(description="Bu nima qiladi")
+    def plain_summary(self, obj: AutoMessage) -> str:
+        """One sentence saying exactly what this row will do, in Uzbek."""
+        if obj.pk is None:
+            return "Saqlagandan so'ng shu yerda tushuntirish chiqadi."
+
+        what = (
+            "mahsulot sotib olingandan"
+            if obj.trigger == AutoMessage.Trigger.AFTER_PURCHASE
+            else "ro'yxatdan o'tgandan"
+        )
+        # The customer's own name goes through format_html's escaping — a name
+        # containing markup must not become markup on this page.
+        if obj.is_test_mode:
+            who = format_html("faqat <b>{}</b> ga", obj.test_user or "—")
+        else:
+            who = "barcha mos mijozlarga"
+
+        sentence = format_html(
+            "Bot {} keyin <b>{} {}</b> o'tgach {} shu xabarni yuboradi.",
+            what,
+            obj.delay_value,
+            obj.get_delay_unit_display(),
+            who,
+        )
+        if obj.is_active:
+            return sentence
+        return format_html("{} <b>(hozir o'chirilgan)</b>", sentence)
+
+    # --- per-object actions -------------------------------------------------
+    @action(description="✍️ Menga test yuborish")
+    def action_test_to_me(self, request, object_id):
+        """
+        Deliver this exact message to the logged-in staff member right now.
+
+        The one thing that answers "does the wording look right?" without
+        waiting for the delay or touching a customer.
+        """
+        from apps.users.models import SellerProfile, TelegramUser
+        from core.telegram import TelegramError, send_message
+
+        back = request.path.replace("action_test_to_me/", "")
+        rule = AutoMessage.objects.filter(pk=object_id).first()
+        if rule is None:
+            return redirect(back)
+
+        profile = SellerProfile.objects.filter(user=request.user).first()
+        if profile is None or not profile.telegram_id:
+            self.message_user(
+                request,
+                "Test yuborish uchun Xodimlar → o'zingizga Telegram ID kiriting.",
+                level=messages.ERROR,
+            )
+            return redirect(back)
+
+        # Render against a real customer where possible, so placeholders show
+        # real values instead of blanks.
+        sample_user = TelegramUser.objects.filter(
+            telegram_id=profile.telegram_id
+        ).first() or TelegramUser.objects.filter(
+            telegram_id__isnull=False
+        ).first()
+        lang = sample_user.language if sample_user else "uz"
+        sample_product = None
+        if rule.trigger == AutoMessage.Trigger.AFTER_PURCHASE:
+            from apps.products.models import Product
+
+            sample_product = Product.objects.filter(is_active=True).first()
+
+        text = rule.render({"user": sample_user, "product": sample_product}, lang)
+        keyboard = rule.keyboard_for(
+            lang, sample_product.pk if sample_product else None
+        )
+        try:
+            send_message(
+                profile.telegram_id, text, parse_mode="HTML", reply_markup=keyboard
+            )
+        except TelegramError as exc:
+            self.message_user(
+                request, f"Test yuborilmadi: {exc}", level=messages.ERROR
+            )
+            return redirect(back)
+        self.message_user(request, "Test xabar sizga yuborildi ✅ — botni tekshiring.")
+        return redirect(back)
+
+    def has_module_permission(self, request: HttpRequest) -> bool:
+        return request.user.is_superuser
+
+    def has_view_permission(
+        self, request: HttpRequest, obj: AutoMessage | None = None
+    ) -> bool:
+        return request.user.is_superuser
+
+
+@admin.register(AutoMessageLog)
+class AutoMessageLogAdmin(RBModelAdmin):
+    list_display = ["auto_message", "user", "sent_at", "result"]
+    list_filter = ["auto_message", yes_no_filter("success", "Natija", "Yetdi", "Yetmadi")]
+    search_fields = ["user__full_name", "user__phone_number"]
+    readonly_fields = ["auto_message", "user", "anchor", "sent_at", "success", "error_detail"]
+    date_hierarchy = "sent_at"
+    list_per_page = 30
+
+    def get_queryset(self, request: HttpRequest):
+        return super().get_queryset(request).select_related("user", "auto_message")
+
+    @admin.display(description="Natija")
+    def result(self, obj: AutoMessageLog) -> str:
+        if obj.success:
+            return format_html('<span style="color:#059669">✅ Yetkazildi</span>')
+        return format_html(
+            '<span style="color:#dc2626">❌ Yetkazilmadi</span>'
+            '<div style="font-size:11px;color:#6b7280">{}</div>',
+            obj.error_detail[:80],
+        )
+
+    def has_add_permission(self, request: HttpRequest) -> bool:
+        return False
+
+    def has_change_permission(
+        self, request: HttpRequest, obj: AutoMessageLog | None = None
+    ) -> bool:
+        return False
+
+    def has_module_permission(self, request: HttpRequest) -> bool:
+        return request.user.is_superuser
+
+    def has_view_permission(
+        self, request: HttpRequest, obj: AutoMessageLog | None = None
     ) -> bool:
         return request.user.is_superuser
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from django.conf import settings
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils import timezone
 
@@ -74,6 +75,17 @@ class SupportMessage(models.Model):
         IN = "in", "Foydalanuvchidan"
         OUT = "out", "Admindan"
 
+    class AttachmentType(models.TextChoices):
+        PHOTO = "photo", "Rasm"
+        DOCUMENT = "document", "Hujjat"
+        VOICE = "voice", "Ovozli xabar"
+        VIDEO = "video", "Video"
+        STICKER = "sticker", "Stiker"
+
+    class Status(models.TextChoices):
+        SENT = "sent", "Yuborildi"
+        FAILED = "failed", "Yuborilmadi"
+
     thread = models.ForeignKey(
         SupportThread,
         on_delete=models.CASCADE,
@@ -84,9 +96,13 @@ class SupportMessage(models.Model):
         max_length=4, choices=Direction.choices, verbose_name="Yo'nalish"
     )
     text = models.TextField(blank=True, verbose_name="Matn")
-    # Telegram file_id of a photo the user attached (no disk copy kept).
-    photo_file_id = models.CharField(max_length=512, blank=True, editable=False)
-    # Set for outgoing messages: which staff account wrote the reply.
+    # Telegram file_id of an attachment (no disk copy kept).
+    attachment_file_id = models.CharField(max_length=512, blank=True, editable=False)
+    attachment_type = models.CharField(
+        max_length=16, choices=AttachmentType.choices, blank=True, editable=False
+    )
+    # Set for outgoing messages written by a logged-in CRM user (legacy path);
+    # group-routed replies are attributed via telegram_admin instead.
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         null=True,
@@ -94,9 +110,27 @@ class SupportMessage(models.Model):
         on_delete=models.SET_NULL,
         verbose_name="Muallif",
     )
-    delivered = models.BooleanField(
-        default=True, editable=False, verbose_name="Yetkazildi"
+    # Set for messages forwarded into / replied from the support group.
+    telegram_admin = models.ForeignKey(
+        "SupportAdmin",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="replies",
+        verbose_name="Telegram admin",
     )
+    # Where this message's copy landed in the support group, so an admin's
+    # native Telegram reply can be matched back to this row.
+    group_chat_id = models.BigIntegerField(null=True, blank=True, editable=False)
+    group_message_id = models.BigIntegerField(null=True, blank=True, editable=False)
+    status = models.CharField(
+        max_length=8,
+        choices=Status.choices,
+        default=Status.SENT,
+        editable=False,
+        verbose_name="Holat",
+    )
+    retry_count = models.SmallIntegerField(default=0, editable=False)
     error_detail = models.TextField(blank=True, editable=False)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Vaqt")
 
@@ -104,7 +138,88 @@ class SupportMessage(models.Model):
         verbose_name = "Murojaat xabari"
         verbose_name_plural = "Murojaat xabarlari"
         ordering = ["created_at"]
-        indexes = [models.Index(fields=["thread", "created_at"])]
+        indexes = [
+            models.Index(fields=["thread", "created_at"]),
+            models.Index(fields=["group_chat_id", "group_message_id"]),
+        ]
 
     def __str__(self) -> str:
         return f"{self.get_direction_display()}: {self.text[:40]}"
+
+
+class SupportSettings(models.Model):
+    """
+    Singleton — only one row allowed.
+
+    Holds the Telegram group used for support routing. The bot token itself
+    stays in the BOT_TOKEN env var (the running bot process can't hot-swap
+    it anyway); this model only tracks where replies should land and whether
+    that connection is currently healthy.
+    """
+
+    class ConnectionStatus(models.TextChoices):
+        UNKNOWN = "unknown", "Tekshirilmagan"
+        OK = "ok", "Ulangan"
+        ERROR = "error", "Xatolik"
+
+    group_chat_id = models.BigIntegerField(
+        null=True,
+        blank=True,
+        verbose_name="Guruh Chat ID",
+        help_text="Support xabarlari shu guruhga yuboriladi. Botni guruhga "
+        "qo'shib, guruh ID sini shu yerga kiriting.",
+    )
+    connection_status = models.CharField(
+        max_length=8,
+        choices=ConnectionStatus.choices,
+        default=ConnectionStatus.UNKNOWN,
+        editable=False,
+        verbose_name="Ulanish holati",
+    )
+    last_checked_at = models.DateTimeField(
+        null=True, blank=True, editable=False, verbose_name="Oxirgi tekshiruv"
+    )
+    last_error = models.TextField(blank=True, editable=False, verbose_name="Xato")
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Telegram guruh sozlamasi"
+        verbose_name_plural = "Telegram guruh sozlamasi"
+
+    def save(self, *args, **kwargs) -> None:
+        self.pk = 1  # enforce singleton
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def get(cls) -> "SupportSettings":
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+
+    def __str__(self) -> str:
+        return "Telegram guruh sozlamasi"
+
+
+class SupportAdmin(models.Model):
+    """A Telegram account allowed to reply to support requests in the group."""
+
+    telegram_user_id = models.BigIntegerField(
+        unique=True,
+        validators=[MinValueValidator(1)],
+        verbose_name="Telegram ID",
+    )
+    name = models.CharField(
+        max_length=128,
+        blank=True,
+        verbose_name="Ism",
+        help_text="Ixtiyoriy — bo'sh qoldirsangiz, birinchi javobdan avtomatik olinadi.",
+    )
+    enabled = models.BooleanField(default=True, verbose_name="Faol")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Qo'shilgan sana")
+
+    class Meta:
+        verbose_name = "Guruh admini"
+        verbose_name_plural = "Guruh adminlari"
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return self.name or str(self.telegram_user_id)

@@ -39,6 +39,44 @@ class UserFeedback(models.Model):
         return f"{self.user} — {self.week}-hafta — {self.rating}"
 
 
+class SkinQuizResult(models.Model):
+    """
+    One completed run of the 10-question skin quiz.
+
+    The raw answers are kept, not just the verdict: the shop reads them to see
+    *why* somebody came out as, say, oily-with-pigmentation, and the scoring
+    rules can be re-run over old submissions when the recommendations change.
+    """
+
+    user = models.ForeignKey(
+        "users.TelegramUser",
+        on_delete=models.CASCADE,
+        related_name="skin_quiz_results",
+        verbose_name="Foydalanuvchi",
+    )
+    skin_type = models.CharField(max_length=20, verbose_name="Aniqlangan teri turi")
+    # {"q1": 4, "q2": 3, ...} — question id to 0–5 answer.
+    answers = models.JSONField(default=dict, verbose_name="Javoblar")
+    # i18n keys of the recommendation blocks shown, so the CRM can display the
+    # exact advice this customer received.
+    recommendation_keys = models.JSONField(
+        default=list, verbose_name="Berilgan tavsiyalar"
+    )
+    language = models.CharField(
+        max_length=5, default="uz", verbose_name="Til"
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Topshirilgan vaqt")
+
+    class Meta:
+        verbose_name = "Teri testi natijasi"
+        verbose_name_plural = "Teri testi natijalari"
+        ordering = ["-created_at"]
+        indexes = [models.Index(fields=["user", "-created_at"])]
+
+    def __str__(self) -> str:
+        return f"{self.user} — {self.skin_type}"
+
+
 class ProgressPhoto(models.Model):
     """
     A before/after photo.
