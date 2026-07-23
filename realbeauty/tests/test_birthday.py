@@ -113,21 +113,36 @@ class BirthdayFlowTests(TestCase):
         self.assertEqual(sent, 1)  # only today's user
         templated.assert_called_once()
 
-    def test_a_blocked_customer_still_earns_the_points(self):
-        # They turned a year older regardless of whether the message landed —
-        # this is the exact case the `continue`-vs-`pass` bug used to break.
+    def test_a_customer_who_blocked_the_bot_earns_nothing(self):
+        # Nobody actually saw the greeting, so there is nothing to reward —
+        # and next year's run will try again from a clean slate.
         from core.telegram import TelegramError
 
         with patch(
             "tasks.notifications.send_message",
             side_effect=TelegramError("Forbidden: bot was blocked by the user"),
-        ), patch("core.telegram.send_message"):
-            send_birthday_messages()
+        ) as templated, patch("core.telegram.send_message") as loyalty:
+            sent = send_birthday_messages()
 
-        self.assertEqual(
-            LoyaltyAccount.objects.get(user=self.user).balance,
-            LoyaltySettings.get().points_birthday,
-        )
+        self.assertEqual(sent, 0)
+        self.assertFalse(LoyaltyAccount.objects.filter(user=self.user).exists())
+        loyalty.assert_not_called()
+        templated.assert_called_once()
+
+    def test_a_transient_delivery_failure_also_credits_nothing(self):
+        # Distinguishing "blocked forever" from "network hiccup" would need a
+        # retry story this task doesn't have; until it does, no message
+        # delivered means no points, full stop — same rule either way.
+        from core.telegram import TelegramError
+
+        with patch(
+            "tasks.notifications.send_message",
+            side_effect=TelegramError("Bad Gateway"),
+        ):
+            sent = send_birthday_messages()
+
+        self.assertEqual(sent, 0)
+        self.assertFalse(LoyaltyAccount.objects.filter(user=self.user).exists())
 
     def test_inactive_customers_are_not_messaged_or_paid(self):
         TelegramUser.objects.filter(pk=self.user.pk).update(is_active=False)

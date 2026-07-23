@@ -175,29 +175,29 @@ def send_birthday_messages() -> int:
     for user in qs:
         context = {"user": user, "discount": settings.birthday_discount_percent}
         try:
-            if send_templated_message_sync(
+            delivered = send_templated_message_sync(
                 user.telegram_id, user.pk, "birthday_sale", context, lang=user.language
-            ):
-                sent += 1
+            )
         except TelegramError:
-            pass  # logged by the sender — but they still earned the points below
+            delivered = False  # logged by the sender
         except Exception:  # noqa: BLE001
             logger.exception("birthday send crashed for user %s", user.pk)
-        # Deliberately unconditional: a `continue` in either except branch
-        # above would skip this and silently deny the birthday bonus to
-        # exactly the customers who blocked the bot — the one case the
-        # comment on `_credit_birthday_points` promises still gets paid.
+            delivered = False
+        if not delivered:
+            # Blocked the bot, deleted their account, or the send otherwise
+            # failed — nobody actually saw a birthday greeting, so there is
+            # nothing to reward. Next year's run tries again from scratch.
+            continue
+        sent += 1
         _credit_birthday_points(user, today)
     return sent
 
 
 def _credit_birthday_points(user, today) -> None:
     """
-    The birthday bonus, once a year.
+    The birthday bonus, once a year — only for a greeting that actually landed.
 
-    Keyed on the year so a beat restart cannot pay twice, and deliberately
-    separate from the message: a customer who blocked the bot still turns a
-    year older and still earns their points.
+    Keyed on the year so a beat restart cannot pay twice.
     """
     from apps.loyalty.models import PointsTransaction
     from apps.loyalty.services import award
