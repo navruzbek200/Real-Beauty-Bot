@@ -7,7 +7,8 @@ STRINGS: dict[str, str] = {
     "menu.ingredients": "🧪 Ingredients we study",
     "menu.catalog": "🛍 Products",
     "menu.top": "🔥 Top products this month",
-    "menu.feedback": "⭐️ Rate a product",
+    "menu.feedback": "⭐️ Rate a product",  # legacy label kept for MenuText matching
+    "menu.quiz_retake": "🔄 Retake the skin test",
     "menu.support": "✍️ Question / Request",
     "menu.discounts": "🎁 Discounts",
     "menu.bonus": "💎 My bonuses",
@@ -259,16 +260,6 @@ STRINGS: dict[str, str] = {
     "top.rank": "#{rank}",
     "top.price": "💵 <b>{current} UZS</b>",
     "top.price_discount": "💸 <s>{old} UZS</s>  ➜  <b>{current} UZS</b>  (-{percent}%)",
-    # ------------------------------------------------------------- feedback
-    "feedback.ask_rating": "⭐️ Rate the product from 1 to 5:",
-    "feedback.ask_text": (
-        "💬 Care to add a few words? (optional)\n\n"
-        "What you liked, what you didn't — leave a note, or skip with the "
-        "button below."
-    ),
-    "feedback.thanks_fallback": "🙏 Thank you for your feedback!",
-    "feedback.save_error": "Couldn't save your feedback. Please try again later.",
-    "feedback.pick_product": "Which product would you like to rate?",
     # -------------------------------------------------------------- support
     "support.ask": (
         "✍️ Write your question or request.\n\n"

@@ -7,7 +7,8 @@ STRINGS: dict[str, str] = {
     "menu.ingredients": "🧪 Qaysi tarkiblarni o'rganamiz",
     "menu.catalog": "🛍 Mahsulotlar",
     "menu.top": "🔥 Bu oydagi top mahsulotlar",
-    "menu.feedback": "⭐️ Mahsulotga baho",
+    "menu.feedback": "⭐️ Mahsulotga baho",  # legacy label kept for MenuText matching
+    "menu.quiz_retake": "🔄 Testni qayta topshirish",
     "menu.support": "✍️ Savol / Murojaat",
     "menu.discounts": "🎁 Chegirmalar",
     "menu.bonus": "💎 Bonuslarim",
@@ -269,16 +270,6 @@ STRINGS: dict[str, str] = {
     "top.rank": "#{rank}",
     "top.price": "💵 <b>{current} so'm</b>",
     "top.price_discount": "💸 <s>{old} so'm</s>  ➜  <b>{current} so'm</b>  (-{percent}%)",
-    # ------------------------------------------------------------- feedback
-    "feedback.ask_rating": "⭐️ Mahsulotni 1 dan 5 gacha baholang:",
-    "feedback.ask_text": (
-        "💬 Qo'shimcha fikr yozasizmi? (ixtiyoriy)\n\n"
-        "Nima yoqdi, nima yoqmadi — yozib qoldiring, "
-        "yoki pastdagi tugma bilan o'tkazib yuboring."
-    ),
-    "feedback.thanks_fallback": "🙏 Fikringiz uchun rahmat!",
-    "feedback.save_error": "Fikrni saqlab bo'lmadi. Keyinroq urinib ko'ring.",
-    "feedback.pick_product": "Qaysi mahsulotga baho bermoqchisiz?",
     # -------------------------------------------------------------- support
     "support.ask": (
         "✍️ Savolingiz yoki murojaatingizni yozing.\n\n"

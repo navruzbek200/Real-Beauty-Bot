@@ -39,13 +39,6 @@ class SkinQuizState(StatesGroup):
     answering = State()
 
 
-class FeedbackState(StatesGroup):
-    """FSM for week-1 feedback collection."""
-
-    text = State()
-    rating = State()
-
-
 class ProgressState(StatesGroup):
     """FSM for week-2 before/after photo collection."""
 

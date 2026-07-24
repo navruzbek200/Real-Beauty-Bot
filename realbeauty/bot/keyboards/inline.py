@@ -25,9 +25,6 @@ CB_QUIZ_BACK = "quiz_back"
 CB_QUIZ_RETAKE = "quiz_retake"
 CB_SKIP_PHOTO = "skip_photo"
 CB_TUTORIAL_STEP = "tutorial_step"  # tutorial_step:<product_id>:<step_id>
-CB_SUBMIT_FEEDBACK = "submit_feedback"  # submit_feedback:<week>:<product_id>
-CB_FEEDBACK_RATING = "feedback_rating"  # feedback_rating:<value>
-CB_SKIP_FEEDBACK_TEXT = "skip_fb_text"  # rating saved, no written comment
 CB_SEND_PROGRESS = "send_progress"  # send_progress:<product_id>
 CB_SUPPORT_REPLY = "support_reply"  # attached to admin replies in the bot
 CB_OPEN_DISCOUNTS = "open_discounts"
@@ -194,57 +191,6 @@ def tutorial_steps_keyboard(
         )
     builder.adjust(1)
     return builder.as_markup()
-
-
-def feedback_button_keyboard(
-    label: str, week: int, product_id: int
-) -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text=label,
-                    callback_data=f"{CB_SUBMIT_FEEDBACK}{SEP}{week}{SEP}{product_id}",
-                )
-            ]
-        ]
-    )
-
-
-def feedback_products_keyboard(
-    products: Iterable[tuple[int, str]], week: int = 1
-) -> InlineKeyboardMarkup:
-    """products: iterable of (product_id, name). Reuses submit_feedback callback."""
-    builder = InlineKeyboardBuilder()
-    for product_id, name in products:
-        builder.button(
-            text=name,
-            callback_data=f"{CB_SUBMIT_FEEDBACK}{SEP}{week}{SEP}{product_id}",
-        )
-    builder.adjust(1)
-    return builder.as_markup()
-
-
-def rating_keyboard() -> InlineKeyboardMarkup:
-    builder = InlineKeyboardBuilder()
-    for value in range(1, 6):
-        builder.button(
-            text="⭐️" * value, callback_data=f"{CB_FEEDBACK_RATING}{SEP}{value}"
-        )
-    builder.adjust(1)
-    return builder.as_markup()
-
-
-def skip_feedback_text_keyboard(lang: str) -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text=t("reg.skip", lang), callback_data=CB_SKIP_FEEDBACK_TEXT
-                )
-            ]
-        ]
-    )
 
 
 def progress_button_keyboard(label: str, product_id: int) -> InlineKeyboardMarkup:

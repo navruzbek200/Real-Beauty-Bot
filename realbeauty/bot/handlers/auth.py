@@ -460,6 +460,43 @@ async def send_tutorial_intros(bot: Bot, telegram_id: int, lang: str) -> None:
         await _safe_send(bot, telegram_id, body, parse_mode, keyboard)
 
 
+async def send_tutorial_intros_for_products(
+    bot: Bot, telegram_id: int, products: list, lang: str
+) -> int:
+    """
+    Send one intro card per product in `products` that actually has a
+    tutorial step.
+
+    Used as the `menu_ingredients` fallback for a customer with no
+    purchases: showing this month's top products, but only the ones with
+    real content — a promotional card with no steps behind it would just
+    be confusing in a "tarkiblarni o'rganamiz" (learn the ingredients)
+    context. Returns how many cards were sent, so the caller can show the
+    empty state when it's zero.
+    """
+    from core.i18n import pick
+
+    sent = 0
+    for product in products:
+        steps = await product_service.get_tutorial_steps(product.pk)
+        if not steps:
+            continue
+        text, parse_mode = await template_service.render_template(
+            "product_intro", {"product": product}, lang
+        )
+        keyboard = inline.tutorial_steps_keyboard(
+            product.pk, [(s.pk, pick(s, "button_label", lang)) for s in steps]
+        )
+        body = text or t(
+            "tutorial.intro_fallback",
+            lang,
+            product=html.escape(pick(product, "name", lang)),
+        )
+        await _safe_send(bot, telegram_id, body, parse_mode, keyboard)
+        sent += 1
+    return sent
+
+
 async def _safe_send(
     bot: Bot, chat_id: int, text: str, parse_mode: str, reply_markup=None
 ) -> None:

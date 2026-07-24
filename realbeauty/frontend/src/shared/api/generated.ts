@@ -1214,12 +1214,11 @@ export interface components {
         };
         /**
          * @description * `none` - Tugmasiz (faqat matn)
-         *     * `feedback` - «Fikr bildirish» tugmasi
          *     * `progress` - «Rasm yuborish» tugmasi
          *     * `discounts` - «Chegirmalarni ko'rish» tugmasi
          * @enum {string}
          */
-        ButtonActionEnum: "none" | "feedback" | "progress" | "discounts";
+        ButtonActionEnum: "none" | "progress" | "discounts";
         CampaignLog: {
             readonly id: number;
             /** Foydalanuvchi */

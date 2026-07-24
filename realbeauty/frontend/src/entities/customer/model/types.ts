@@ -1,7 +1,6 @@
 import type { Schemas } from '@/shared/api/schema'
 
 export type Customer = Schemas['TelegramUser']
-export type AppUser = Schemas['AppUser']
 export type UserProduct = Schemas['UserProduct']
 
 export interface CustomerListParams {

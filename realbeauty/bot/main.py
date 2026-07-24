@@ -20,7 +20,6 @@ from bot.handlers import (  # noqa: E402
     auth,
     birthday,
     fallback,
-    feedback,
     loyalty,
     menu,
     products,
@@ -69,7 +68,6 @@ async def main() -> None:
     dp.include_router(menu.router)
     dp.include_router(loyalty.router)
     dp.include_router(products.router)
-    dp.include_router(feedback.router)
     dp.include_router(progress.router)
     dp.include_router(support.router)
     dp.include_router(support_group.router)

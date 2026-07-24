@@ -167,10 +167,10 @@ class Command(BaseCommand):
                 "body": (
                     "👋 Salom, {{ user.full_name }}!\n\n"
                     "<b>{{ product.name }}</b> mahsulotidan foydalanayotganingizga "
-                    "bir hafta bo'ldi. Fikringizni bildiring 👇"
+                    "bir hafta bo'ldi. Yaxshi kelayaptimi?"
                 ),
-                "button_action": AutoMessage.Action.FEEDBACK,
-                "button_label": "Fikr bildirish",
+                "button_action": AutoMessage.Action.NONE,
+                "button_label": "",
                 "is_active": True,
             },
         )

@@ -18,7 +18,6 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       { to: '/', label: 'Boshqaruv paneli' },
       { to: '/customers', label: 'Xaridorlar', permission: 'users.view_telegramuser' },
-      { to: '/app-users', label: 'App foydalanuvchilari', permission: 'users.view_appuser' },
       { to: '/support-threads', label: 'Murojaatlar', permission: 'support.view_supportthread' },
     ],
   },

@@ -7,7 +7,8 @@ STRINGS: dict[str, str] = {
     "menu.ingredients": "🧪 Какие составы изучаем",
     "menu.catalog": "🛍 Товары",
     "menu.top": "🔥 Топ товаров месяца",
-    "menu.feedback": "⭐️ Оценить товар",
+    "menu.feedback": "⭐️ Оценить товар",  # legacy label kept for MenuText matching
+    "menu.quiz_retake": "🔄 Пройти тест заново",
     "menu.support": "✍️ Вопрос / Обращение",
     "menu.discounts": "🎁 Скидки",
     "menu.bonus": "💎 Мои бонусы",
@@ -260,15 +261,6 @@ STRINGS: dict[str, str] = {
     "top.rank": "#{rank}",
     "top.price": "💵 <b>{current} сум</b>",
     "top.price_discount": "💸 <s>{old} сум</s>  ➜  <b>{current} сум</b>  (-{percent}%)",
-    # ------------------------------------------------------------- feedback
-    "feedback.ask_rating": "⭐️ Оцените товар от 1 до 5:",
-    "feedback.ask_text": (
-        "💬 Напишете пару слов? (необязательно)\n\n"
-        "Что понравилось, что нет — оставьте отзыв или пропустите кнопкой ниже."
-    ),
-    "feedback.thanks_fallback": "🙏 Спасибо за ваш отзыв!",
-    "feedback.save_error": "Не удалось сохранить отзыв. Попробуйте позже.",
-    "feedback.pick_product": "Какой товар хотите оценить?",
     # -------------------------------------------------------------- support
     "support.ask": (
         "✍️ Напишите свой вопрос или обращение.\n\n"

@@ -4,41 +4,8 @@ from asgiref.sync import sync_to_async
 from django.core.files.base import ContentFile
 
 from apps.analytics.imaging import make_thumbnail
-from apps.analytics.models import ProgressPhoto, UserFeedback
+from apps.analytics.models import ProgressPhoto
 from apps.users.models import TelegramUser, UserProduct
-
-
-@sync_to_async
-def save_feedback(
-    *,
-    telegram_id: int,
-    product_id: int | None,
-    week: int,
-    text: str,
-    rating: int | None,
-) -> dict:
-    """
-    Save the feedback and return the plain values an admin notification
-    needs — not the ORM instance itself, since any lazy field access
-    (`.product.name`) from the async caller would hit the database outside
-    this sync context and raise.
-    """
-    user = TelegramUser.objects.get(telegram_id=telegram_id)
-    feedback = UserFeedback.objects.create(
-        user=user,
-        product_id=product_id,
-        week=week,
-        text=text,
-        rating=rating,
-    )
-    return {
-        "id": feedback.pk,
-        "user_name": user.full_name or "Ismsiz",
-        "username": user.username,
-        "product_name": feedback.product.name if feedback.product_id else None,
-        "rating": rating,
-        "text": text,
-    }
 
 
 @sync_to_async

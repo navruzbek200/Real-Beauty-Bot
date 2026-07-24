@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 import type { ResourceColumn, ResourceFormConfig } from '@/shared/lib/resource-crud-types'
 import { Badge } from '@/shared/ui'
-import type { AppUser, Customer } from '@/entities/customer'
+import type { Customer } from '@/entities/customer'
 
 export const customerFormSchema = z.object({
   full_name: z.string().min(1, "Ism-familiya shart"),
@@ -79,41 +79,3 @@ export const customerColumns: ResourceColumn<Customer>[] = [
   },
 ]
 
-export const appUserFormSchema = z.object({
-  full_name: z.string().min(1, "Ism-familiya shart"),
-  phone_number: z.string().min(1, "Telefon raqami shart"),
-})
-
-export type AppUserFormValues = z.infer<typeof appUserFormSchema>
-
-export const appUserFormConfig: ResourceFormConfig<AppUserFormValues> = {
-  schema: appUserFormSchema,
-  fields: [
-    { name: 'full_name', label: 'Ism-familiya', type: 'text' },
-    { name: 'phone_number', label: 'Telefon raqami', type: 'text' },
-  ],
-  defaultValues: { full_name: '', phone_number: '' },
-  toFormValues: (item) => ({
-    full_name: (item.full_name as string) ?? '',
-    phone_number: (item.phone_number as string) ?? '',
-  }),
-}
-
-export const appUserColumns: ResourceColumn<AppUser>[] = [
-  { key: 'full_name', header: 'Ism-familiya', render: (u) => u.full_name || "Ismsiz" },
-  { key: 'phone_number', header: 'Telefon', render: (u) => u.phone_number || '—' },
-  {
-    key: 'registration_status',
-    header: "Ro'yxat holati",
-    render: (u) => (
-      <Badge tone={u.registration_status === 'completed' ? 'success' : 'warning'}>
-        {u.registration_status === 'completed' ? "To'ldirilgan" : 'Kutilmoqda'}
-      </Badge>
-    ),
-  },
-  {
-    key: 'created_at',
-    header: "Qo'shilgan",
-    render: (u) => new Date(u.created_at as string).toLocaleDateString('uz-UZ'),
-  },
-]

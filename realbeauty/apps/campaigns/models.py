@@ -138,7 +138,6 @@ class AutoMessage(models.Model):
 
     class Action(models.TextChoices):
         NONE = "none", "Tugmasiz (faqat matn)"
-        FEEDBACK = "feedback", "«Fikr bildirish» tugmasi"
         PROGRESS = "progress", "«Rasm yuborish» tugmasi"
         DISCOUNTS = "discounts", "«Chegirmalarni ko'rish» tugmasi"
 
@@ -270,12 +269,7 @@ class AutoMessage(models.Model):
         chosen action needs a product and this send has none, since a callback
         with a missing id would just error in the customer's face.
         """
-        from bot.keyboards.inline import (
-            CB_OPEN_DISCOUNTS,
-            CB_SEND_PROGRESS,
-            CB_SUBMIT_FEEDBACK,
-            SEP,
-        )
+        from bot.keyboards.inline import CB_OPEN_DISCOUNTS, CB_SEND_PROGRESS, SEP
 
         label = self.label_for(lang)
         if self.button_action == self.Action.NONE or not label:
@@ -285,8 +279,6 @@ class AutoMessage(models.Model):
             callback = CB_OPEN_DISCOUNTS
         elif product_id is None:
             return None
-        elif self.button_action == self.Action.FEEDBACK:
-            callback = f"{CB_SUBMIT_FEEDBACK}{SEP}1{SEP}{product_id}"
         else:
             callback = f"{CB_SEND_PROGRESS}{SEP}{product_id}"
 

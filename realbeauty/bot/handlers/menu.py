@@ -10,7 +10,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, FSInputFile, Message
 
 from bot.filters.menu import MenuText
-from bot.handlers.auth import send_tutorial_intros
+from bot.handlers.auth import send_tutorial_intros, send_tutorial_intros_for_products
 from bot.i18n import normalize, t
 from bot.keyboards import inline, reply
 from bot.services import (
@@ -72,41 +72,46 @@ async def open_menu(message: Message, state: FSMContext, lang: str) -> None:
 async def menu_ingredients(
     message: Message, bot: Bot, state: FSMContext, lang: str
 ) -> None:
-    """The ingredient lessons — one card per product the customer owns."""
-    await state.clear()
-    if message.from_user is None:
-        return
-    products = await user_service.get_user_products(message.from_user.id)
-    if not products:
-        await message.answer(t("product.none", lang))
-        return
-    await send_tutorial_intros(bot, message.from_user.id, lang)
-
-
-@router.message(MenuText("menu.feedback", "menu.legacy_feedback"))
-async def menu_feedback(message: Message, state: FSMContext, lang: str) -> None:
     """
-    Let the customer rate a product they bought — or, failing that, one from
-    this month's top list they've tried or seen. A brand-new customer with no
-    purchase on file used to hit a flat "you have no products" dead end here,
-    which made the button useless for exactly the people browsing the top
-    list. Falling back keeps it usable from day one.
+    The ingredient lessons — one card per product the customer owns, or,
+    failing that, this month's top products that actually have a lesson
+    attached. A brand-new customer with no purchase on file used to hit a
+    flat "you have no products" dead end here, which meant a video added in
+    the CRM was unreachable until somebody bought something.
     """
     await state.clear()
     if message.from_user is None:
         return
     products = await user_service.get_user_products(message.from_user.id)
     if products:
-        options = [(up.product_id, pick(up.product, "name", lang)) for up in products]
-    else:
-        top = await product_service.get_top_products()
-        options = [(product.pk, pick(product, "name", lang)) for product in top]
-
-    if not options:
-        await message.answer(t("product.none", lang))
+        await send_tutorial_intros(bot, message.from_user.id, lang)
         return
-    keyboard = inline.feedback_products_keyboard(options, week=1)
-    await message.answer(t("feedback.pick_product", lang), reply_markup=keyboard)
+
+    top = await product_service.get_top_products()
+    sent = await send_tutorial_intros_for_products(bot, message.from_user.id, top, lang)
+    if not sent:
+        await message.answer(t("product.none", lang))
+
+
+@router.message(MenuText("menu.quiz_retake", "menu.feedback", "menu.legacy_feedback"))
+async def menu_quiz_retake(message: Message, state: FSMContext, lang: str) -> None:
+    """Restart the skin-type quiz from the main menu."""
+    from bot.states.registration import SkinQuizState
+
+    await state.clear()
+    if message.from_user is None:
+        return
+    user = await user_service.get_user(message.from_user.id)
+    if user is None or not user.full_name:
+        await message.answer(t("user.not_registered", lang))
+        return
+    await state.set_state(SkinQuizState.intro)
+    await state.update_data(language=user.language)
+    await message.answer(
+        t("quiz.intro", user.language),
+        parse_mode="HTML",
+        reply_markup=inline.quiz_start_keyboard(user.language),
+    )
 
 
 @router.message(MenuText("menu.catalog"))

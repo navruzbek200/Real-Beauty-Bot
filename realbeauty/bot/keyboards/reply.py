@@ -8,7 +8,7 @@ from bot.i18n import DEFAULT_LANGUAGE, t
 # read in one glance and every language renders the same shape.
 _MAIN_MENU_ROWS: tuple[tuple[str, ...], ...] = (
     ("menu.ingredients", "menu.catalog"),
-    ("menu.top", "menu.feedback"),
+    ("menu.top", "menu.quiz_retake"),
     ("menu.support", "menu.discounts"),
     ("menu.bonus", "menu.profile"),
     ("menu.help",),

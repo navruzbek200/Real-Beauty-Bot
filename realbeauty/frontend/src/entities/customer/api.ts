@@ -1,6 +1,6 @@
 import { apiClient } from '@/shared/api/client'
 import type { Paginated } from '@/shared/api/types'
-import type { AppUser, Customer, CustomerListParams, UserProduct } from './model/types'
+import type { Customer, CustomerListParams, UserProduct } from './model/types'
 
 async function list(params: CustomerListParams): Promise<Paginated<Customer>> {
   const { data, error } = await apiClient.GET('/api/v1/customers/', { params: { query: params } })
@@ -35,43 +35,6 @@ async function remove(id: number): Promise<void> {
 }
 
 export const customerApi = { list, retrieve, create, update, remove }
-
-async function listAppUsers(params: CustomerListParams): Promise<Paginated<AppUser>> {
-  const { data, error } = await apiClient.GET('/api/v1/app-users/', { params: { query: params } })
-  if (error) throw error
-  return data
-}
-
-async function retrieveAppUser(id: number): Promise<AppUser> {
-  const { data, error } = await apiClient.GET('/api/v1/app-users/{id}/', {
-    params: { path: { id } },
-  })
-  if (error) throw error
-  return data
-}
-
-async function updateAppUser(id: number, body: Partial<AppUser>): Promise<AppUser> {
-  const { data, error } = await apiClient.PATCH('/api/v1/app-users/{id}/', {
-    params: { path: { id } },
-    body,
-  })
-  if (error) throw error
-  return data
-}
-
-async function removeAppUser(id: number): Promise<void> {
-  const { error } = await apiClient.DELETE('/api/v1/app-users/{id}/', {
-    params: { path: { id } },
-  })
-  if (error) throw error
-}
-
-export const appUserApi = {
-  list: listAppUsers,
-  retrieve: retrieveAppUser,
-  update: updateAppUser,
-  remove: removeAppUser,
-}
 
 async function listUserProducts(params: CustomerListParams): Promise<Paginated<UserProduct>> {
   const { data, error } = await apiClient.GET('/api/v1/user-products/', {

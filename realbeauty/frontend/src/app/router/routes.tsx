@@ -1,6 +1,5 @@
 import { Route, Routes } from 'react-router-dom'
 
-import { AppUsersPage } from '@/pages/app-users'
 import { AutoMessageLogsPage } from '@/pages/auto-message-logs'
 import { AutoMessagesPage } from '@/pages/auto-messages'
 import { BroadcastsPage } from '@/pages/broadcasts'
@@ -39,10 +38,6 @@ export function AppRoutes() {
       <Route
         path="/customers"
         element={<ProtectedRoute permission="users.view_telegramuser"><CustomersPage /></ProtectedRoute>}
-      />
-      <Route
-        path="/app-users"
-        element={<ProtectedRoute permission="users.view_appuser"><AppUsersPage /></ProtectedRoute>}
       />
       <Route
         path="/user-products"
