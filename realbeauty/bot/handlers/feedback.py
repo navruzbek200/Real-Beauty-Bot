@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import html
 import logging
 
 from aiogram import F, Router
@@ -11,6 +12,7 @@ from bot.i18n import t
 from bot.keyboards import inline
 from bot.services import analytics_service, template_service
 from bot.states.registration import FeedbackState
+from bot.utils.support import notify_group
 
 logger = logging.getLogger(__name__)
 router = Router(name="feedback")
@@ -70,7 +72,7 @@ async def _finish(message: Message, state: FSMContext, lang: str, text: str) -> 
     await state.clear()
 
     try:
-        await analytics_service.save_feedback(
+        saved = await analytics_service.save_feedback(
             telegram_id=message.chat.id,
             product_id=data.get("product_id"),
             week=data.get("week", 1),
@@ -90,6 +92,8 @@ async def _finish(message: Message, state: FSMContext, lang: str, text: str) -> 
         await message.answer(t("feedback.save_error", lang))
         return
 
+    await notify_group(message.bot, _feedback_card(saved))
+
     thanks, parse_mode = await template_service.render_template(
         "feedback_thanks", {}, lang
     )
@@ -99,3 +103,21 @@ async def _finish(message: Message, state: FSMContext, lang: str, text: str) -> 
         )
     except TelegramAPIError:
         logger.exception("Failed to send thanks to %s", message.chat.id)
+
+
+def _feedback_card(saved: dict) -> str:
+    """The 'a rating just came in' card posted to the admin group."""
+    stars = "⭐️" * (saved["rating"] or 0) or "—"
+    who = html.escape(saved["user_name"])
+    username = f" (@{html.escape(saved['username'])})" if saved.get("username") else ""
+    product = html.escape(saved["product_name"]) if saved.get("product_name") else "—"
+    lines = [
+        "⭐️ <b>Yangi baho</b>",
+        "━━━━━━━━━━━━━━━━━━",
+        f"👤 Mijoz: <b>{who}</b>{username}",
+        f"🛍 Mahsulot: {product}",
+        f"Baho: {stars}",
+    ]
+    if saved.get("text"):
+        lines.append(f"\n💬 {html.escape(saved['text'])}")
+    return "\n".join(lines)

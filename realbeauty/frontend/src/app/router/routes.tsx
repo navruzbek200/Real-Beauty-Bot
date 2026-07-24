@@ -25,6 +25,7 @@ import { SupportAdminsPage } from '@/pages/support-admins'
 import { SupportSettingsPage } from '@/pages/support-settings'
 import { SupportThreadsPage } from '@/pages/support-threads'
 import { TopProductsPage } from '@/pages/top-products'
+import { TutorialStepsPage } from '@/pages/tutorial-steps'
 import { UserProductsPage } from '@/pages/user-products'
 import { ProtectedRoute } from './protected-route'
 
@@ -59,6 +60,14 @@ export function AppRoutes() {
       <Route
         path="/top-products"
         element={<ProtectedRoute permission="products.view_product"><TopProductsPage /></ProtectedRoute>}
+      />
+      <Route
+        path="/tutorial-steps"
+        element={
+          <ProtectedRoute permission="products.view_producttutorialstep">
+            <TutorialStepsPage />
+          </ProtectedRoute>
+        }
       />
 
       <Route

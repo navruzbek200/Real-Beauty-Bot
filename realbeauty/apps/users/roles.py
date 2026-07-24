@@ -35,6 +35,12 @@ SELLER_PERMISSIONS: list[tuple[str, str]] = [
     ("products", "add_topproduct"),
     ("products", "change_topproduct"),
     ("products", "delete_topproduct"),
+    # Tutorial videos are merchandising content too — the seller uploads and
+    # maintains them the same way they curate the top list.
+    ("products", "view_producttutorialstep"),
+    ("products", "add_producttutorialstep"),
+    ("products", "change_producttutorialstep"),
+    ("products", "delete_producttutorialstep"),
     ("analytics", "view_userfeedback"),
     ("analytics", "change_userfeedback"),
     ("analytics", "view_progressphoto"),

@@ -22,10 +22,20 @@ export const userFeedbackFormConfig: ResourceFormConfig<UserFeedbackFormValues> 
   toFormValues: (item) => ({ admin_reply: (item.admin_reply as string) ?? '' }),
 }
 export const userFeedbackColumns: ResourceColumn<UserFeedback>[] = [
-  { key: 'user', header: 'Mijoz ID', render: (f) => f.user },
-  { key: 'week', header: 'Hafta', render: (f) => f.week },
-  { key: 'rating', header: 'Baho', render: (f) => f.rating ?? '—' },
+  { key: 'user_name', header: 'Mijoz', render: (f) => f.user_name },
+  { key: 'product_name', header: 'Mahsulot', render: (f) => f.product_name ?? '—' },
+  {
+    key: 'rating',
+    header: 'Baho',
+    render: (f) => (f.rating ? '⭐️'.repeat(f.rating) : '—'),
+  },
   { key: 'text', header: 'Fikr', render: (f) => (f.text ? f.text.slice(0, 60) : '—') },
+  {
+    key: 'submitted_at',
+    header: 'Vaqt',
+    sortField: 'submitted_at',
+    render: (f) => new Date(f.submitted_at as string).toLocaleString('uz-UZ'),
+  },
   {
     key: 'reply_sent',
     header: 'Javob',

@@ -2306,8 +2306,10 @@ export interface components {
             readonly id?: number;
             /** Foydalanuvchi */
             readonly user?: number;
+            readonly user_name?: string;
             /** Mahsulot */
             readonly product?: number | null;
+            readonly product_name?: string | null;
             /** Hafta */
             readonly week?: number;
             /** Baho (1-5) */
@@ -2867,8 +2869,10 @@ export interface components {
             readonly id: number;
             /** Foydalanuvchi */
             readonly user: number;
+            readonly user_name: string;
             /** Mahsulot */
             readonly product: number | null;
+            readonly product_name: string | null;
             /** Hafta */
             readonly week: number;
             /** Baho (1-5) */

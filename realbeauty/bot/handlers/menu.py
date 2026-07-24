@@ -85,16 +85,27 @@ async def menu_ingredients(
 
 @router.message(MenuText("menu.feedback", "menu.legacy_feedback"))
 async def menu_feedback(message: Message, state: FSMContext, lang: str) -> None:
+    """
+    Let the customer rate a product they bought — or, failing that, one from
+    this month's top list they've tried or seen. A brand-new customer with no
+    purchase on file used to hit a flat "you have no products" dead end here,
+    which made the button useless for exactly the people browsing the top
+    list. Falling back keeps it usable from day one.
+    """
     await state.clear()
     if message.from_user is None:
         return
     products = await user_service.get_user_products(message.from_user.id)
-    if not products:
+    if products:
+        options = [(up.product_id, pick(up.product, "name", lang)) for up in products]
+    else:
+        top = await product_service.get_top_products()
+        options = [(product.pk, pick(product, "name", lang)) for product in top]
+
+    if not options:
         await message.answer(t("product.none", lang))
         return
-    keyboard = inline.feedback_products_keyboard(
-        [(up.product_id, pick(up.product, "name", lang)) for up in products], week=1
-    )
+    keyboard = inline.feedback_products_keyboard(options, week=1)
     await message.answer(t("feedback.pick_product", lang), reply_markup=keyboard)
 
 

@@ -16,15 +16,29 @@ def save_feedback(
     week: int,
     text: str,
     rating: int | None,
-) -> None:
+) -> dict:
+    """
+    Save the feedback and return the plain values an admin notification
+    needs — not the ORM instance itself, since any lazy field access
+    (`.product.name`) from the async caller would hit the database outside
+    this sync context and raise.
+    """
     user = TelegramUser.objects.get(telegram_id=telegram_id)
-    UserFeedback.objects.create(
+    feedback = UserFeedback.objects.create(
         user=user,
         product_id=product_id,
         week=week,
         text=text,
         rating=rating,
     )
+    return {
+        "id": feedback.pk,
+        "user_name": user.full_name or "Ismsiz",
+        "username": user.username,
+        "product_name": feedback.product.name if feedback.product_id else None,
+        "rating": rating,
+        "text": text,
+    }
 
 
 @sync_to_async

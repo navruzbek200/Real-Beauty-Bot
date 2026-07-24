@@ -155,6 +155,23 @@ async def forward_to_group(
     )
 
 
+async def notify_group(bot: Bot, text: str) -> None:
+    """
+    Post a plain notification into the configured admin group.
+
+    Best-effort: an unconfigured group or a Telegram hiccup must not break
+    whatever just happened on the customer's side (a rating was already
+    saved) — this is purely "let the shop know", not part of that flow.
+    """
+    settings_obj = await support_service.get_support_settings()
+    if not settings_obj.group_chat_id:
+        return
+    try:
+        await _send_with_retry(bot.send_message, chat_id=settings_obj.group_chat_id, text=text)
+    except TelegramAPIError:
+        logger.exception("Failed to post admin notification to group")
+
+
 async def deliver_reply_to_user(
     bot: Bot,
     admin_message: Message,

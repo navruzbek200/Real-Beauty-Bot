@@ -40,8 +40,9 @@ class TutorialStepForm(forms.ModelForm):
             "Masalan: «1-qadam: Tozalash».",
             "intro_text": "Video yuborilishidan oldin ko'rsatiladigan qisqa izoh.",
             "video_file": "Ixtiyoriy. Yuklamasangiz bot «tez orada» deb yozadi.",
-            "protect_content": "Yoqilgan bo'lsa mijoz videoni boshqalarga yubora "
-            "olmaydi va telefoniga saqlay olmaydi.",
+            "protect_content": "Bot barcha darslik videolarni har doim himoyalangan "
+            "holda yuboradi (yuklab olish va forward qilish taqiqlangan) — bu "
+            "maydondan qat'i nazar.",
         }
 
     def __init__(self, *args, **kwargs) -> None:

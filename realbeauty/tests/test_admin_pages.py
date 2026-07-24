@@ -227,6 +227,20 @@ class SellerAccessTests(TestCase):
                 response = self.client.get(reverse(name))
                 self.assertIn(response.status_code, (302, 403))
 
+    def test_seller_has_full_control_of_the_top_list_and_tutorial_videos(self):
+        # Both are the seller's own merchandising job — curating what's
+        # promoted this month and keeping its how-to-use videos current.
+        for codename in (
+            "add_topproduct",
+            "change_topproduct",
+            "delete_topproduct",
+            "add_producttutorialstep",
+            "change_producttutorialstep",
+            "delete_producttutorialstep",
+        ):
+            with self.subTest(codename=codename):
+                self.assertTrue(self.seller.has_perm(f"products.{codename}"))
+
 
 class RetiredTemplateTests(TestCase):
     """

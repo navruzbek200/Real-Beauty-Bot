@@ -6,12 +6,17 @@ from apps.analytics.models import ProgressPhoto, SkinQuizResult, UserFeedback
 
 
 class UserFeedbackSerializer(serializers.ModelSerializer):
+    user_name = serializers.CharField(source="user.full_name", read_only=True)
+    product_name = serializers.SerializerMethodField()
+
     class Meta:
         model = UserFeedback
         fields = [
             "id",
             "user",
+            "user_name",
             "product",
+            "product_name",
             "week",
             "rating",
             "text",
@@ -28,6 +33,9 @@ class UserFeedbackSerializer(serializers.ModelSerializer):
             "submitted_at",
             "reply_sent",
         ]
+
+    def get_product_name(self, obj: UserFeedback) -> str | None:
+        return obj.product.name if obj.product_id else None
 
 
 class SkinQuizResultSerializer(serializers.ModelSerializer):

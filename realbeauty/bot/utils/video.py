@@ -78,7 +78,11 @@ async def send_protected_video(
                 chat_id=chat_id,
                 video=step.video_file_id,
                 caption=pick(step, "button_label", lang),
-                protect_content=step.protect_content,
+                # Always protected, regardless of the row's own flag: these are
+                # paid tutorial videos, and a customer must never be able to
+                # download or forward one — not an option the CRM should be
+                # able to switch off by mistake.
+                protect_content=True,
             )
         elif step.video_file and step.video_file.name:
             meta = await _probe_video_meta(step.video_file.path)
@@ -86,7 +90,7 @@ async def send_protected_video(
                 chat_id=chat_id,
                 video=FSInputFile(step.video_file.path),
                 caption=pick(step, "button_label", lang),
-                protect_content=step.protect_content,
+                protect_content=True,
                 width=meta.get("width"),
                 height=meta.get("height"),
                 duration=meta.get("duration"),

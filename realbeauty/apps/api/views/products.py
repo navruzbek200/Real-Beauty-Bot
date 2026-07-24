@@ -118,3 +118,11 @@ class ProductTutorialStepViewSet(viewsets.ModelViewSet):
     pagination_class = DefaultPagination
     filterset_fields = ["product"]
     ordering_fields = ["order"]
+
+    def perform_create(self, serializer):
+        # The CRM form has no protect_content field at all — the bot always
+        # sends these videos protected regardless of this flag (see
+        # bot/utils/video.py) — but a multipart POST missing a BooleanField
+        # resolves to False rather than the model's own default, so a saved
+        # row would otherwise misreport itself as unprotected.
+        serializer.save(protect_content=True)

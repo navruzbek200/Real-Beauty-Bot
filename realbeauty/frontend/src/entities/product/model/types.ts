@@ -12,3 +12,11 @@ export interface ProductListParams {
   is_active?: boolean
   is_top?: boolean
 }
+
+export interface TutorialStepListParams {
+  page?: number
+  page_size?: number
+  search?: string
+  ordering?: string
+  product?: number
+}

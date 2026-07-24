@@ -27,6 +27,11 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       { to: '/products', label: 'Mahsulotlar', permission: 'products.view_product' },
       { to: '/top-products', label: 'Bu oydagi top', permission: 'products.view_product' },
+      {
+        to: '/tutorial-steps',
+        label: 'Video darsliklar',
+        permission: 'products.view_producttutorialstep',
+      },
       { to: '/user-products', label: 'Sotib olingan mahsulotlar', permission: 'users.view_userproduct' },
     ],
   },
@@ -62,7 +67,7 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     title: 'Analitika',
     items: [
-      { to: '/feedback', label: 'Fikrlar', permission: 'analytics.view_userfeedback' },
+      { to: '/feedback', label: "Mijozlar fikri / Baholar", permission: 'analytics.view_userfeedback' },
       { to: '/skin-quiz-results', label: 'Teri testi natijalari', permission: 'analytics.view_skinquizresult' },
       { to: '/progress-photos', label: 'Natija rasmlari', permission: 'analytics.view_progressphoto' },
     ],
