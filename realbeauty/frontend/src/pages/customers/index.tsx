@@ -3,6 +3,13 @@ import { Select } from '@/shared/ui'
 import { customerApi, type Customer } from '@/entities/customer'
 import { customerColumns, customerFormConfig, type CustomerFormValues } from '@/features/customer'
 
+// Django's DateField accepts a real date or null — never "". An empty
+// birth_date left blank in the form must become null, not sent as-is, or
+// the API rejects the whole save with "Date has wrong format".
+function toCustomerPayload(values: CustomerFormValues): Partial<Customer> {
+  return { ...values, birth_date: values.birth_date || null }
+}
+
 export function CustomersPage() {
   return (
     <ResourcePage<Customer, CustomerFormValues, Partial<Customer>, Partial<Customer>>
@@ -18,8 +25,8 @@ export function CustomersPage() {
         delete: 'users.delete_telegramuser',
       }}
       formConfig={customerFormConfig}
-      toCreatePayload={(v) => v}
-      toUpdatePayload={(v) => v}
+      toCreatePayload={toCustomerPayload}
+      toUpdatePayload={toCustomerPayload}
       filterBar={(state) => (
         <Select
           value={state.filters.source ?? ''}
