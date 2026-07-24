@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import html
 import logging
+from urllib.parse import urlencode
 
 from aiogram import F, Router
 from aiogram.exceptions import TelegramBadRequest
@@ -42,6 +43,15 @@ def _invite_link(telegram_id: int) -> str:
     """
     username = getattr(settings, "BOT_USERNAME", "RealBeautyBot")
     return f"https://t.me/{username}?start=inv_{telegram_id}"
+
+
+def _share_url(telegram_id: int, lang: str) -> str:
+    """
+    Telegram's own share sheet, pre-filled with the invite link and a marketing
+    line — one tap into the customer's contact list instead of a copy-paste.
+    """
+    params = {"url": _invite_link(telegram_id), "text": t("loyalty.invite_share_text", lang)}
+    return f"https://t.me/share/url?{urlencode(params)}"
 
 
 def _card_text(card: loyalty_service.LoyaltyCard, lang: str, telegram_id: int) -> str:

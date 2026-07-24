@@ -112,6 +112,8 @@ class ProductForm(forms.ModelForm):
             "description",
             "photo",
             "is_active",
+            "current_price",
+            "old_price",
             "name_ru",
             "name_en",
             "description_ru",
@@ -136,7 +138,19 @@ class ProductForm(forms.ModelForm):
 
 
 _PRODUCT_FIELDSETS = (
-    ("Mahsulot", {"fields": ["name", "description", "photo", "is_active"]}),
+    (
+        "Mahsulot",
+        {
+            "fields": [
+                "name",
+                "description",
+                "photo",
+                "is_active",
+                "current_price",
+                "old_price",
+            ]
+        },
+    ),
     (
         "Boshqa tillar (ixtiyoriy)",
         {
@@ -159,7 +173,14 @@ _PRODUCT_FIELDSETS = (
 @admin.register(Product)
 class ProductAdmin(RBModelAdmin):
     form = ProductForm
-    list_display = ["name", "steps_summary", "buyers_count", "top_badge", "active_badge"]
+    list_display = [
+        "name",
+        "price_display",
+        "steps_summary",
+        "buyers_count",
+        "top_badge",
+        "active_badge",
+    ]
     list_display_links = ["name"]
     list_filter = [
         yes_no_filter("is_active", "Mahsulot holati", "Faol", "O'chirilgan"),
@@ -173,6 +194,17 @@ class ProductAdmin(RBModelAdmin):
 
     def get_queryset(self, request):
         return super().get_queryset(request).prefetch_related("tutorial_steps")
+
+    @admin.display(description="Narxi")
+    def price_display(self, obj: Product) -> str:
+        if obj.old_price and obj.old_price > obj.current_price:
+            return format_html(
+                '<span style="text-decoration:line-through;color:#9ca3af">{}</span> '
+                '<b>{}</b> so\'m',
+                f"{obj.old_price:,}".replace(",", " "),
+                f"{obj.current_price:,}".replace(",", " "),
+            )
+        return f"{obj.current_price:,}".replace(",", " ") + " so'm"
 
     @admin.display(description="Top")
     def top_badge(self, obj: Product) -> str:
@@ -248,7 +280,14 @@ class TopProductAdmin(RBModelAdmin):
     """
 
     form = ProductForm
-    list_display = ["top_position", "name", "top_note", "buyers_count", "active_badge"]
+    list_display = [
+        "top_position",
+        "name",
+        "price_display",
+        "top_note",
+        "buyers_count",
+        "active_badge",
+    ]
     list_display_links = ["name"]
     search_fields = ["name", "top_note"]
     ordering = ["top_order", "name"]
@@ -262,6 +301,8 @@ class TopProductAdmin(RBModelAdmin):
         return format_html(
             '<span style="font-weight:700;color:#d97706">#{}</span>', obj.top_order
         )
+
+    price_display = ProductAdmin.price_display
 
     @admin.display(description="Xaridorlar")
     def buyers_count(self, obj: TopProduct) -> str:

@@ -128,6 +128,18 @@ async def menu_top_products(message: Message, state: FSMContext, lang: str) -> N
     await message.answer(t("top.footer", lang))
 
 
+def _format_price(product, lang: str) -> str:
+    """Chiroyli narx qatori: chegirma bo'lsa eski/yangi narx, bo'lmasa faqat narx."""
+    if not product.current_price:
+        return ""
+    current = f"{product.current_price:,}".replace(",", " ")
+    if product.old_price and product.old_price > product.current_price:
+        old = f"{product.old_price:,}".replace(",", " ")
+        percent = product.discount_percent
+        return t("top.price_discount", lang, old=old, current=current, percent=percent)
+    return t("top.price", lang, current=current)
+
+
 async def _send_product_card(
     message: Message, product, lang: str, rank: int | None = None
 ) -> None:
@@ -139,6 +151,11 @@ async def _send_product_card(
     note = pick(product, "top_note", lang) if rank is not None else ""
     if note:
         caption += f"\n🏷 <i>{html.escape(note)}</i>"
+
+    price = _format_price(product, lang)
+    if price:
+        caption += f"\n{price}"
+
     description = pick(product, "description", lang)
     if description:
         caption += f"\n\n{html.escape(description)}"

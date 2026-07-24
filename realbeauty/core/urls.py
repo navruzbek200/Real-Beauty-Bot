@@ -3,7 +3,7 @@ from __future__ import annotations
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import path
+from django.urls import include, path
 from django.views.generic import RedirectView
 
 from apps.users.api import (
@@ -24,6 +24,8 @@ urlpatterns = [
     # The admin panel is the whole UI; root just forwards into it.
     path("", RedirectView.as_view(url="/admin/", permanent=False)),
     path("admin/", admin.site.urls),
+    # React SPA's DRF backend — see apps/api/.
+    path("api/v1/", include("apps.api.urls")),
     # Staff-only proxy to originals that live on Telegram's servers.
     path("tg-file/<str:file_id>/", telegram_file, name="telegram_file"),
     # Mobile app signup hook — API-key authenticated, see apps/users/api.py.

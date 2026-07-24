@@ -29,6 +29,18 @@ class Product(models.Model):
     )
     is_active = models.BooleanField(default=True, verbose_name="Faol")
 
+    current_price = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Hozirgi narxi (so'm)",
+    )
+    old_price = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        verbose_name="Eski narxi (so'm)",
+        help_text="Chegirmani ko'rsatish uchun. Bo'sh qoldirsangiz chegirma "
+        "ko'rsatilmaydi.",
+    )
+
     # --- "Bu oydagi top mahsulotlar" ---------------------------------------
     # A flag on the product rather than a separate table: the shop picks from
     # the products it already sells, and a parallel list would let the two
@@ -67,6 +79,13 @@ class Product(models.Model):
 
     def __str__(self) -> str:
         return self.name
+
+    @property
+    def discount_percent(self) -> int | None:
+        """Whole-percent discount, or None when there is nothing to show."""
+        if not self.old_price or self.old_price <= self.current_price:
+            return None
+        return round((1 - self.current_price / self.old_price) * 100)
 
 
 class TopProduct(Product):

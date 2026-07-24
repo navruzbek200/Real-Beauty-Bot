@@ -29,6 +29,12 @@ SELLER_PERMISSIONS: list[tuple[str, str]] = [
     ("users", "change_userproduct"),
     ("users", "delete_userproduct"),
     ("products", "view_product"),
+    # The monthly top-10 list is a seller's own merchandising call — full
+    # control here, unlike the read-only view of the main catalogue above.
+    ("products", "view_topproduct"),
+    ("products", "add_topproduct"),
+    ("products", "change_topproduct"),
+    ("products", "delete_topproduct"),
     ("analytics", "view_userfeedback"),
     ("analytics", "change_userfeedback"),
     ("analytics", "view_progressphoto"),

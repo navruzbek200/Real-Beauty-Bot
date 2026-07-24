@@ -4,7 +4,7 @@ from asgiref.sync import async_to_sync
 from django.test import TestCase
 
 from apps.products.models import Product, TopProduct
-from bot.handlers.menu import month_name
+from bot.handlers.menu import _format_price, month_name
 from bot.i18n import LANGUAGES
 from bot.services import product_service
 
@@ -42,6 +42,45 @@ class TopProductTests(TestCase):
         product = Product.objects.create(name="Maska", name_ru="Маска")
         self.assertEqual(pick(product, "name", "ru"), "Маска")
         self.assertEqual(pick(product, "name", "en"), "Maska")
+
+
+class DiscountPercentTests(TestCase):
+    def test_no_discount_when_there_is_no_old_price(self):
+        product = Product.objects.create(name="Krem", current_price=100_000)
+        self.assertIsNone(product.discount_percent)
+
+    def test_no_discount_when_old_price_is_not_higher(self):
+        product = Product.objects.create(
+            name="Krem", current_price=100_000, old_price=100_000
+        )
+        self.assertIsNone(product.discount_percent)
+
+    def test_percent_rounds_to_the_nearest_whole_number(self):
+        product = Product.objects.create(
+            name="Krem", current_price=80_000, old_price=100_000
+        )
+        self.assertEqual(product.discount_percent, 20)
+
+
+class FormatPriceTests(TestCase):
+    def test_no_price_set_renders_nothing(self):
+        product = Product.objects.create(name="Krem")
+        self.assertEqual(_format_price(product, "uz"), "")
+
+    def test_plain_price_with_no_discount(self):
+        product = Product.objects.create(name="Krem", current_price=150_000)
+        text = _format_price(product, "uz")
+        self.assertIn("150 000", text)
+        self.assertNotIn("<s>", text)
+
+    def test_discounted_price_shows_both_numbers_and_the_percent(self):
+        product = Product.objects.create(
+            name="Krem", current_price=80_000, old_price=100_000
+        )
+        text = _format_price(product, "uz")
+        self.assertIn("<s>100 000", text)
+        self.assertIn("80 000", text)
+        self.assertIn("-20%", text)
 
 
 class MonthNameTests(TestCase):

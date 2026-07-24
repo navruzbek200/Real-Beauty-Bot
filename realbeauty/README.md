@@ -1,20 +1,27 @@
 # Real Beauty — Telegram Marketing Bot + CRM
 
-Telegram bot (aiogram 3) + Django 5 admin panel (django-unfold), bitta PostgreSQL
-bazada. Bot uch tilda ishlaydi (o'zbek / rus / ingliz), teri turini 10 savollik
-test bilan aniqlaydi, bonus (ball + keshbek) dasturini yuritadi. Celery
-avtomatik xabarlarni yuboradi — vaqti va matni admin panelda sozlanadi.
+Telegram bot (aiogram 3) + boshqaruv paneli, bitta PostgreSQL bazada. Bot uch
+tilda ishlaydi (o'zbek / rus / ingliz), teri turini 10 savollik test bilan
+aniqlaydi, bonus (ball + keshbek) dasturini yuritadi. Celery avtomatik
+xabarlarni yuboradi — vaqti va matni boshqaruv panelida sozlanadi.
+
+Boshqaruv paneli ikki qatlamdan iborat: **Django REST Framework API**
+(`/api/v1/`) va uning ustidagi **React SPA** (`frontend/`). Eski
+django-unfold admin (`/admin/`) ham ishlab turibdi — ko'chish davrida ikkalasi
+parallel ishlaydi (pastdagi "API va React SPA" bo'limiga qarang).
 
 ## Arxitektura
 
-| Qism          | Stack                    | Kirish nuqtasi             |
-| ------------- | ------------------------ | -------------------------- |
-| Bot           | aiogram 3 + Redis FSM    | `python -m bot.main`       |
-| Admin panel   | Django 5 + django-unfold | `gunicorn core.wsgi`       |
-| Rejalashtiruv | Celery worker + beat     | `celery -A tasks.celery`   |
-| Baza          | PostgreSQL 16            | —                          |
-| Broker / FSM  | Redis 7                  | —                          |
-| Prod kirish   | nginx (media + proxy)    | `docker/nginx/`            |
+| Qism             | Stack                     | Kirish nuqtasi           |
+| ---------------- | -------------------------- | ------------------------ |
+| Bot              | aiogram 3 + Redis FSM      | `python -m bot.main`     |
+| API              | Django 5 + DRF + JWT       | `/api/v1/`               |
+| React SPA        | React 19 + TS + Vite       | `frontend/`, nginx `/`   |
+| Eski admin panel | Django 5 + django-unfold   | `/admin/`                |
+| Rejalashtiruv    | Celery worker + beat       | `celery -A tasks.celery` |
+| Baza             | PostgreSQL 16              | —                        |
+| Broker / FSM     | Redis 7                    | —                        |
+| Prod kirish      | nginx (SPA + media + proxy)| `docker/nginx/`          |
 
 ### Django app'lar
 
@@ -79,6 +86,77 @@ Admin: http://localhost:8000/admin/ (admin/admin).
 Skript eski bot nusxalarini o'zi o'ldiradi — Telegram bitta tokenga bitta
 polling ulanishiga ruxsat beradi, ikkinchi nusxa botni "o'lik" qilib qo'yadi.
 
+## API va React SPA
+
+### Backend — `/api/v1/`
+
+- Auth: JWT (`djangorestframework-simplejwt`). `POST /api/v1/auth/login/`
+  (username+password, admin/`Staff` hisoblari bilan bir xil), `POST
+  /api/v1/auth/refresh/` (rotatsiya bilan), `GET /api/v1/auth/me/` (rol +
+  ruxsatlar ro'yxati).
+- Ruxsatlar mavjud Django Group/permission tizimidan olinadi
+  (`apps/users/roles.py`) — admin panelda ishlagan narsa API'da ham xuddi
+  shunday ishlaydi, alohida ruxsat tizimi yo'q.
+- Har bir app'ning ViewSet'lari `apps/api/views/`da, serializer'lari
+  `apps/api/serializers/`da. Sahifalash, `?search=`, `?ordering=` va
+  filterlar (`django-filter`) barcha ro'yxatlarda bor.
+- OpenAPI sxema: `GET /api/v1/schema/` (drf-spectacular). Sxemani faylga
+  chiqarish:
+
+  ```bash
+  python manage.py spectacular --file schema.yaml
+  ```
+
+- CORS: `CORS_ALLOWED_ORIGINS` (`.env`) — lokal devda Vite manzili
+  (`http://localhost:5173`) kerak. Prodda kerak emas: SPA va API bitta
+  origin'dan (nginx) xizmat qiladi.
+
+### Frontend — `frontend/`
+
+React 19 + TypeScript (strict) + Vite, Feature-Sliced Design arxitekturasi
+(`app → pages → widgets → features → entities → shared`, faqat pastga
+import). TanStack Query serverdagi holat uchun, Zustand faqat UI/sessiya
+holati uchun (server ma'lumoti Zustand'da saqlanmaydi). Tiplar
+**qo'lda yozilmaydi** — OpenAPI sxemadan avtomatik generatsiya qilinadi.
+
+```bash
+cd frontend
+npm install
+cp .env.example .env       # VITE_API_BASE_URL=http://localhost:8000
+
+# Backend allaqachon ishlab turishi kerak (yuqoridagi ./run_local.sh)
+npm run generate:types     # OpenAPI sxemadan src/shared/api/generated.ts yaratadi
+npm run dev                # http://localhost:5173
+```
+
+Tekshiruvlar (CI/deploy'dan oldin ham shu buyruqlar ishlatiladi):
+
+```bash
+npm run typecheck   # tsc -b --noEmit
+npm run lint        # eslint . — FSD qatlam qoidalari ham shu yerda tekshiriladi
+npm run build       # tsc -b && vite build
+```
+
+`eslint-plugin-boundaries` qatlamlar orasidagi importni qattiq nazorat
+qiladi: bir xil qatlamdagi ikkita "slice" bir-birini to'g'ridan-to'g'ri
+import qila olmaydi (masalan `entities/product` → `entities/customer`
+xato beradi), faqat pastga (masalan `features` → `entities`) import
+mumkin. `app` va `shared` — texnik qatlamlar, ular o'z ichida erkin.
+
+Backend'da biror serializer/endpoint o'zgarsa, `npm run generate:types`ni
+qayta yuritish kerak — aks holda frontend eski tiplarga qarab ishlaydi.
+
+### Ma'lum cheklovlar
+
+- Rasm/fayl maydonlari (`Product.photo`, `TelegramUser.photo`,
+  `ProductTutorialStep.video_file`, `Broadcast.photo` va h.k.) SPA'da
+  ko'pchilik joyda **faqat ko'rish** uchun — yuklab qo'yish faqat
+  Mahsulotlar sahifasida bor (`multipart/form-data` orqali). Qolganlarini
+  hozircha faqat eski `/admin/` orqali yuklash mumkin.
+- «Bu oydagi topga qo'shish» ommaviy amali (checkbox bilan bir nechta
+  qatorni tanlash) SPA'da har bir qator uchun alohida tugma bo'ldi
+  (bir xil natija, bitta-bitta bosiladi).
+
 ## Deploy (VPS, Docker)
 
 1. **Server:** Docker + docker compose o'rnatilgan bo'lsin. DNS A-yozuv
@@ -104,6 +182,10 @@ polling ulanishiga ruxsat beradi, ikkinchi nusxa botni "o'lik" qilib qo'yadi.
    ```
 
    `migrate` servisi avtomatik: baza tayyor bo'lmaguncha app'lar ko'tarilmaydi.
+   `frontend-sync` servisi React SPA'ni build qilib, nginx o'qiydigan
+   volume'ga nusxalaydi — alohida qadam kerak emas, `--build` bilan birga
+   ishlaydi. nginx `/` ostida SPA'ni, `/admin/` va `/api/v1/` ostida
+   Django'ni, `/tg-file/` ostida Telegram fayl proksisini beradi.
 
 4. **HTTPS:** `certbot --nginx` (yoki Cloudflare proxy). `prod.py`da
    `SECURE_SSL_REDIRECT=True` — TLS'siz ishlamaydi, bu ataylab.
@@ -138,7 +220,9 @@ saqlasangiz rasmlarga havolalar ham saqlanadi. Cron'ga qo'ying.
 | Sotuvchi      | Xaridorlar (qo'shish/tahrirlash), Murojaatlar (javob), Fikrlar, Teri testi natijalari, Natija rasmlari, Mahsulotlar (ko'rish), Bonus promokodlari (tekshirish/belgilash) |
 
 Sotuvchi ruxsatlari kodda: `apps/users/roles.py` (`SELLER_PERMISSIONS`) —
-migratsiya 0009 mavjud bazani shu ro'yxatga tenglashtiradi.
+migratsiya 0009 mavjud bazani shu ro'yxatga tenglashtiradi. Bu ro'yxat
+`/admin/` va yangi `/api/v1/` (demak — React SPA) uchun bir xil: ikkalasi
+ham bitta Django Group/permission tizimidan foydalanadi.
 
 ## Testlar
 

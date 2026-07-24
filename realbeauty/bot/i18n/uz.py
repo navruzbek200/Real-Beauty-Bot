@@ -267,6 +267,8 @@ STRINGS: dict[str, str] = {
         "«✍️ Savol / Murojaat» tugmasini bosing."
     ),
     "top.rank": "#{rank}",
+    "top.price": "💵 <b>{current} so'm</b>",
+    "top.price_discount": "💸 <s>{old} so'm</s>  ➜  <b>{current} so'm</b>  (-{percent}%)",
     # ------------------------------------------------------------- feedback
     "feedback.ask_rating": "⭐️ Mahsulotni 1 dan 5 gacha baholang:",
     "feedback.ask_text": (
@@ -323,10 +325,29 @@ STRINGS: dict[str, str] = {
         "• Har xariddan — {purchase} ball\n"
         "• Mahsulotga baho — {feedback} ball\n"
         "• Oldin/keyin rasmi — {progress} ball\n"
+        "• Teri testini topshirsangiz — {quiz} ball\n"
         "• Do'stingizni taklif qilsangiz — {referral} ball\n"
         "• Tug'ilgan kuningizda — {birthday} ball"
     ),
-        "loyalty.invite_label": "\n🔗 <b>Sizning taklif havolangiz</b> — do'stingizga yuboring:",
+    "loyalty.invite_teaser": "🎁 Do'stlaringizni taklif qiling va ball to'plang!",
+    "loyalty.invite_btn": "🎁 Do'stlarni taklif qilish",
+    # --- premium "invite a friend" screen ---
+    "loyalty.invite_header": "🎉✨ <b>Do'stlaringizni taklif qiling!</b>",
+    "loyalty.invite_body": (
+        "👯 Do'stingiz <b>sizning shaxsiy havolangiz</b> orqali Real Beauty "
+        "botiga qo'shilsa:\n\n"
+        "💎 <b>Sizga</b> — {referral} ball sovg'a\n"
+        "🎁 <b>Do'stingizga</b> — xush kelibsiz sovg'asi\n\n"
+        "🚀 Cheklov yo'q — qancha ko'p do'st taklif qilsangiz, shuncha ko'p "
+        "ball yig'asiz!"
+    ),
+    "loyalty.invite_link_label": "🔗 <b>Sizning shaxsiy havolangiz:</b>",
+    "loyalty.invite_share_btn": "📤 Do'stlarga ulashish",
+    "loyalty.invite_share_text": (
+        "✨ Men Real Beauty botidan foydalanyapman — chiroy sirlari, shaxsiy "
+        "teri tahlili va sovg'alar shu yerda! 🎁 Mening havolam orqali "
+        "qo'shiling, ikkalamizga ham bonus bo'ladi 👇"
+    ),
     "loyalty.rewards_btn": "🎁 Ballni sarflash",
     "loyalty.history_btn": "🧾 Tarix",
     "loyalty.rewards_header": (

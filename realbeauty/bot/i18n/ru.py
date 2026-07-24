@@ -258,6 +258,8 @@ STRINGS: dict[str, str] = {
         "нажмите «✍️ Вопрос / Обращение»."
     ),
     "top.rank": "#{rank}",
+    "top.price": "💵 <b>{current} сум</b>",
+    "top.price_discount": "💸 <s>{old} сум</s>  ➜  <b>{current} сум</b>  (-{percent}%)",
     # ------------------------------------------------------------- feedback
     "feedback.ask_rating": "⭐️ Оцените товар от 1 до 5:",
     "feedback.ask_text": (
@@ -313,10 +315,29 @@ STRINGS: dict[str, str] = {
         "• За каждую покупку — {purchase} баллов\n"
         "• Оценка товара — {feedback} баллов\n"
         "• Фото до/после — {progress} баллов\n"
+        "• Тест кожи — {quiz} баллов\n"
         "• Приглашение друга — {referral} баллов\n"
         "• В ваш день рождения — {birthday} баллов"
     ),
-        "loyalty.invite_label": "\n🔗 <b>Ваша реферальная ссылка</b> — отправьте другу:",
+    "loyalty.invite_teaser": "🎁 Приглашайте друзей и копите баллы!",
+    "loyalty.invite_btn": "🎁 Пригласить друзей",
+    # --- premium "invite a friend" screen ---
+    "loyalty.invite_header": "🎉✨ <b>Приглашайте друзей!</b>",
+    "loyalty.invite_body": (
+        "👯 Если друг присоединится к Real Beauty по <b>вашей персональной "
+        "ссылке</b>:\n\n"
+        "💎 <b>Вам</b> — {referral} баллов в подарок\n"
+        "🎁 <b>Другу</b> — приветственный бонус\n\n"
+        "🚀 Без ограничений — чем больше друзей пригласите, тем больше "
+        "баллов накопите!"
+    ),
+    "loyalty.invite_link_label": "🔗 <b>Ваша персональная ссылка:</b>",
+    "loyalty.invite_share_btn": "📤 Поделиться с друзьями",
+    "loyalty.invite_share_text": (
+        "✨ Я пользуюсь ботом Real Beauty — секреты красоты, персональный "
+        "анализ кожи и подарки прямо здесь! 🎁 Присоединяйся по моей "
+        "ссылке — бонус получим оба 👇"
+    ),
     "loyalty.rewards_btn": "🎁 Потратить баллы",
     "loyalty.history_btn": "🧾 История",
     "loyalty.rewards_header": (

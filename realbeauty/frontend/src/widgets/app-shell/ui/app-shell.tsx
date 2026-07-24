@@ -1,0 +1,65 @@
+import type { ReactNode } from 'react'
+import { NavLink } from 'react-router-dom'
+
+import { hasPermission, isSuperUser, useSessionStore } from '@/entities/session'
+import { Button } from '@/shared/ui'
+import { NAV_SECTIONS } from '../model/nav'
+
+export function AppShell({ children }: { children: ReactNode }) {
+  const user = useSessionStore((s) => s.user)
+  const logout = useSessionStore((s) => s.logout)
+
+  return (
+    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
+      <aside className="w-64 shrink-0 border-r border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+        <div className="border-b border-slate-200 px-4 py-4 dark:border-slate-800">
+          <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Real Beauty CRM</p>
+        </div>
+        <nav className="space-y-5 overflow-y-auto px-2 py-4">
+          {NAV_SECTIONS.map((section) => {
+            const items = section.items.filter((item) => {
+              if (item.superuserOnly) return isSuperUser(user)
+              if (item.permission) return hasPermission(user, item.permission)
+              return true
+            })
+            if (items.length === 0) return null
+            return (
+              <div key={section.title}>
+                <p className="mb-1 px-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                  {section.title}
+                </p>
+                {items.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    end={item.to === '/'}
+                    className={({ isActive }) =>
+                      `block rounded-md px-2 py-1.5 text-sm ${
+                        isActive
+                          ? 'bg-brand-50 font-medium text-brand-700 dark:bg-brand-900/30 dark:text-brand-300'
+                          : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'
+                      }`
+                    }
+                  >
+                    {item.label}
+                  </NavLink>
+                ))}
+              </div>
+            )
+          })}
+        </nav>
+      </aside>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-3 dark:border-slate-800 dark:bg-slate-900">
+          <span className="text-sm text-slate-500 dark:text-slate-400">
+            {user?.username} {user?.is_superuser ? '(Administrator)' : '(Sotuvchi)'}
+          </span>
+          <Button variant="secondary" onClick={logout}>
+            Chiqish
+          </Button>
+        </header>
+        <main className="flex-1 overflow-x-hidden p-6">{children}</main>
+      </div>
+    </div>
+  )
+}

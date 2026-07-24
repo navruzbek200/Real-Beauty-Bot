@@ -35,6 +35,7 @@ CB_LOYALTY_REWARDS = "loy_rewards"
 CB_LOYALTY_HISTORY = "loy_history"
 CB_LOYALTY_BACK = "loy_back"
 CB_LOYALTY_REDEEM = "loy_redeem"    # loy_redeem:<reward_id>
+CB_LOYALTY_INVITE = "loy_invite"
 
 SEP = ":"
 
@@ -261,6 +262,12 @@ def progress_button_keyboard(label: str, product_id: int) -> InlineKeyboardMarku
 
 def loyalty_keyboard(lang: str, *, has_rewards: bool) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
+    # Leads the list on purpose — inviting a friend is the one earning action
+    # available right now, every time this screen is opened, unlike rewards
+    # (needs a balance) or history (needs something to have happened yet).
+    builder.button(
+        text=t("loyalty.invite_btn", lang), callback_data=CB_LOYALTY_INVITE
+    )
     if has_rewards:
         builder.button(
             text=t("loyalty.rewards_btn", lang), callback_data=CB_LOYALTY_REWARDS
@@ -270,6 +277,24 @@ def loyalty_keyboard(lang: str, *, has_rewards: bool) -> InlineKeyboardMarkup:
     )
     builder.adjust(1)
     return builder.as_markup()
+
+
+def invite_keyboard(lang: str, share_url: str) -> InlineKeyboardMarkup:
+    """
+    The premium "invite a friend" screen's keyboard.
+
+    The share button is a plain `url=` button pointed at Telegram's own
+    `t.me/share/url` endpoint — tapping it opens the native forward sheet
+    with the message pre-filled, so sending an invite is one tap into a
+    contact list instead of a copy-paste. No callback involved; Telegram
+    handles the whole interaction client-side.
+    """
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text=t("loyalty.invite_share_btn", lang), url=share_url)],
+            [InlineKeyboardButton(text=t("quiz.back", lang), callback_data=CB_LOYALTY_BACK)],
+        ]
+    )
 
 
 def rewards_keyboard(

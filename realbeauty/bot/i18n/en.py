@@ -257,6 +257,8 @@ STRINGS: dict[str, str] = {
         "tap «✍️ Question / Request»."
     ),
     "top.rank": "#{rank}",
+    "top.price": "💵 <b>{current} UZS</b>",
+    "top.price_discount": "💸 <s>{old} UZS</s>  ➜  <b>{current} UZS</b>  (-{percent}%)",
     # ------------------------------------------------------------- feedback
     "feedback.ask_rating": "⭐️ Rate the product from 1 to 5:",
     "feedback.ask_text": (
@@ -312,10 +314,29 @@ STRINGS: dict[str, str] = {
         "• Every purchase — {purchase} points\n"
         "• Rating a product — {feedback} points\n"
         "• Before/after photos — {progress} points\n"
+        "• Taking the skin quiz — {quiz} points\n"
         "• Inviting a friend — {referral} points\n"
         "• On your birthday — {birthday} points"
     ),
-        "loyalty.invite_label": "\n🔗 <b>Your referral link</b> — send it to a friend:",
+    "loyalty.invite_teaser": "🎁 Invite your friends and rack up points!",
+    "loyalty.invite_btn": "🎁 Invite friends",
+    # --- premium "invite a friend" screen ---
+    "loyalty.invite_header": "🎉✨ <b>Invite your friends!</b>",
+    "loyalty.invite_body": (
+        "👯 When a friend joins Real Beauty through <b>your personal "
+        "link</b>:\n\n"
+        "💎 <b>You</b> get — {referral} points\n"
+        "🎁 <b>Your friend</b> gets — a welcome gift\n\n"
+        "🚀 No limit — the more friends you invite, the more points you "
+        "collect!"
+    ),
+    "loyalty.invite_link_label": "🔗 <b>Your personal link:</b>",
+    "loyalty.invite_share_btn": "📤 Share with friends",
+    "loyalty.invite_share_text": (
+        "✨ I'm using the Real Beauty bot — beauty secrets, a personal skin "
+        "analysis and gifts, all in one place! 🎁 Join through my link and "
+        "we both get a bonus 👇"
+    ),
     "loyalty.rewards_btn": "🎁 Spend points",
     "loyalty.history_btn": "🧾 History",
     "loyalty.rewards_header": (
