@@ -11,6 +11,7 @@ STRINGS: dict[str, str] = {
     "menu.quiz_retake": "🔄 Testni qayta topshirish",
     "menu.support": "✍️ Savol / Murojaat",
     "menu.discounts": "🎁 Chegirmalar",
+    "menu.bonus": "💎 Bonuslarim",
     "menu.profile": "👤 Profil",
     "menu.help": "ℹ️ Yordam",
     # so labels we have already shipped must keep matching after a rename.
@@ -329,6 +330,58 @@ STRINGS: dict[str, str] = {
         "Holat: to'ldirilishi kutilmoqda."
     ),
     "admin.user_registered": "✅ <b>{full_name}</b> muvaffaqiyatli ro'yxatdan o'tdi.",
+    # ------------------------------------------------------- loyalty / bonus
+    "loyalty.disabled": "💎 Bonus dasturi hozircha faol emas. Tez orada qaytadi!",
+    "loyalty.summary": (
+        "💎 <b>Bonuslarim</b>\n\n"
+        "🏅 Daraja: <b>{tier}</b> · {cashback}% keshbek\n"
+        "✨ Balans: <b>{balance}</b> ball\n"
+        "📈 Jami yig'ilgan: {lifetime} ball"
+    ),
+    "loyalty.next_tier": "\n⬆️ <b>{tier}</b> darajasigacha yana {remaining} ball",
+    "loyalty.max_tier": "\n🎉 Siz eng yuqori darajadasiz — zo'r!",
+    "loyalty.invite_block": (
+        "\n\n🎁 <b>Do'stingizni taklif qiling</b>\n"
+        "Har bir do'stingiz ro'yxatdan o'tsa, sizga <b>+{points} ball</b>!\n"
+        "Sizning havolangiz:\n<code>{link}</code>"
+    ),
+    "loyalty.share_button": "📤 Do'stga ulashish",
+    "loyalty.share_text": (
+        "✨ Real Beauty botiga qo'shil — teri turingga mos parvarish, "
+        "chegirmalar va bonuslar seni kutmoqda! 💎"
+    ),
+    "loyalty.rewards_button": "🎁 Sovg'alar",
+    "loyalty.rewards_header": (
+        "🎁 <b>Sovg'alar</b>\n\n"
+        "Ballaringizni sovg'alarga almashtiring. Balans: <b>{balance}</b> ball 👇"
+    ),
+    "loyalty.rewards_empty": "Hozircha sovg'alar yo'q. Tez orada qo'shamiz!",
+    "loyalty.reward_line": "• <b>{title}</b> — {cost} ball",
+    "loyalty.redeem_ok": (
+        "✅ Tabriklaymiz! Sovg'angiz tayyor.\n\n"
+        "Do'konda ko'rsating:\n🔑 <code>{code}</code>"
+    ),
+    "loyalty.redeem_not_enough": "😔 Ball yetarli emas. Yana ball yig'ing yoki do'st taklif qiling!",
+    "loyalty.redeem_unavailable": "😔 Bu sovg'a hozircha mavjud emas.",
+    "loyalty.referral_joined": (
+        "🎉 <b>Do'stingiz qo'shildi!</b>\n"
+        "Sizga <b>+{points} ball</b> berildi. Rahmat! 💎"
+    ),
+    "loyalty.earned": "✨ Sizga <b>+{points} ball</b> berildi ({reason}).\nJami: {total} ball 💎",
+    "loyalty.tier_up": "🎉 Tabriklaymiz! Siz <b>{tier}</b> darajasiga yetdingiz — {cashback}% keshbek!",
+    "loyalty.reason.registration": "ro'yxatdan o'tish",
+    "loyalty.reason.purchase": "xarid",
+    "loyalty.reason.feedback": "baho",
+    "loyalty.reason.progress": "natija rasmi",
+    "loyalty.reason.referral": "do'st taklifi",
+    "loyalty.reason.birthday": "tug'ilgan kun",
+    "loyalty.reason.quiz": "teri testi",
+    "loyalty.reason.redeem": "sovg'a",
+    "loyalty.reason.manual": "tuzatish",
+    "loyalty.tier.bronze": "Bronza",
+    "loyalty.tier.silver": "Kumush",
+    "loyalty.tier.gold": "Oltin",
+    "loyalty.tier.platinum": "Platina",
     # ------------------------------------------------------- bot command menu
     "cmd.start": "Botni ishga tushirish",
     "cmd.menu": "Asosiy menyu",

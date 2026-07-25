@@ -11,6 +11,7 @@ STRINGS: dict[str, str] = {
     "menu.quiz_retake": "🔄 Пройти тест заново",
     "menu.support": "✍️ Вопрос / Обращение",
     "menu.discounts": "🎁 Скидки",
+    "menu.bonus": "💎 Мои бонусы",
     "menu.profile": "👤 Профиль",
     "menu.help": "ℹ️ Помощь",
     "menu.legacy_tutorials": "📚 Руководства",
@@ -320,6 +321,58 @@ STRINGS: dict[str, str] = {
     ),
     "admin.user_registered": "✅ <b>{full_name}</b> успешно зарегистрировался(ась).",
     # ------------------------------------------------------- bot command menu
+    # ------------------------------------------------------- loyalty / bonus
+    "loyalty.disabled": "💎 Бонусная программа пока недоступна. Скоро вернётся!",
+    "loyalty.summary": (
+        "💎 <b>Мои бонусы</b>\n\n"
+        "🏅 Уровень: <b>{tier}</b> · кэшбэк {cashback}%\n"
+        "✨ Баланс: <b>{balance}</b> баллов\n"
+        "📈 Всего накоплено: {lifetime} баллов"
+    ),
+    "loyalty.next_tier": "\n⬆️ До уровня <b>{tier}</b> осталось {remaining} баллов",
+    "loyalty.max_tier": "\n🎉 У вас максимальный уровень — отлично!",
+    "loyalty.invite_block": (
+        "\n\n🎁 <b>Пригласите друга</b>\n"
+        "За каждого зарегистрировавшегося друга — <b>+{points} баллов</b>!\n"
+        "Ваша ссылка:\n<code>{link}</code>"
+    ),
+    "loyalty.share_button": "📤 Поделиться с другом",
+    "loyalty.share_text": (
+        "✨ Присоединяйся к боту Real Beauty — уход по типу кожи, скидки и "
+        "бонусы уже ждут тебя! 💎"
+    ),
+    "loyalty.rewards_button": "🎁 Призы",
+    "loyalty.rewards_header": (
+        "🎁 <b>Призы</b>\n\n"
+        "Обменяйте баллы на призы. Баланс: <b>{balance}</b> баллов 👇"
+    ),
+    "loyalty.rewards_empty": "Пока призов нет. Скоро добавим!",
+    "loyalty.reward_line": "• <b>{title}</b> — {cost} баллов",
+    "loyalty.redeem_ok": (
+        "✅ Поздравляем! Ваш приз готов.\n\n"
+        "Покажите в магазине:\n🔑 <code>{code}</code>"
+    ),
+    "loyalty.redeem_not_enough": "😔 Недостаточно баллов. Копите дальше или пригласите друга!",
+    "loyalty.redeem_unavailable": "😔 Этот приз сейчас недоступен.",
+    "loyalty.referral_joined": (
+        "🎉 <b>Ваш друг присоединился!</b>\n"
+        "Вам начислено <b>+{points} баллов</b>. Спасибо! 💎"
+    ),
+    "loyalty.earned": "✨ Вам начислено <b>+{points} баллов</b> ({reason}).\nВсего: {total} баллов 💎",
+    "loyalty.tier_up": "🎉 Поздравляем! Вы достигли уровня <b>{tier}</b> — кэшбэк {cashback}%!",
+    "loyalty.reason.registration": "регистрация",
+    "loyalty.reason.purchase": "покупка",
+    "loyalty.reason.feedback": "отзыв",
+    "loyalty.reason.progress": "фото результата",
+    "loyalty.reason.referral": "приглашение друга",
+    "loyalty.reason.birthday": "день рождения",
+    "loyalty.reason.quiz": "тест кожи",
+    "loyalty.reason.redeem": "приз",
+    "loyalty.reason.manual": "корректировка",
+    "loyalty.tier.bronze": "Бронза",
+    "loyalty.tier.silver": "Серебро",
+    "loyalty.tier.gold": "Золото",
+    "loyalty.tier.platinum": "Платина",
     "cmd.start": "Запустить бота",
     "cmd.menu": "Главное меню",
     "cmd.help": "Помощь",

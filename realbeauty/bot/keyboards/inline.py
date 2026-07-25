@@ -27,6 +27,8 @@ CB_SKIP_PHOTO = "skip_photo"
 CB_TUTORIAL_STEP = "tutorial_step"  # tutorial_step:<product_id>:<step_id>
 CB_SUPPORT_REPLY = "support_reply"  # attached to admin replies in the bot
 CB_OPEN_DISCOUNTS = "open_discounts"
+CB_OPEN_REWARDS = "open_rewards"
+CB_REDEEM_REWARD = "redeem"         # redeem:<reward_id>
 
 SEP = ":"
 
@@ -145,6 +147,31 @@ def profile_keyboard(lang: str) -> InlineKeyboardMarkup:
             ],
         ]
     )
+
+
+def bonus_keyboard(
+    lang: str, share_url: str, *, has_rewards: bool
+) -> InlineKeyboardMarkup:
+    """The «Bonuslarim» screen: a native share button and, if any, rewards."""
+    builder = InlineKeyboardBuilder()
+    builder.button(text=t("loyalty.share_button", lang), url=share_url)
+    if has_rewards:
+        builder.button(
+            text=t("loyalty.rewards_button", lang), callback_data=CB_OPEN_REWARDS
+        )
+    builder.adjust(1)
+    return builder.as_markup()
+
+
+def rewards_keyboard(
+    lang: str, rewards: Iterable[tuple[int, str]]
+) -> InlineKeyboardMarkup:
+    """rewards: iterable of (reward_id, button_label)."""
+    builder = InlineKeyboardBuilder()
+    for reward_id, label in rewards:
+        builder.button(text=label, callback_data=f"{CB_REDEEM_REWARD}{SEP}{reward_id}")
+    builder.adjust(1)
+    return builder.as_markup()
 
 
 def support_reply_keyboard(lang: str = "uz") -> InlineKeyboardMarkup:

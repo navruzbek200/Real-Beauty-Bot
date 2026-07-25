@@ -11,6 +11,7 @@ STRINGS: dict[str, str] = {
     "menu.quiz_retake": "🔄 Retake the skin test",
     "menu.support": "✍️ Question / Request",
     "menu.discounts": "🎁 Discounts",
+    "menu.bonus": "💎 My bonuses",
     "menu.profile": "👤 Profile",
     "menu.help": "ℹ️ Help",
     "menu.legacy_tutorials": "📚 Tutorials",
@@ -319,6 +320,58 @@ STRINGS: dict[str, str] = {
     ),
     "admin.user_registered": "✅ <b>{full_name}</b> completed registration.",
     # ------------------------------------------------------- bot command menu
+    # ------------------------------------------------------- loyalty / bonus
+    "loyalty.disabled": "💎 The bonus program is currently off. It'll be back soon!",
+    "loyalty.summary": (
+        "💎 <b>My bonuses</b>\n\n"
+        "🏅 Tier: <b>{tier}</b> · {cashback}% cashback\n"
+        "✨ Balance: <b>{balance}</b> points\n"
+        "📈 Lifetime earned: {lifetime} points"
+    ),
+    "loyalty.next_tier": "\n⬆️ {remaining} points to reach <b>{tier}</b>",
+    "loyalty.max_tier": "\n🎉 You're at the top tier — amazing!",
+    "loyalty.invite_block": (
+        "\n\n🎁 <b>Invite a friend</b>\n"
+        "Earn <b>+{points} points</b> for every friend who registers!\n"
+        "Your link:\n<code>{link}</code>"
+    ),
+    "loyalty.share_button": "📤 Share with a friend",
+    "loyalty.share_text": (
+        "✨ Join the Real Beauty bot — skincare tailored to your skin type, "
+        "discounts and bonuses are waiting for you! 💎"
+    ),
+    "loyalty.rewards_button": "🎁 Rewards",
+    "loyalty.rewards_header": (
+        "🎁 <b>Rewards</b>\n\n"
+        "Trade your points for rewards. Balance: <b>{balance}</b> points 👇"
+    ),
+    "loyalty.rewards_empty": "No rewards yet. We'll add some soon!",
+    "loyalty.reward_line": "• <b>{title}</b> — {cost} points",
+    "loyalty.redeem_ok": (
+        "✅ Congratulations! Your reward is ready.\n\n"
+        "Show this in store:\n🔑 <code>{code}</code>"
+    ),
+    "loyalty.redeem_not_enough": "😔 Not enough points. Keep earning or invite a friend!",
+    "loyalty.redeem_unavailable": "😔 This reward isn't available right now.",
+    "loyalty.referral_joined": (
+        "🎉 <b>Your friend joined!</b>\n"
+        "You earned <b>+{points} points</b>. Thank you! 💎"
+    ),
+    "loyalty.earned": "✨ You earned <b>+{points} points</b> ({reason}).\nTotal: {total} points 💎",
+    "loyalty.tier_up": "🎉 Congratulations! You reached the <b>{tier}</b> tier — {cashback}% cashback!",
+    "loyalty.reason.registration": "registration",
+    "loyalty.reason.purchase": "purchase",
+    "loyalty.reason.feedback": "review",
+    "loyalty.reason.progress": "result photo",
+    "loyalty.reason.referral": "friend referral",
+    "loyalty.reason.birthday": "birthday",
+    "loyalty.reason.quiz": "skin quiz",
+    "loyalty.reason.redeem": "reward",
+    "loyalty.reason.manual": "adjustment",
+    "loyalty.tier.bronze": "Bronze",
+    "loyalty.tier.silver": "Silver",
+    "loyalty.tier.gold": "Gold",
+    "loyalty.tier.platinum": "Platinum",
     "cmd.start": "Start the bot",
     "cmd.menu": "Main menu",
     "cmd.help": "Help",

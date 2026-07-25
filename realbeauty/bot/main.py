@@ -20,6 +20,7 @@ from bot.handlers import (  # noqa: E402
     auth,
     birthday,
     fallback,
+    loyalty,
     menu,
     products,
     quiz,
@@ -64,6 +65,7 @@ async def main() -> None:
     # the menu router's state-free one during registration.
     dp.include_router(quiz.router)
     dp.include_router(menu.router)
+    dp.include_router(loyalty.router)
     dp.include_router(products.router)
     dp.include_router(support.router)
     dp.include_router(support_group.router)

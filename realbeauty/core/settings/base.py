@@ -319,6 +319,50 @@ UNFOLD = {
                 ],
             },
             {
+                "title": "Bonus dasturi",
+                "separator": True,
+                "items": [
+                    {
+                        "title": "Bonus sozlamalari",
+                        "icon": "tune",
+                        "link": reverse_lazy(
+                            "admin:loyalty_loyaltysettings_changelist"
+                        ),
+                        "permission": _superuser,
+                    },
+                    {
+                        "title": "Sovg'alar",
+                        "icon": "redeem",
+                        "link": reverse_lazy("admin:loyalty_reward_changelist"),
+                        "permission": _superuser,
+                    },
+                    {
+                        "title": "Bonus hisoblari",
+                        "icon": "diamond",
+                        "link": reverse_lazy(
+                            "admin:loyalty_loyaltyaccount_changelist"
+                        ),
+                        "permission": _superuser,
+                    },
+                    {
+                        "title": "Ball harakatlari",
+                        "icon": "receipt_long",
+                        "link": reverse_lazy(
+                            "admin:loyalty_pointstransaction_changelist"
+                        ),
+                        "permission": _superuser,
+                    },
+                    {
+                        "title": "Almashtirilgan sovg'alar",
+                        "icon": "card_giftcard",
+                        "link": reverse_lazy(
+                            "admin:loyalty_rewardredemption_changelist"
+                        ),
+                        "permission": _superuser,
+                    },
+                ],
+            },
+            {
                 "title": "Analitika",
                 "separator": True,
                 "items": [

@@ -142,7 +142,8 @@ class Command(BaseCommand):
         self._discounts()
         self._loyalty()
         seller = self._seller(opts["seller_telegram_id"])
-        self._sample_user(opts["user_telegram_id"], products[0], seller)
+        user = self._sample_user(opts["user_telegram_id"], products[0], seller)
+        self._loyalty_demo(user, products)
         self.stdout.write(self.style.SUCCESS("✅ Demo ma'lumotlar tayyor."))
 
     # -- pieces --------------------------------------------------------------
@@ -290,7 +291,7 @@ class Command(BaseCommand):
 
     def _sample_user(
         self, telegram_id: int, product: Product, seller: SellerProfile
-    ) -> None:
+    ) -> TelegramUser:
         today = timezone.localdate()
         user, _ = TelegramUser.objects.update_or_create(
             telegram_id=telegram_id,
@@ -308,4 +309,82 @@ class Command(BaseCommand):
         )
         UserProduct.objects.get_or_create(user=user, product=product)
         self.stdout.write(f"• Namuna foydalanuvchi (tg={telegram_id}) OK")
+        return user
+
+    # Realistic customers so every bonus-program page has something to show:
+    # a range of balances (bronze → gold), two of them invited by the main demo
+    # user, and one reward already redeemed.
+    _DEMO_CUSTOMERS = [
+        ("Nilufar Karimova", "nilufar_k", 333333301, "+998901112201", 5),
+        ("Sardor Aliyev", "sardor_a", 333333302, "+998901112202", 34),
+        ("Dilnoza Yusupova", "dilnoza_y", 333333303, "+998901112203", 12),
+        ("Jasur Rahimov", "jasur_r", 333333304, "+998901112204", 3),
+    ]
+
+    def _loyalty_demo(self, inviter: TelegramUser, products: list[Product]) -> None:
+        from apps.loyalty import services as loyalty
+        from apps.loyalty.models import PointsTransaction, Reward
+
+        Reason = PointsTransaction.Reason
+        # The bot never messages anyone during a seed run: these are fake chat
+        # ids, and the program is only being pre-filled, not announced.
+        loyalty.award(
+            inviter, Reason.REGISTRATION, reference=f"registration:{inviter.pk}", notify=False
+        )
+
+        referred_pks: list[int] = []
+        for i, (name, uname, tg, phone, purchases) in enumerate(self._DEMO_CUSTOMERS):
+            invited = i < 2  # first two came through the demo user's invite link
+            customer, _ = TelegramUser.objects.update_or_create(
+                telegram_id=tg,
+                defaults={
+                    "username": uname,
+                    "full_name": name,
+                    "phone_number": phone,
+                    "face_condition": TelegramUser.FaceCondition.NORMAL,
+                    "source": TelegramUser.RegistrationSource.SELF,
+                    "registration_status": TelegramUser.RegistrationStatus.COMPLETED,
+                    "registered_by": inviter if invited else None,
+                    "is_active": True,
+                },
+            )
+            if products:
+                UserProduct.objects.get_or_create(
+                    user=customer, product=products[i % len(products)]
+                )
+            loyalty.award(
+                customer,
+                Reason.REGISTRATION,
+                reference=f"registration:{customer.pk}",
+                notify=False,
+            )
+            for n in range(purchases):
+                loyalty.award(
+                    customer,
+                    Reason.PURCHASE,
+                    reference=f"seed-purchase:{customer.pk}:{n}",
+                    notify=False,
+                )
+            if invited:
+                referred_pks.append(customer.pk)
+
+        # The main demo user is credited for the two friends they brought in.
+        for pk in referred_pks:
+            loyalty.award(
+                inviter, Reason.REFERRAL, reference=f"referral:{pk}", notify=False
+            )
+
+        # One reward actually redeemed, so that page isn't empty either.
+        top = TelegramUser.objects.filter(telegram_id=self._DEMO_CUSTOMERS[1][2]).first()
+        cheapest = Reward.objects.filter(is_active=True).order_by("cost_points").first()
+        if top and cheapest:
+            try:
+                loyalty.redeem(top, cheapest.pk)
+            except loyalty.RedeemError:
+                pass
+
+        self.stdout.write(
+            f"• Bonus demo: {len(self._DEMO_CUSTOMERS)} mijoz, 2 referal, "
+            "ball harakatlari + 1 almashtirilgan sovg'a OK"
+        )
 

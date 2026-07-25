@@ -7,6 +7,7 @@ from rest_framework.routers import DefaultRouter
 from apps.api.views.analytics import SkinQuizResultViewSet
 from apps.api.views.auth import LoginView, MeView, RefreshView
 from apps.api.views.bot_settings import DiscountViewSet, GlobalSettingsView
+from apps.api.views.loyalty import LoyaltySettingsView, RewardViewSet
 from apps.api.views.campaigns import (
     AutoMessageViewSet,
     BroadcastViewSet,
@@ -34,6 +35,7 @@ router.register("message-templates", MessageTemplateViewSet, basename="message-t
 router.register("auto-messages", AutoMessageViewSet, basename="auto-message")
 router.register("broadcasts", BroadcastViewSet, basename="broadcast")
 router.register("discounts", DiscountViewSet, basename="discount")
+router.register("rewards", RewardViewSet, basename="reward")
 router.register("skin-quiz-results", SkinQuizResultViewSet, basename="skin-quiz-result")
 router.register("support-threads", SupportThreadViewSet, basename="support-thread")
 router.register("support-messages", SupportMessageViewSet, basename="support-message")
@@ -44,6 +46,11 @@ urlpatterns = [
     path("auth/refresh/", RefreshView.as_view(), name="api_refresh"),
     path("auth/me/", MeView.as_view(), name="api_me"),
     path("settings/global/", GlobalSettingsView.as_view(), name="api_global_settings"),
+    path(
+        "settings/rewards/",
+        LoyaltySettingsView.as_view(),
+        name="api_rewards_settings",
+    ),
     path("settings/support/", SupportSettingsView.as_view(), name="api_support_settings"),
     path(
         "settings/support/test-connection/",

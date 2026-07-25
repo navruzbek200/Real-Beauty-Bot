@@ -401,6 +401,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/rewards/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["rewards_list"];
+        put?: never;
+        post: operations["rewards_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/rewards/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["rewards_retrieve"];
+        put: operations["rewards_update"];
+        post?: never;
+        delete: operations["rewards_destroy"];
+        options?: never;
+        head?: never;
+        patch: operations["rewards_partial_update"];
+        trace?: never;
+    };
     "/api/v1/settings/global/": {
         parameters: {
             query?: never;
@@ -415,6 +447,24 @@ export interface paths {
         options?: never;
         head?: never;
         patch: operations["settings_global_partial_update"];
+        trace?: never;
+    };
+    "/api/v1/settings/rewards/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description The whole points/cashback economy on one endpoint — superuser only. */
+        get: operations["settings_rewards_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** @description The whole points/cashback economy on one endpoint — superuser only. */
+        patch: operations["settings_rewards_partial_update"];
         trace?: never;
     };
     "/api/v1/settings/support/": {
@@ -977,6 +1027,50 @@ export interface components {
             username: string;
             password: string;
         };
+        LoyaltySettings: {
+            /**
+             * Bonus dasturi yoqilgan
+             * @description O'chirilsa botdagi «Bonuslarim» bo'limi ko'rinmaydi va ball yig'ilmaydi.
+             */
+            is_enabled?: boolean;
+            /**
+             * Ro'yxatdan o'tgani uchun
+             * @description Mijoz botda ro'yxatdan o'tishni tugatganda beriladi.
+             */
+            points_registration?: number;
+            /**
+             * Do'stini taklif qilgani uchun
+             * @description Taklif qilingan do'st ro'yxatdan o'tib bo'lgach beriladi.
+             */
+            points_referral?: number;
+            /**
+             * Har bir xarid uchun
+             * @description Mijozga mahsulot biriktirilganda beriladi.
+             */
+            points_purchase?: number;
+            /** Teri testini topshirgani uchun */
+            points_quiz?: number;
+            /** Mahsulotga baho bergani uchun */
+            points_feedback?: number;
+            /** Oldin/keyin rasmi uchun */
+            points_progress?: number;
+            /** Tug'ilgan kun sovg'asi */
+            points_birthday?: number;
+            /** Bronza keshbek / chegirma (%) */
+            bronze_cashback?: number;
+            /** Kumush darajasi (balldan) */
+            silver_from?: number;
+            /** Kumush keshbek / chegirma (%) */
+            silver_cashback?: number;
+            /** Oltin darajasi (balldan) */
+            gold_from?: number;
+            /** Oltin keshbek / chegirma (%) */
+            gold_cashback?: number;
+            /** Platina darajasi (balldan) */
+            platinum_from?: number;
+            /** Platina keshbek / chegirma (%) */
+            platinum_cashback?: number;
+        };
         Me: {
             id: number;
             username: string;
@@ -1114,6 +1208,21 @@ export interface components {
              */
             previous?: string | null;
             results: components["schemas"]["ProductTutorialStep"][];
+        };
+        PaginatedRewardList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=4
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=2
+             */
+            previous?: string | null;
+            results: components["schemas"]["Reward"][];
         };
         PaginatedSkinQuizResultList: {
             /** @example 123 */
@@ -1405,6 +1514,50 @@ export interface components {
              */
             birthday_discount_percent?: number;
         };
+        PatchedLoyaltySettings: {
+            /**
+             * Bonus dasturi yoqilgan
+             * @description O'chirilsa botdagi «Bonuslarim» bo'limi ko'rinmaydi va ball yig'ilmaydi.
+             */
+            is_enabled?: boolean;
+            /**
+             * Ro'yxatdan o'tgani uchun
+             * @description Mijoz botda ro'yxatdan o'tishni tugatganda beriladi.
+             */
+            points_registration?: number;
+            /**
+             * Do'stini taklif qilgani uchun
+             * @description Taklif qilingan do'st ro'yxatdan o'tib bo'lgach beriladi.
+             */
+            points_referral?: number;
+            /**
+             * Har bir xarid uchun
+             * @description Mijozga mahsulot biriktirilganda beriladi.
+             */
+            points_purchase?: number;
+            /** Teri testini topshirgani uchun */
+            points_quiz?: number;
+            /** Mahsulotga baho bergani uchun */
+            points_feedback?: number;
+            /** Oldin/keyin rasmi uchun */
+            points_progress?: number;
+            /** Tug'ilgan kun sovg'asi */
+            points_birthday?: number;
+            /** Bronza keshbek / chegirma (%) */
+            bronze_cashback?: number;
+            /** Kumush darajasi (balldan) */
+            silver_from?: number;
+            /** Kumush keshbek / chegirma (%) */
+            silver_cashback?: number;
+            /** Oltin darajasi (balldan) */
+            gold_from?: number;
+            /** Oltin keshbek / chegirma (%) */
+            gold_cashback?: number;
+            /** Platina darajasi (balldan) */
+            platinum_from?: number;
+            /** Platina keshbek / chegirma (%) */
+            platinum_cashback?: number;
+        };
         PatchedMessageTemplate: {
             readonly id?: number;
             /** Nomi */
@@ -1519,6 +1672,38 @@ export interface components {
             /** Himoya (ulashish/saqlashni taqiqlash) */
             protect_content?: boolean;
             readonly has_video?: boolean;
+        };
+        PatchedReward: {
+            readonly id?: number;
+            /** Nomi */
+            title?: string;
+            /** Nomi (ruscha) */
+            title_ru?: string;
+            /** Nomi (inglizcha) */
+            title_en?: string;
+            /** Tavsif */
+            description?: string;
+            /** Tavsif (ruscha) */
+            description_ru?: string;
+            /** Tavsif (inglizcha) */
+            description_en?: string;
+            /** Narxi (ball) */
+            cost_points?: number;
+            /**
+             * Promokod boshlanishi
+             * @description Har bir mijozga RB-XXXXXX ko'rinishida noyob kod beriladi.
+             */
+            code_prefix?: string;
+            /**
+             * Nechta qoldi
+             * @description Bo'sh qoldirsangiz — cheklanmagan.
+             */
+            stock?: number | null;
+            /** Faol */
+            is_active?: boolean;
+            readonly is_available?: boolean;
+            /** Format: date-time */
+            readonly created_at?: string;
         };
         /** @description Staff = the auth.User proxy; role/seller_profile mirror the admin's StaffForm. */
         PatchedStaff: {
@@ -1806,6 +1991,38 @@ export interface components {
          * @enum {string}
          */
         RegistrationStatusEnum: "pending" | "completed";
+        Reward: {
+            readonly id: number;
+            /** Nomi */
+            title: string;
+            /** Nomi (ruscha) */
+            title_ru?: string;
+            /** Nomi (inglizcha) */
+            title_en?: string;
+            /** Tavsif */
+            description?: string;
+            /** Tavsif (ruscha) */
+            description_ru?: string;
+            /** Tavsif (inglizcha) */
+            description_en?: string;
+            /** Narxi (ball) */
+            cost_points?: number;
+            /**
+             * Promokod boshlanishi
+             * @description Har bir mijozga RB-XXXXXX ko'rinishida noyob kod beriladi.
+             */
+            code_prefix?: string;
+            /**
+             * Nechta qoldi
+             * @description Bo'sh qoldirsangiz — cheklanmagan.
+             */
+            stock?: number | null;
+            /** Faol */
+            is_active?: boolean;
+            readonly is_available: boolean;
+            /** Format: date-time */
+            readonly created_at: string;
+        };
         /**
          * @description * `admin` - admin
          *     * `seller` - seller
@@ -3498,6 +3715,159 @@ export interface operations {
             };
         };
     };
+    rewards_list: {
+        parameters: {
+            query?: {
+                is_active?: boolean;
+                /** @description Which field to use when ordering the results. */
+                ordering?: string;
+                /** @description A page number within the paginated result set. */
+                page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
+                /** @description A search term. */
+                search?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedRewardList"];
+                };
+            };
+        };
+    };
+    rewards_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Reward"];
+                "application/x-www-form-urlencoded": components["schemas"]["Reward"];
+                "multipart/form-data": components["schemas"]["Reward"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Reward"];
+                };
+            };
+        };
+    };
+    rewards_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this Sovg'a. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Reward"];
+                };
+            };
+        };
+    };
+    rewards_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this Sovg'a. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Reward"];
+                "application/x-www-form-urlencoded": components["schemas"]["Reward"];
+                "multipart/form-data": components["schemas"]["Reward"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Reward"];
+                };
+            };
+        };
+    };
+    rewards_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this Sovg'a. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    rewards_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this Sovg'a. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedReward"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedReward"];
+                "multipart/form-data": components["schemas"]["PatchedReward"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Reward"];
+                };
+            };
+        };
+    };
     settings_global_retrieve: {
         parameters: {
             query?: never;
@@ -3538,6 +3908,50 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GlobalSettings"];
+                };
+            };
+        };
+    };
+    settings_rewards_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoyaltySettings"];
+                };
+            };
+        };
+    };
+    settings_rewards_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedLoyaltySettings"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedLoyaltySettings"];
+                "multipart/form-data": components["schemas"]["PatchedLoyaltySettings"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoyaltySettings"];
                 };
             };
         };

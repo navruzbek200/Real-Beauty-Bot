@@ -13,7 +13,12 @@ from aiogram.types import CallbackQuery, Message
 from apps.users.models import TelegramUser
 from bot.i18n import normalize, t
 from bot.keyboards import inline, reply
-from bot.services import product_service, template_service, user_service
+from bot.services import (
+    loyalty_service,
+    product_service,
+    template_service,
+    user_service,
+)
 from bot.states.registration import AdminAssistedReg, SelfReg
 
 logger = logging.getLogger(__name__)
@@ -43,10 +48,9 @@ async def start_with_payload(
     payload = command.args or ""
     if payload.startswith("ref_"):
         await _begin_admin_assisted(message, state, bot, payload, lang)
+    elif payload.startswith("inv_"):
+        await _begin_from_invite(message, state, payload, lang)
     else:
-        # Includes the retired `inv_` customer-invite links, which stop being
-        # special once the points program they fed is gone — an old link in
-        # somebody's chat history still has to open a normal signup.
         await _begin_self(message, state, lang)
 
 
@@ -94,14 +98,41 @@ async def _handled_as_returning(
     return True
 
 
-async def _begin_self(message: Message, state: FSMContext, lang: str) -> None:
+async def _begin_self(
+    message: Message,
+    state: FSMContext,
+    lang: str,
+    *,
+    registered_by_id: int | None = None,
+) -> None:
     await state.clear()
     await user_service.ensure_pending_user(
         telegram_id=message.chat.id,
         username=message.from_user.username if message.from_user else None,
         source=TelegramUser.RegistrationSource.SELF,
     )
+    # Carried through the FSM so the inviter is credited only once the friend
+    # actually finishes signing up (see `_finalize_registration`).
+    if registered_by_id is not None:
+        await state.update_data(registered_by_id=registered_by_id)
     await _ask_language(message, state, SelfReg.language)
+
+
+async def _begin_from_invite(
+    message: Message, state: FSMContext, payload: str, lang: str
+) -> None:
+    """A customer's `inv_<telegram_id>` share link — a self signup that credits
+    the friend who sent it."""
+    inviter_pk: int | None = None
+    try:
+        inviter_telegram_id = int(payload.removeprefix("inv_"))
+    except ValueError:
+        inviter_telegram_id = 0
+    if inviter_telegram_id and inviter_telegram_id != message.chat.id:
+        # Ignore a self-invite outright, and only trust a link that points at a
+        # real, finished customer.
+        inviter_pk = await loyalty_service.resolve_inviter_pk(inviter_telegram_id)
+    await _begin_self(message, state, lang, registered_by_id=inviter_pk)
 
 
 async def _begin_admin_assisted(
@@ -408,7 +439,15 @@ async def _finalize_registration(
     # 2. Immediately send product instructions + inline video buttons
     await send_tutorial_intros(bot, user.telegram_id, lang)
 
-    # 3. Notify the referring seller
+    # 3. Credit loyalty points — one-off for finishing signup, and the referral
+    # bonus to the friend who invited them. Both are idempotent, so re-running
+    # registration never pays twice, and a blocked inviter never blocks signup.
+    await loyalty_service.award_registration(user.pk)
+    registered_by_id = data.get("registered_by_id")
+    if registered_by_id:
+        await loyalty_service.award_referral(int(registered_by_id), user.pk)
+
+    # 4. Notify the referring seller
     if is_admin_flow and data.get("admin_telegram_id"):
         await _safe_send(
             bot,

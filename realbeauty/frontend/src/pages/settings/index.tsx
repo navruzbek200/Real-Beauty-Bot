@@ -6,6 +6,7 @@ import { ResourcePage } from '@/widgets/resource-crud'
 import { SettingsFormPage } from '@/widgets/settings-form'
 import { Alert, Button, Tabs, type TabItem } from '@/shared/ui'
 import { discountApi, globalSettingsApi, type Discount } from '@/entities/bot-settings'
+import { loyaltySettingsApi, rewardApi, type Reward } from '@/entities/loyalty'
 import { staffApi, type Staff } from '@/entities/staff'
 import { supportAdminApi, supportSettingsApi, type SupportAdmin } from '@/entities/support'
 import {
@@ -14,6 +15,12 @@ import {
   globalSettingsFormConfig,
   type DiscountFormValues,
 } from '@/features/bot-settings'
+import {
+  loyaltySettingsFormConfig,
+  rewardColumns,
+  rewardFormConfig,
+  type RewardFormValues,
+} from '@/features/loyalty'
 import { staffColumns, staffFormConfig, toStaffPayload, type StaffFormValues } from '@/features/staff'
 import {
   supportAdminColumns,
@@ -24,9 +31,17 @@ import {
 
 const TABS: TabItem[] = [
   { key: 'discounts', label: 'Chegirmalar' },
+  { key: 'bonus', label: 'Bonus dasturi' },
   { key: 'telegram', label: 'Telegram guruh' },
   { key: 'staff', label: 'Xodimlar' },
 ]
+
+// Django's PositiveInteger stock wants a number or null — the form keeps it as
+// text so "unlimited" can be left blank; "" must become null, not 0.
+function toRewardPayload(values: RewardFormValues): Partial<Reward> {
+  const { stock, ...rest } = values
+  return { ...rest, stock: stock ? Number(stock) : null }
+}
 
 // Django's DateField wants a real date or null — never "". Left blank (no
 // expiry), the form's "" must become null or the API 400s the save.
@@ -48,6 +63,7 @@ export function SettingsPage() {
       />
 
       {active === 'discounts' && <DiscountsTab />}
+      {active === 'bonus' && <BonusTab />}
       {active === 'telegram' && <TelegramTab />}
       {active === 'staff' && <StaffTab />}
     </div>
@@ -172,6 +188,55 @@ function TelegramTab() {
           formConfig={supportAdminFormConfig}
           toCreatePayload={(v) => v as SupportAdmin}
           toUpdatePayload={(v) => v}
+        />
+      </section>
+    </div>
+  )
+}
+
+function BonusTab() {
+  return (
+    <div className="space-y-8">
+      <section className="space-y-3">
+        <div>
+          <h2 className="text-base font-semibold text-slate-800 dark:text-slate-200">
+            Ball va keshbek sozlamalari
+          </h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            Har bir amal uchun beriladigan ball, darajalar va keshbek foizini shu yerdan
+            o'zgartirasiz. O'zgarishlar botda darrov ishlaydi.
+          </p>
+        </div>
+        <SettingsFormPage
+          title=""
+          queryKey={['loyalty-settings']}
+          api={loyaltySettingsApi}
+          config={loyaltySettingsFormConfig}
+          canEdit
+        />
+      </section>
+
+      <section className="space-y-3">
+        <div>
+          <h2 className="text-base font-semibold text-slate-800 dark:text-slate-200">
+            Sovg'alar
+          </h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            Mijozlar ballarini shu sovg'alarga almashtiradi — botdagi «💎 Bonuslarim»
+            bo'limida ko'rinadi.
+          </p>
+        </div>
+        <ResourcePage<Reward, RewardFormValues, Partial<Reward>, Partial<Reward>>
+          title=""
+          api={rewardApi}
+          queryKey={['rewards']}
+          columns={rewardColumns}
+          filterKeys={['is_active']}
+          searchPlaceholder="Sovg'a nomi..."
+          permissions={{ add: '*', change: '*', delete: '*' }}
+          formConfig={rewardFormConfig}
+          toCreatePayload={toRewardPayload}
+          toUpdatePayload={toRewardPayload}
         />
       </section>
     </div>
