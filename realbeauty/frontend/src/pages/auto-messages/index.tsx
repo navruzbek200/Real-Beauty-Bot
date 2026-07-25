@@ -1,29 +1,36 @@
 import { useState } from 'react'
 
 import { ResourcePage } from '@/widgets/resource-crud'
-import { Button } from '@/shared/ui'
+import { Alert, Button } from '@/shared/ui'
 import { autoMessageApi, type AutoMessage } from '@/entities/campaign'
 import { autoMessageColumns, autoMessageFormConfig, type AutoMessageFormValues } from '@/features/campaign'
 
+type Notice = { tone: 'success' | 'error'; text: string }
+
 export function AutoMessagesPage() {
   const [pendingId, setPendingId] = useState<number | null>(null)
-  const [notice, setNotice] = useState<string>()
+  const [notice, setNotice] = useState<Notice>()
 
   async function testToMe(item: AutoMessage) {
     setPendingId(item.id)
+    setNotice(undefined)
     try {
       const res = await autoMessageApi.testToMe(item.id)
-      setNotice(res.detail)
+      setNotice({ tone: 'success', text: res.detail })
     } catch {
-      setNotice('Test yuborilmadi.')
+      setNotice({ tone: 'error', text: 'Test yuborilmadi.' })
     } finally {
       setPendingId(null)
     }
   }
 
   return (
-    <div className="space-y-2">
-      {notice && <p className="text-sm text-brand-700">{notice}</p>}
+    <div className="space-y-3">
+      {notice && (
+        <Alert tone={notice.tone} onDismiss={() => setNotice(undefined)}>
+          {notice.text}
+        </Alert>
+      )}
       <ResourcePage<AutoMessage, AutoMessageFormValues, AutoMessage, Partial<AutoMessage>>
         title="Avtomatik xabarlar"
         api={autoMessageApi}
@@ -35,7 +42,12 @@ export function AutoMessagesPage() {
         toCreatePayload={(v) => v as AutoMessage}
         toUpdatePayload={(v) => v}
         rowActions={(item) => (
-          <Button variant="ghost" disabled={pendingId === item.id} onClick={() => testToMe(item)}>
+          <Button
+            variant="ghost"
+            size="sm"
+            loading={pendingId === item.id}
+            onClick={() => testToMe(item)}
+          >
             Menga test
           </Button>
         )}

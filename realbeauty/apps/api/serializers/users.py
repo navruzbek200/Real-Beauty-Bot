@@ -65,6 +65,24 @@ class TelegramUserSerializer(serializers.ModelSerializer):
     def validate_username(self, value: str) -> str:
         return (value or "").lstrip("@").strip()
 
+    def validate_phone_number(self, value: str) -> str:
+        """
+        Store the same canonical +998XXXXXXXXX the bot stores.
+
+        Staff type a number every imaginable way ("90 123 45 67",
+        "998901234567"); the bot always saves Telegram's contact in canonical
+        form. Without normalising here too, the CRM row and the bot row for
+        one person never match on `phone_tail`, so the customer opens the bot
+        and gets a second, empty card instead of the one the shop just filled
+        in.
+        """
+        normalized = TelegramUser.normalize_phone(value)
+        if normalized is None:
+            raise serializers.ValidationError(
+                "Raqam noto'g'ri. Masalan: +998 90 123 45 67"
+            )
+        return normalized
+
 
 class AppUserSerializer(serializers.ModelSerializer):
     is_linked = serializers.BooleanField(read_only=True)

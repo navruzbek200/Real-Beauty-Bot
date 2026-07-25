@@ -17,9 +17,7 @@ from django.utils import timezone
 
 
 def callback(request: HttpRequest, context: dict) -> dict:
-    from apps.analytics.models import ProgressPhoto, SkinQuizResult, UserFeedback
-    from apps.campaigns.models import CampaignLog
-    from apps.loyalty.models import RewardRedemption
+    from apps.analytics.models import SkinQuizResult
     from apps.products.models import Product
     from apps.support.models import SupportThread
     from apps.users.models import TelegramUser
@@ -65,61 +63,10 @@ def callback(request: HttpRequest, context: dict) -> dict:
         },
     ]
 
-    # A code sitting unclaimed is a customer who is coming back — and a seller
-    # who needs to recognise it at the till.
-    pending_rewards = RewardRedemption.objects.filter(is_used=False).count()
-    cards.append(
-        {
-            "title": "Ishlatilmagan bonus kodlari",
-            "value": pending_rewards,
-            "note": (
-                "mijozlar do'konga kelishi kutilmoqda"
-                if pending_rewards
-                else "hammasi ishlatilgan"
-            ),
-            "urgent": False,
-            "url": reverse("admin:loyalty_rewardredemption_changelist")
-            + "?is_used=0",
-        }
-    )
-
-    # Delivery logs are superuser-only; showing a seller this card would hand
-    # them a number they can click straight into a 403.
-    if request.user.is_superuser:
-        failed = CampaignLog.objects.filter(
-            success=False, sent_at__gte=week_ago
-        ).count()
-        cards.append(
-            {
-                "title": "Yetkazilmagan xabar (7 kun)",
-                "value": failed,
-                "note": (
-                    "odatda mijoz botni bloklagan" if failed else "hammasi yetib bordi"
-                ),
-                "urgent": failed > 0,
-                "url": reverse("admin:campaigns_campaignlog_changelist")
-                + "?success__exact=0",
-            }
-        )
-
     context.update(
         {
             "cards": cards,
             "secondary": [
-                {
-                    "title": "Yangi fikrlar (7 kun)",
-                    "value": UserFeedback.objects.filter(
-                        submitted_at__gte=week_ago
-                    ).count(),
-                    "url": reverse("admin:analytics_userfeedback_changelist"),
-                },
-                {
-                    "title": "Yangi natija rasmlari (7 kun)",
-                    "value": ProgressPhoto.objects.filter(
-                        submitted_at__gte=week_ago
-                    ).count(),
-                    "url": reverse("admin:analytics_progressphoto_changelist"),
-                },
                 {
                     "title": "Teri testi (7 kun)",
                     "value": SkinQuizResult.objects.filter(

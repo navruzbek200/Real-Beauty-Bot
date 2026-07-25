@@ -18,8 +18,6 @@ from django.urls import reverse
 from apps.analytics.models import ProgressPhoto, SkinQuizResult, UserFeedback
 from apps.analytics.skin_logic import QUESTION_IDS, analyze
 from apps.campaigns.models import AutoMessage
-from apps.loyalty.models import PointsTransaction, Reward
-from apps.loyalty.services import award, redeem
 from apps.products.models import Product
 from apps.users.models import SellerProfile, TelegramUser, UserProduct
 
@@ -29,15 +27,8 @@ CHANGELISTS = [
     "admin:products_product_changelist",
     "admin:products_topproduct_changelist",
     "admin:campaigns_automessage_changelist",
-    "admin:campaigns_automessagelog_changelist",
     "admin:campaigns_messagetemplate_changelist",
-    "admin:analytics_userfeedback_changelist",
     "admin:analytics_skinquizresult_changelist",
-    "admin:analytics_progressphoto_changelist",
-    "admin:loyalty_loyaltyaccount_changelist",
-    "admin:loyalty_reward_changelist",
-    "admin:loyalty_rewardredemption_changelist",
-    "admin:loyalty_pointstransaction_changelist",
 ]
 
 
@@ -70,15 +61,6 @@ class AdminSmokeTests(TestCase):
             recommendation_keys=list(result.recommendation_keys),
         )
 
-        cls.reward = Reward.objects.create(title="Kupon", cost_points=10, stock=5)
-        award(
-            cls.customer,
-            PointsTransaction.Reason.MANUAL,
-            points=1000,
-            reference="admin-test",
-        )
-        redeem(cls.customer, cls.reward.pk)
-
         cls.rule = AutoMessage.objects.create(
             name="Sinov qoidasi",
             trigger=AutoMessage.Trigger.AFTER_PURCHASE,
@@ -103,7 +85,6 @@ class AdminSmokeTests(TestCase):
     def test_singleton_settings_pages_redirect_to_their_form(self):
         for name in (
             "admin:bot_settings_globalsettings_changelist",
-            "admin:loyalty_loyaltysettings_changelist",
         ):
             with self.subTest(page=name):
                 response = self.client.get(reverse(name), follow=True)
@@ -115,7 +96,6 @@ class AdminSmokeTests(TestCase):
             ("admin:products_product_change", self.product.pk),
             ("admin:products_topproduct_change", self.product.pk),
             ("admin:users_telegramuser_change", self.customer.pk),
-            ("admin:loyalty_reward_change", self.reward.pk),
         ]
         for name, pk in pages:
             with self.subTest(page=name):
@@ -149,43 +129,6 @@ class AdminSmokeTests(TestCase):
         self.assertTrue(second.is_top and third.is_top)
         self.assertEqual({second.top_order, third.top_order}, {2, 3})
 
-    def test_manual_point_adjustment_goes_through_the_ledger(self):
-        from apps.loyalty.models import LoyaltyAccount
-
-        account = LoyaltyAccount.objects.get(user=self.customer)
-        before = account.balance
-
-        self.client.post(
-            reverse("admin:loyalty_loyaltyaccount_change", args=[account.pk]),
-            {"adjustment": "250", "adjustment_note": "Do'konda berildi"},
-            follow=True,
-        )
-        account.refresh_from_db()
-
-        self.assertEqual(account.balance, before + 250)
-        self.assertTrue(
-            PointsTransaction.objects.filter(
-                user=self.customer,
-                reason=PointsTransaction.Reason.MANUAL,
-                points=250,
-                note="Do'konda berildi",
-            ).exists()
-        )
-
-    def test_a_negative_adjustment_cannot_overdraw(self):
-        from apps.loyalty.models import LoyaltyAccount
-
-        account = LoyaltyAccount.objects.get(user=self.customer)
-        before = account.balance
-
-        self.client.post(
-            reverse("admin:loyalty_loyaltyaccount_change", args=[account.pk]),
-            {"adjustment": str(-(before + 5000)), "adjustment_note": "xato"},
-            follow=True,
-        )
-        account.refresh_from_db()
-        self.assertEqual(account.balance, before)
-
 
 class SellerAccessTests(TestCase):
     """
@@ -205,23 +148,17 @@ class SellerAccessTests(TestCase):
     def setUp(self):
         self.client.force_login(self.seller)
 
-    def test_seller_can_check_reward_codes(self):
-        response = self.client.get(
-            reverse("admin:loyalty_rewardredemption_changelist")
-        )
-        self.assertEqual(response.status_code, 200)
-
     def test_seller_can_read_quiz_results(self):
         response = self.client.get(
             reverse("admin:analytics_skinquizresult_changelist")
         )
         self.assertEqual(response.status_code, 200)
 
-    def test_seller_cannot_touch_the_points_economy(self):
+    def test_seller_cannot_change_how_the_bot_behaves(self):
         for name in (
-            "admin:loyalty_loyaltysettings_changelist",
-            "admin:loyalty_reward_changelist",
             "admin:campaigns_automessage_changelist",
+            "admin:campaigns_messagetemplate_changelist",
+            "admin:bot_settings_globalsettings_changelist",
         ):
             with self.subTest(page=name):
                 response = self.client.get(reverse(name))
@@ -319,14 +256,6 @@ class OneStepPurchaseTests(TestCase):
         self.assertTrue(
             UserProduct.objects.filter(user=customer, product=self.product).exists()
         )
-
-    def test_the_purchase_credits_loyalty_points_automatically(self):
-        from apps.loyalty.models import LoyaltyAccount, LoyaltySettings
-
-        conf = LoyaltySettings.get()
-        customer = self._add_customer_with_purchase()
-        account = LoyaltyAccount.objects.get(user=customer)
-        self.assertEqual(account.balance, conf.points_purchase)
 
     def test_customers_not_yet_linked_to_telegram_still_get_the_purchase_saved(self):
         # No telegram_id yet (they haven't opened the bot) — must not error

@@ -35,17 +35,8 @@ class KeyboardTests(TestCase):
         self.assertIsNone(rule.keyboard_for("uz", 1))
 
     def test_no_button_when_the_label_is_empty(self):
-        rule = AutoMessage(button_action=AutoMessage.Action.PROGRESS, button_label="")
+        rule = AutoMessage(button_action=AutoMessage.Action.DISCOUNTS, button_label="")
         self.assertIsNone(rule.keyboard_for("uz", 1))
-
-    def test_product_actions_need_a_product(self):
-        # A feedback callback without a product id would error in the
-        # customer's face, so no button is better than a broken one.
-        rule = AutoMessage(
-            button_action=AutoMessage.Action.PROGRESS, button_label="Baho"
-        )
-        self.assertIsNone(rule.keyboard_for("uz", None))
-        self.assertIsNotNone(rule.keyboard_for("uz", 7))
 
     def test_discounts_button_works_without_a_product(self):
         rule = AutoMessage(
@@ -353,8 +344,11 @@ class MigrationSeedTests(TestCase):
         # The feedback-rating flow this button used to open no longer exists
         # (see 0011_retire_feedback_button_action) — the rule survives as a
         # text-only check-in rather than carrying a dead button.
+        # Both buttons the seeded rules used to carry opened flows that no
+        # longer exist (rating, before/after photos), so the rules survive as
+        # text-only check-ins rather than pointing at dead screens.
         self.assertEqual(week1.button_action, AutoMessage.Action.NONE)
-        self.assertEqual(week2.button_action, AutoMessage.Action.PROGRESS)
+        self.assertEqual(week2.button_action, AutoMessage.Action.NONE)
 
     def test_seeded_rules_are_not_in_test_mode(self):
         for rule in AutoMessage.objects.all():

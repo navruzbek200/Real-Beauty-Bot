@@ -12,12 +12,9 @@ from asgiref.sync import async_to_sync
 from django.test import TestCase
 
 from apps.campaigns.models import MessageTemplate
-from apps.loyalty.models import LoyaltySettings, PointsTransaction, Reward
-from apps.loyalty.services import award
 from apps.users.models import TelegramUser
 from bot.i18n import t
 from bot.middlewares.i18n import LanguageMiddleware
-from bot.services import loyalty_service
 
 
 class FakeEvent(SimpleNamespace):
@@ -108,54 +105,3 @@ class TemplateLanguageTests(TestCase):
                 self.user.telegram_id, self.user.pk, "welcome", {"user": self.user}, lang="ru"
             )
         self.assertIn("Привет", send.call_args.args[1])
-
-
-class LoyaltyCardTests(TestCase):
-    def setUp(self):
-        self.user = TelegramUser.objects.create(
-            telegram_id=4200, full_name="Kamola", language="en"
-        )
-        self.conf = LoyaltySettings.get()
-
-    def test_card_reports_balance_tier_and_rewards(self):
-        award(
-            self.user,
-            PointsTransaction.Reason.MANUAL,
-            points=self.conf.silver_from,
-            reference="seed",
-        )
-        Reward.objects.create(title="Kupon", cost_points=100)
-
-        card = async_to_sync(loyalty_service.get_card)(self.user.telegram_id)
-        self.assertEqual(card.balance, self.conf.silver_from)
-        self.assertEqual(card.tier.code, "silver")
-        self.assertTrue(card.has_rewards)
-
-    def test_a_switched_off_program_reports_no_card(self):
-        LoyaltySettings.objects.filter(pk=1).update(is_enabled=False)
-        self.assertIsNone(async_to_sync(loyalty_service.get_card)(self.user.telegram_id))
-
-    def test_history_is_newest_first_and_labelled(self):
-        award(self.user, PointsTransaction.Reason.PURCHASE, reference="p:1")
-        award(self.user, PointsTransaction.Reason.FEEDBACK, reference="f:1")
-
-        history = async_to_sync(loyalty_service.get_history)(self.user.telegram_id)
-        self.assertEqual(history[0].reason_key, "loyalty.reason.feedback")
-        self.assertEqual(history[1].reason_key, "loyalty.reason.purchase")
-        # Every reason label must exist in the customer's language.
-        for entry in history:
-            self.assertNotEqual(t(entry.reason_key, "en"), entry.reason_key)
-
-    def test_sold_out_rewards_are_not_offered(self):
-        Reward.objects.create(title="Bor", cost_points=100)
-        Reward.objects.create(title="Tugagan", cost_points=100, stock=0)
-
-        titles = {r.title for r in async_to_sync(loyalty_service.get_rewards)()}
-        self.assertEqual(titles, {"Bor"})
-
-    def test_profile_summary_works_before_any_points_exist(self):
-        balance, tier_key = async_to_sync(loyalty_service.get_summary)(
-            self.user.telegram_id
-        )
-        self.assertEqual(balance, 0)
-        self.assertEqual(tier_key, "loyalty.tier.bronze")

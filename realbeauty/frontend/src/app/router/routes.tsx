@@ -1,31 +1,17 @@
 import { Route, Routes } from 'react-router-dom'
 
-import { AutoMessageLogsPage } from '@/pages/auto-message-logs'
 import { AutoMessagesPage } from '@/pages/auto-messages'
 import { BroadcastsPage } from '@/pages/broadcasts'
-import { CampaignLogsPage } from '@/pages/campaign-logs'
 import { CustomersPage } from '@/pages/customers'
 import { DashboardPage } from '@/pages/dashboard'
-import { DiscountsPage } from '@/pages/discounts'
-import { FeedbackPage } from '@/pages/feedback'
-import { GlobalSettingsPage } from '@/pages/global-settings'
 import { LoginPage } from '@/pages/login'
-import { LoyaltyAccountsPage } from '@/pages/loyalty-accounts'
-import { LoyaltySettingsPage } from '@/pages/loyalty-settings'
 import { MessageTemplatesPage } from '@/pages/message-templates'
-import { PointsTransactionsPage } from '@/pages/points-transactions'
 import { ProductsPage } from '@/pages/products'
-import { ProgressPhotosPage } from '@/pages/progress-photos'
-import { RewardRedemptionsPage } from '@/pages/reward-redemptions'
-import { RewardsPage } from '@/pages/rewards'
+import { SettingsPage } from '@/pages/settings'
 import { SkinQuizResultsPage } from '@/pages/skin-quiz-results'
-import { StaffPage } from '@/pages/staff'
-import { SupportAdminsPage } from '@/pages/support-admins'
-import { SupportSettingsPage } from '@/pages/support-settings'
 import { SupportThreadsPage } from '@/pages/support-threads'
 import { TopProductsPage } from '@/pages/top-products'
 import { TutorialStepsPage } from '@/pages/tutorial-steps'
-import { UserProductsPage } from '@/pages/user-products'
 import { ProtectedRoute } from './protected-route'
 
 export function AppRoutes() {
@@ -38,10 +24,6 @@ export function AppRoutes() {
       <Route
         path="/customers"
         element={<ProtectedRoute permission="users.view_telegramuser"><CustomersPage /></ProtectedRoute>}
-      />
-      <Route
-        path="/user-products"
-        element={<ProtectedRoute permission="users.view_userproduct"><UserProductsPage /></ProtectedRoute>}
       />
       <Route
         path="/support-threads"
@@ -77,60 +59,13 @@ export function AppRoutes() {
         path="/message-templates"
         element={<ProtectedRoute permission="campaigns.view_messagetemplate"><MessageTemplatesPage /></ProtectedRoute>}
       />
-      <Route
-        path="/discounts"
-        element={<ProtectedRoute permission="bot_settings.view_discount"><DiscountsPage /></ProtectedRoute>}
-      />
-      <Route
-        path="/campaign-logs"
-        element={<ProtectedRoute permission="campaigns.view_campaignlog"><CampaignLogsPage /></ProtectedRoute>}
-      />
-      <Route
-        path="/auto-message-logs"
-        element={<ProtectedRoute superuserOnly><AutoMessageLogsPage /></ProtectedRoute>}
-      />
 
-      <Route
-        path="/loyalty-accounts"
-        element={<ProtectedRoute superuserOnly><LoyaltyAccountsPage /></ProtectedRoute>}
-      />
-      <Route path="/rewards" element={<ProtectedRoute superuserOnly><RewardsPage /></ProtectedRoute>} />
-      <Route
-        path="/reward-redemptions"
-        element={<ProtectedRoute permission="loyalty.view_rewardredemption"><RewardRedemptionsPage /></ProtectedRoute>}
-      />
-      <Route
-        path="/points-transactions"
-        element={<ProtectedRoute superuserOnly><PointsTransactionsPage /></ProtectedRoute>}
-      />
-      <Route
-        path="/loyalty-settings"
-        element={<ProtectedRoute superuserOnly><LoyaltySettingsPage /></ProtectedRoute>}
-      />
-
-      <Route
-        path="/feedback"
-        element={<ProtectedRoute permission="analytics.view_userfeedback"><FeedbackPage /></ProtectedRoute>}
-      />
       <Route
         path="/skin-quiz-results"
         element={<ProtectedRoute permission="analytics.view_skinquizresult"><SkinQuizResultsPage /></ProtectedRoute>}
       />
-      <Route
-        path="/progress-photos"
-        element={<ProtectedRoute permission="analytics.view_progressphoto"><ProgressPhotosPage /></ProtectedRoute>}
-      />
 
-      <Route path="/global-settings" element={<ProtectedRoute superuserOnly><GlobalSettingsPage /></ProtectedRoute>} />
-      <Route path="/staff" element={<ProtectedRoute superuserOnly><StaffPage /></ProtectedRoute>} />
-      <Route
-        path="/support-settings"
-        element={<ProtectedRoute superuserOnly><SupportSettingsPage /></ProtectedRoute>}
-      />
-      <Route
-        path="/support-admins"
-        element={<ProtectedRoute superuserOnly><SupportAdminsPage /></ProtectedRoute>}
-      />
+      <Route path="/settings" element={<ProtectedRoute superuserOnly><SettingsPage /></ProtectedRoute>} />
     </Routes>
   )
 }

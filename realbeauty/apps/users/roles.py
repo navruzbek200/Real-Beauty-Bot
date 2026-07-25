@@ -41,16 +41,9 @@ SELLER_PERMISSIONS: list[tuple[str, str]] = [
     ("products", "add_producttutorialstep"),
     ("products", "change_producttutorialstep"),
     ("products", "delete_producttutorialstep"),
-    ("analytics", "view_userfeedback"),
-    ("analytics", "change_userfeedback"),
-    ("analytics", "view_progressphoto"),
     # The quiz answers are a selling tool — they say which product this
     # customer's skin actually needs.
     ("analytics", "view_skinquizresult"),
-    # The till workflow: look up the code a customer is showing, tick it used.
-    # Everything that sets the points economy stays superuser-only.
-    ("loyalty", "view_rewardredemption"),
-    ("loyalty", "change_rewardredemption"),
     ("support", "view_supportthread"),
     ("support", "change_supportthread"),
     ("support", "view_supportmessage"),

@@ -108,12 +108,16 @@ export function ResourceFormDialog<TFormValues extends Record<string, unknown>>(
             <FieldError message={(errors[field.name as keyof TFormValues]?.message as string) ?? undefined} />
           </div>
         ))}
-        {serverError && <p className="text-sm text-red-600">{serverError}</p>}
-        <div className="flex justify-end gap-2 border-t border-slate-100 pt-3 dark:border-slate-800">
+        {serverError && (
+          <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-300">
+            {serverError}
+          </div>
+        )}
+        <div className="flex justify-end gap-2 border-t border-slate-100 pt-4 dark:border-slate-800">
           <Button type="button" variant="secondary" onClick={onClose} disabled={pending}>
             Bekor qilish
           </Button>
-          <Button type="submit" disabled={pending}>
+          <Button type="submit" loading={pending}>
             {pending ? 'Saqlanmoqda...' : 'Saqlash'}
           </Button>
         </div>

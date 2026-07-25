@@ -9,7 +9,6 @@ from apps.analytics.skin_logic import (
     THRESHOLD,
     analyze,
 )
-from apps.loyalty.models import LoyaltyAccount, LoyaltySettings, PointsTransaction
 from apps.users.models import TelegramUser
 from bot.handlers.quiz import render_question
 from bot.i18n import LANGUAGES, t
@@ -151,7 +150,7 @@ class QuizPersistenceTests(TestCase):
         )
 
     def test_result_is_stored_and_adopted_as_the_skin_type(self):
-        row, points = self._save(answers(q1=5, q2=4))
+        row = self._save(answers(q1=5, q2=4))
 
         self.assertIsNotNone(row)
         self.user.refresh_from_db()
@@ -160,34 +159,22 @@ class QuizPersistenceTests(TestCase):
         stored = SkinQuizResult.objects.get(pk=row.pk)
         self.assertEqual(stored.answers["q2"], 4)
         self.assertIn("rec.P0", stored.recommendation_keys)
-        self.assertEqual(points, LoyaltySettings.get().points_quiz)
 
-    def test_retaking_the_quiz_does_not_pay_twice(self):
+    def test_retaking_the_quiz_replaces_the_verdict_and_keeps_both_runs(self):
         self._save(answers(q1=5))
-        _row, points = self._save(answers(q1=0))
+        self._save(answers(q1=0))
 
-        self.assertEqual(points, 0)
-        self.assertEqual(
-            PointsTransaction.objects.filter(
-                user=self.user, reason=PointsTransaction.Reason.QUIZ
-            ).count(),
-            1,
-        )
-        # …but the new verdict still replaces the old one.
         self.user.refresh_from_db()
         self.assertEqual(self.user.face_condition, "dry")
-        self.assertEqual(
-            LoyaltyAccount.objects.get(user=self.user).balance,
-            LoyaltySettings.get().points_quiz,
-        )
+        # Every run is kept: the shop reads how a customer's skin changed.
+        self.assertEqual(SkinQuizResult.objects.filter(user=self.user).count(), 2)
 
     def test_unknown_customer_is_not_an_error(self):
         from asgiref.sync import async_to_sync
 
         from bot.services import quiz_service
 
-        row, points = async_to_sync(quiz_service.save_result)(
+        row = async_to_sync(quiz_service.save_result)(
             telegram_id=999999, result=analyze(answers(q1=1)), language="uz"
         )
         self.assertIsNone(row)
-        self.assertEqual(points, 0)

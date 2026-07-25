@@ -97,38 +97,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/auto-message-logs/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["auto_message_logs_list"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/auto-message-logs/{id}/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["auto_message_logs_retrieve"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/auto-messages/": {
         parameters: {
             query?: never;
@@ -241,38 +209,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/campaign-logs/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["campaign_logs_list"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/campaign-logs/{id}/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["campaign_logs_retrieve"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/customers/": {
         parameters: {
             query?: never;
@@ -337,87 +273,6 @@ export interface paths {
         patch: operations["discounts_partial_update"];
         trace?: never;
     };
-    "/api/v1/feedback/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["feedback_list"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/feedback/{id}/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["feedback_retrieve"];
-        put: operations["feedback_update"];
-        post?: never;
-        delete: operations["feedback_destroy"];
-        options?: never;
-        head?: never;
-        patch: operations["feedback_partial_update"];
-        trace?: never;
-    };
-    "/api/v1/loyalty-accounts/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["loyalty_accounts_list"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/loyalty-accounts/{id}/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["loyalty_accounts_retrieve"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/loyalty-accounts/{id}/adjust/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** @description Manual correction — always routed through services.award/spend, never a raw write. */
-        post: operations["loyalty_accounts_adjust_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/message-templates/": {
         parameters: {
             query?: never;
@@ -448,38 +303,6 @@ export interface paths {
         options?: never;
         head?: never;
         patch: operations["message_templates_partial_update"];
-        trace?: never;
-    };
-    "/api/v1/points-transactions/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["points_transactions_list"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/points-transactions/{id}/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["points_transactions_retrieve"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
         trace?: never;
     };
     "/api/v1/product-tutorial-steps/": {
@@ -578,106 +401,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/progress-photos/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["progress_photos_list"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/progress-photos/{id}/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["progress_photos_retrieve"];
-        put?: never;
-        post?: never;
-        delete: operations["progress_photos_destroy"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/reward-redemptions/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description The till-facing page — Seller group can view/mark-used, never create/delete. */
-        get: operations["reward_redemptions_list"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/reward-redemptions/{id}/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description The till-facing page — Seller group can view/mark-used, never create/delete. */
-        get: operations["reward_redemptions_retrieve"];
-        /** @description The till-facing page — Seller group can view/mark-used, never create/delete. */
-        put: operations["reward_redemptions_update"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /** @description The till-facing page — Seller group can view/mark-used, never create/delete. */
-        patch: operations["reward_redemptions_partial_update"];
-        trace?: never;
-    };
-    "/api/v1/rewards/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["rewards_list"];
-        put?: never;
-        post: operations["rewards_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/rewards/{id}/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["rewards_retrieve"];
-        put: operations["rewards_update"];
-        post?: never;
-        delete: operations["rewards_destroy"];
-        options?: never;
-        head?: never;
-        patch: operations["rewards_partial_update"];
-        trace?: never;
-    };
     "/api/v1/settings/global/": {
         parameters: {
             query?: never;
@@ -692,22 +415,6 @@ export interface paths {
         options?: never;
         head?: never;
         patch: operations["settings_global_partial_update"];
-        trace?: never;
-    };
-    "/api/v1/settings/loyalty/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["settings_loyalty_retrieve"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch: operations["settings_loyalty_partial_update"];
         trace?: never;
     };
     "/api/v1/settings/support/": {
@@ -1140,23 +847,6 @@ export interface components {
             readonly schedule_label: string;
             readonly sent_total: number;
         };
-        AutoMessageLog: {
-            readonly id: number;
-            /** Avtomatik xabar */
-            auto_message: number;
-            /** Mijoz */
-            user: number;
-            readonly anchor: string;
-            /**
-             * Yuborilgan vaqt
-             * Format: date-time
-             */
-            readonly sent_at: string;
-            /** Yetkazildi */
-            success?: boolean;
-            /** Xato */
-            error_detail?: string;
-        };
         /** @enum {unknown} */
         BlankEnum: "";
         Broadcast: {
@@ -1214,29 +904,10 @@ export interface components {
         };
         /**
          * @description * `none` - Tugmasiz (faqat matn)
-         *     * `progress` - «Rasm yuborish» tugmasi
          *     * `discounts` - «Chegirmalarni ko'rish» tugmasi
          * @enum {string}
          */
-        ButtonActionEnum: "none" | "progress" | "discounts";
-        CampaignLog: {
-            readonly id: number;
-            /** Foydalanuvchi */
-            user: number;
-            readonly user_name: string;
-            /** Shablon */
-            template?: number | null;
-            readonly template_name: string;
-            /**
-             * Yuborilgan vaqt
-             * Format: date-time
-             */
-            readonly sent_at: string;
-            /** Muvaffaqiyatli */
-            success?: boolean;
-            /** Xato tafsiloti */
-            error_detail?: string;
-        };
+        ButtonActionEnum: "none" | "discounts";
         /**
          * @description * `minute` - daqiqa
          *     * `hour` - soat
@@ -1295,12 +966,6 @@ export interface components {
             birthday_discount_percent?: number;
         };
         /**
-         * @description * `before` - Oldin
-         *     * `after` - Keyin
-         * @enum {string}
-         */
-        LabelEnum: "before" | "after";
-        /**
          * @description * `uz` - O'zbekcha
          *     * `ru` - Русский
          *     * `en` - English
@@ -1311,71 +976,6 @@ export interface components {
         Login: {
             username: string;
             password: string;
-        };
-        LoyaltyAccount: {
-            readonly id: number;
-            /** Mijoz */
-            readonly user: number;
-            readonly user_name: string;
-            /** Ball balansi */
-            readonly balance: number;
-            /** Jami yig'ilgan ball */
-            readonly lifetime_points: number;
-            /** Daraja */
-            readonly tier: components["schemas"]["TierEnum"];
-            /**
-             * Yangilangan
-             * Format: date-time
-             */
-            readonly updated_at: string;
-        };
-        LoyaltyAdjust: {
-            adjustment: number;
-            note?: string;
-        };
-        LoyaltySettings: {
-            /**
-             * Bonus dasturi yoqilgan
-             * @description O'chirilsa botdagi «Bonuslarim» bo'limi ko'rinmaydi va ball yig'ilmaydi.
-             */
-            is_enabled?: boolean;
-            /**
-             * Ro'yxatdan o'tgani uchun
-             * @description Mijoz botda ro'yxatdan o'tishni tugatganda beriladi.
-             */
-            points_registration?: number;
-            /**
-             * Har bir xarid uchun
-             * @description Mijozga mahsulot biriktirilganda beriladi.
-             */
-            points_purchase?: number;
-            /** Mahsulotga baho bergani uchun */
-            points_feedback?: number;
-            /** Oldin/keyin rasmi uchun */
-            points_progress?: number;
-            /**
-             * Do'stini taklif qilgani uchun
-             * @description Taklif qilingan do'st ro'yxatdan o'tib bo'lgach beriladi.
-             */
-            points_referral?: number;
-            /** Tug'ilgan kun sovg'asi */
-            points_birthday?: number;
-            /** Teri testini topshirgani uchun */
-            points_quiz?: number;
-            /** Bronza keshbek / chegirma (%) */
-            bronze_cashback?: number;
-            /** Kumush darajasi (balldan) */
-            silver_from?: number;
-            /** Kumush keshbek / chegirma (%) */
-            silver_cashback?: number;
-            /** Oltin darajasi (balldan) */
-            gold_from?: number;
-            /** Oltin keshbek / chegirma (%) */
-            gold_cashback?: number;
-            /** Platina darajasi (balldan) */
-            platinum_from?: number;
-            /** Platina keshbek / chegirma (%) */
-            platinum_cashback?: number;
         };
         Me: {
             id: number;
@@ -1440,21 +1040,6 @@ export interface components {
             previous?: string | null;
             results: components["schemas"]["AutoMessage"][];
         };
-        PaginatedAutoMessageLogList: {
-            /** @example 123 */
-            count: number;
-            /**
-             * Format: uri
-             * @example http://api.example.org/accounts/?page=4
-             */
-            next?: string | null;
-            /**
-             * Format: uri
-             * @example http://api.example.org/accounts/?page=2
-             */
-            previous?: string | null;
-            results: components["schemas"]["AutoMessageLog"][];
-        };
         PaginatedBroadcastList: {
             /** @example 123 */
             count: number;
@@ -1469,21 +1054,6 @@ export interface components {
              */
             previous?: string | null;
             results: components["schemas"]["Broadcast"][];
-        };
-        PaginatedCampaignLogList: {
-            /** @example 123 */
-            count: number;
-            /**
-             * Format: uri
-             * @example http://api.example.org/accounts/?page=4
-             */
-            next?: string | null;
-            /**
-             * Format: uri
-             * @example http://api.example.org/accounts/?page=2
-             */
-            previous?: string | null;
-            results: components["schemas"]["CampaignLog"][];
         };
         PaginatedDiscountList: {
             /** @example 123 */
@@ -1500,21 +1070,6 @@ export interface components {
             previous?: string | null;
             results: components["schemas"]["Discount"][];
         };
-        PaginatedLoyaltyAccountList: {
-            /** @example 123 */
-            count: number;
-            /**
-             * Format: uri
-             * @example http://api.example.org/accounts/?page=4
-             */
-            next?: string | null;
-            /**
-             * Format: uri
-             * @example http://api.example.org/accounts/?page=2
-             */
-            previous?: string | null;
-            results: components["schemas"]["LoyaltyAccount"][];
-        };
         PaginatedMessageTemplateList: {
             /** @example 123 */
             count: number;
@@ -1529,21 +1084,6 @@ export interface components {
              */
             previous?: string | null;
             results: components["schemas"]["MessageTemplate"][];
-        };
-        PaginatedPointsTransactionList: {
-            /** @example 123 */
-            count: number;
-            /**
-             * Format: uri
-             * @example http://api.example.org/accounts/?page=4
-             */
-            next?: string | null;
-            /**
-             * Format: uri
-             * @example http://api.example.org/accounts/?page=2
-             */
-            previous?: string | null;
-            results: components["schemas"]["PointsTransaction"][];
         };
         PaginatedProductList: {
             /** @example 123 */
@@ -1574,51 +1114,6 @@ export interface components {
              */
             previous?: string | null;
             results: components["schemas"]["ProductTutorialStep"][];
-        };
-        PaginatedProgressPhotoList: {
-            /** @example 123 */
-            count: number;
-            /**
-             * Format: uri
-             * @example http://api.example.org/accounts/?page=4
-             */
-            next?: string | null;
-            /**
-             * Format: uri
-             * @example http://api.example.org/accounts/?page=2
-             */
-            previous?: string | null;
-            results: components["schemas"]["ProgressPhoto"][];
-        };
-        PaginatedRewardList: {
-            /** @example 123 */
-            count: number;
-            /**
-             * Format: uri
-             * @example http://api.example.org/accounts/?page=4
-             */
-            next?: string | null;
-            /**
-             * Format: uri
-             * @example http://api.example.org/accounts/?page=2
-             */
-            previous?: string | null;
-            results: components["schemas"]["Reward"][];
-        };
-        PaginatedRewardRedemptionList: {
-            /** @example 123 */
-            count: number;
-            /**
-             * Format: uri
-             * @example http://api.example.org/accounts/?page=4
-             */
-            next?: string | null;
-            /**
-             * Format: uri
-             * @example http://api.example.org/accounts/?page=2
-             */
-            previous?: string | null;
-            results: components["schemas"]["RewardRedemption"][];
         };
         PaginatedSkinQuizResultList: {
             /** @example 123 */
@@ -1724,21 +1219,6 @@ export interface components {
              */
             previous?: string | null;
             results: components["schemas"]["TopProduct"][];
-        };
-        PaginatedUserFeedbackList: {
-            /** @example 123 */
-            count: number;
-            /**
-             * Format: uri
-             * @example http://api.example.org/accounts/?page=4
-             */
-            next?: string | null;
-            /**
-             * Format: uri
-             * @example http://api.example.org/accounts/?page=2
-             */
-            previous?: string | null;
-            results: components["schemas"]["UserFeedback"][];
         };
         PaginatedUserProductList: {
             /** @example 123 */
@@ -1925,50 +1405,6 @@ export interface components {
              */
             birthday_discount_percent?: number;
         };
-        PatchedLoyaltySettings: {
-            /**
-             * Bonus dasturi yoqilgan
-             * @description O'chirilsa botdagi «Bonuslarim» bo'limi ko'rinmaydi va ball yig'ilmaydi.
-             */
-            is_enabled?: boolean;
-            /**
-             * Ro'yxatdan o'tgani uchun
-             * @description Mijoz botda ro'yxatdan o'tishni tugatganda beriladi.
-             */
-            points_registration?: number;
-            /**
-             * Har bir xarid uchun
-             * @description Mijozga mahsulot biriktirilganda beriladi.
-             */
-            points_purchase?: number;
-            /** Mahsulotga baho bergani uchun */
-            points_feedback?: number;
-            /** Oldin/keyin rasmi uchun */
-            points_progress?: number;
-            /**
-             * Do'stini taklif qilgani uchun
-             * @description Taklif qilingan do'st ro'yxatdan o'tib bo'lgach beriladi.
-             */
-            points_referral?: number;
-            /** Tug'ilgan kun sovg'asi */
-            points_birthday?: number;
-            /** Teri testini topshirgani uchun */
-            points_quiz?: number;
-            /** Bronza keshbek / chegirma (%) */
-            bronze_cashback?: number;
-            /** Kumush darajasi (balldan) */
-            silver_from?: number;
-            /** Kumush keshbek / chegirma (%) */
-            silver_cashback?: number;
-            /** Oltin darajasi (balldan) */
-            gold_from?: number;
-            /** Oltin keshbek / chegirma (%) */
-            gold_cashback?: number;
-            /** Platina darajasi (balldan) */
-            platinum_from?: number;
-            /** Platina keshbek / chegirma (%) */
-            platinum_cashback?: number;
-        };
         PatchedMessageTemplate: {
             readonly id?: number;
             /** Nomi */
@@ -2083,64 +1519,6 @@ export interface components {
             /** Himoya (ulashish/saqlashni taqiqlash) */
             protect_content?: boolean;
             readonly has_video?: boolean;
-        };
-        PatchedReward: {
-            readonly id?: number;
-            /** Nomi */
-            title?: string;
-            /** Nomi (ruscha) */
-            title_ru?: string;
-            /** Nomi (inglizcha) */
-            title_en?: string;
-            /** Tavsif */
-            description?: string;
-            /** Tavsif (ruscha) */
-            description_ru?: string;
-            /** Tavsif (inglizcha) */
-            description_en?: string;
-            /** Narxi (ball) */
-            cost_points?: number;
-            /**
-             * Promokod boshlanishi
-             * @description Har bir mijozga RB-XXXXXX ko'rinishida noyob kod beriladi.
-             */
-            code_prefix?: string;
-            /**
-             * Nechta qoldi
-             * @description Bo'sh qoldirsangiz — cheklanmagan.
-             */
-            stock?: number | null;
-            /** Faol */
-            is_active?: boolean;
-            /** Format: date-time */
-            readonly created_at?: string;
-            readonly is_available?: boolean;
-            readonly claimed?: number;
-        };
-        PatchedRewardRedemption: {
-            readonly id?: number;
-            /** Mijoz */
-            readonly user?: number;
-            readonly user_name?: string;
-            /** Sovg'a */
-            readonly reward?: number | null;
-            readonly reward_title?: string;
-            /** Promokod */
-            readonly code?: string;
-            /** Sarflangan ball */
-            readonly points_spent?: number;
-            /**
-             * Ishlatilgan
-             * @description Mijoz do'konda kodni ishlatgach belgilang.
-             */
-            is_used?: boolean;
-            /** Format: date-time */
-            readonly used_at?: string | null;
-            /**
-             * Olingan vaqt
-             * Format: date-time
-             */
-            readonly created_at?: string;
         };
         /** @description Staff = the auth.User proxy; role/seller_profile mirror the admin's StaffForm. */
         PatchedStaff: {
@@ -2301,33 +1679,6 @@ export interface components {
             readonly tutorial_steps?: components["schemas"]["ProductTutorialStep"][];
             readonly buyers_count?: number;
         };
-        PatchedUserFeedback: {
-            readonly id?: number;
-            /** Foydalanuvchi */
-            readonly user?: number;
-            readonly user_name?: string;
-            /** Mahsulot */
-            readonly product?: number | null;
-            readonly product_name?: string | null;
-            /** Hafta */
-            readonly week?: number;
-            /** Baho (1-5) */
-            readonly rating?: number | null;
-            /** Fikr matni */
-            readonly text?: string;
-            /**
-             * Yuborilgan vaqt
-             * Format: date-time
-             */
-            readonly submitted_at?: string;
-            /**
-             * Javob (mijozga yuboriladi)
-             * @description Bu yerga yozib saqlasangiz, matn botda mijozga yuboriladi.
-             */
-            admin_reply?: string;
-            /** Javob yuborildi */
-            readonly reply_sent?: boolean;
-        };
         PatchedUserProduct: {
             readonly id?: number;
             /** Foydalanuvchi */
@@ -2344,27 +1695,6 @@ export interface components {
             readonly week1_sent?: boolean;
             /** 2-hafta yuborilgan */
             readonly week2_sent?: boolean;
-        };
-        PointsTransaction: {
-            readonly id: number;
-            /** Mijoz */
-            readonly user: number;
-            readonly user_name: string;
-            /**
-             * Ball
-             * @description Musbat — qo'shiladi, manfiy — ayiriladi.
-             */
-            readonly points: number;
-            /** Sabab */
-            readonly reason: components["schemas"]["ReasonEnum"];
-            readonly reference: string;
-            /** Izoh */
-            readonly note: string;
-            /**
-             * Vaqt
-             * Format: date-time
-             */
-            readonly created_at: string;
         };
         Product: {
             readonly id: number;
@@ -2459,45 +1789,6 @@ export interface components {
             protect_content?: boolean;
             readonly has_video: boolean;
         };
-        ProgressPhoto: {
-            readonly id: number;
-            /** Foydalanuvchi */
-            user: number;
-            /** Mahsulot */
-            product?: number | null;
-            /** Telegram file_id */
-            readonly file_id: string;
-            /**
-             * Kichik nusxa
-             * Format: uri
-             */
-            thumbnail?: string | null;
-            /**
-             * Kichik nusxa tozalangan
-             * @description Thumbnail diskdan o'chirilgan; original Telegramda saqlanib qolgan.
-             */
-            readonly thumbnail_purged: boolean;
-            /** Turi */
-            label: components["schemas"]["LabelEnum"];
-            /**
-             * Yuborilgan vaqt
-             * Format: date-time
-             */
-            readonly submitted_at: string;
-        };
-        /**
-         * @description * `registration` - Ro'yxatdan o'tish
-         *     * `purchase` - Xarid
-         *     * `feedback` - Mahsulotga baho
-         *     * `progress` - Natija rasmi
-         *     * `referral` - Do'st taklifi
-         *     * `birthday` - Tug'ilgan kun
-         *     * `quiz` - Teri testi
-         *     * `redeem` - Sovg'aga almashtirildi
-         *     * `manual` - Admin tuzatishi
-         * @enum {string}
-         */
-        ReasonEnum: "registration" | "purchase" | "feedback" | "progress" | "referral" | "birthday" | "quiz" | "redeem" | "manual";
         /**
          * @description Request-only shape for /auth/refresh/.
          *
@@ -2515,64 +1806,6 @@ export interface components {
          * @enum {string}
          */
         RegistrationStatusEnum: "pending" | "completed";
-        Reward: {
-            readonly id: number;
-            /** Nomi */
-            title: string;
-            /** Nomi (ruscha) */
-            title_ru?: string;
-            /** Nomi (inglizcha) */
-            title_en?: string;
-            /** Tavsif */
-            description?: string;
-            /** Tavsif (ruscha) */
-            description_ru?: string;
-            /** Tavsif (inglizcha) */
-            description_en?: string;
-            /** Narxi (ball) */
-            cost_points?: number;
-            /**
-             * Promokod boshlanishi
-             * @description Har bir mijozga RB-XXXXXX ko'rinishida noyob kod beriladi.
-             */
-            code_prefix?: string;
-            /**
-             * Nechta qoldi
-             * @description Bo'sh qoldirsangiz — cheklanmagan.
-             */
-            stock?: number | null;
-            /** Faol */
-            is_active?: boolean;
-            /** Format: date-time */
-            readonly created_at: string;
-            readonly is_available: boolean;
-            readonly claimed: number;
-        };
-        RewardRedemption: {
-            readonly id: number;
-            /** Mijoz */
-            readonly user: number;
-            readonly user_name: string;
-            /** Sovg'a */
-            readonly reward: number | null;
-            readonly reward_title: string;
-            /** Promokod */
-            readonly code: string;
-            /** Sarflangan ball */
-            readonly points_spent: number;
-            /**
-             * Ishlatilgan
-             * @description Mijoz do'konda kodni ishlatgach belgilang.
-             */
-            is_used?: boolean;
-            /** Format: date-time */
-            readonly used_at: string | null;
-            /**
-             * Olingan vaqt
-             * Format: date-time
-             */
-            readonly created_at: string;
-        };
         /**
          * @description * `admin` - admin
          *     * `seller` - seller
@@ -2589,12 +1822,26 @@ export interface components {
             is_active?: boolean;
             readonly invite_link: string;
         };
+        /**
+         * @description A quiz result as a selling tool, not a raw row.
+         *
+         *     The customer's name, phone and the advice they were actually shown are
+         *     the whole point of this page: a seller reads it to know what this skin
+         *     needs before recommending anything. A bare user id and a skin-type slug
+         *     answered none of that.
+         */
         SkinQuizResult: {
             readonly id: number;
             /** Foydalanuvchi */
             user: number;
+            readonly user_name: string;
+            readonly phone_number: string;
+            readonly telegram_id: number;
             /** Aniqlangan teri turi */
             skin_type: string;
+            readonly skin_type_display: string;
+            /** @description The advice blocks this customer saw, in their own language. */
+            readonly recommendations: string[];
             /** Javoblar */
             answers?: unknown;
             /** Berilgan tavsiyalar */
@@ -2786,14 +2033,6 @@ export interface components {
          */
         TemplateTypeEnum: "welcome" | "product_intro" | "week1_checkin" | "week2_progress" | "birthday_sale" | "feedback_thanks";
         /**
-         * @description * `bronze` - Bronza
-         *     * `silver` - Kumush
-         *     * `gold` - Oltin
-         *     * `platinum` - Platina
-         * @enum {string}
-         */
-        TierEnum: "bronze" | "silver" | "gold" | "platinum";
-        /**
          * @description Output-only shape of a successful login/refresh.
          *
          *     TokenObtainPairSerializer builds {access, refresh} inside validate()
@@ -2864,33 +2103,6 @@ export interface components {
          * @enum {string}
          */
         TriggerEnum: "after_purchase" | "after_registration";
-        UserFeedback: {
-            readonly id: number;
-            /** Foydalanuvchi */
-            readonly user: number;
-            readonly user_name: string;
-            /** Mahsulot */
-            readonly product: number | null;
-            readonly product_name: string | null;
-            /** Hafta */
-            readonly week: number;
-            /** Baho (1-5) */
-            readonly rating: number | null;
-            /** Fikr matni */
-            readonly text: string;
-            /**
-             * Yuborilgan vaqt
-             * Format: date-time
-             */
-            readonly submitted_at: string;
-            /**
-             * Javob (mijozga yuboriladi)
-             * @description Bu yerga yozib saqlasangiz, matn botda mijozga yuboriladi.
-             */
-            admin_reply?: string;
-            /** Javob yuborildi */
-            readonly reply_sent: boolean;
-        };
         UserProduct: {
             readonly id: number;
             /** Foydalanuvchi */
@@ -3109,58 +2321,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TokenPair"];
-                };
-            };
-        };
-    };
-    auto_message_logs_list: {
-        parameters: {
-            query?: {
-                auto_message?: number;
-                /** @description Which field to use when ordering the results. */
-                ordering?: string;
-                /** @description A page number within the paginated result set. */
-                page?: number;
-                /** @description Number of results to return per page. */
-                page_size?: number;
-                /** @description A search term. */
-                search?: string;
-                success?: boolean;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedAutoMessageLogList"];
-                };
-            };
-        };
-    };
-    auto_message_logs_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Avtomatik xabar jurnali. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AutoMessageLog"];
                 };
             };
         };
@@ -3554,66 +2714,6 @@ export interface operations {
             };
         };
     };
-    campaign_logs_list: {
-        parameters: {
-            query?: {
-                /** @description Which field to use when ordering the results. */
-                ordering?: string;
-                /** @description A page number within the paginated result set. */
-                page?: number;
-                /** @description Number of results to return per page. */
-                page_size?: number;
-                /** @description A search term. */
-                search?: string;
-                success?: boolean;
-                /**
-                 * @description * `welcome` - Ro'yxatdan o'tgach salomlashish
-                 *     * `product_intro` - Mahsulot qo'llanmasi kirish
-                 *     * `week1_checkin` - 1-hafta so'rovi
-                 *     * `week2_progress` - 2-hafta natija so'rovi
-                 *     * `birthday_sale` - Tug'ilgan kun chegirmasi
-                 *     * `feedback_thanks` - Fikr uchun rahmat
-                 */
-                template__template_type?: "birthday_sale" | "feedback_thanks" | "product_intro" | "week1_checkin" | "week2_progress" | "welcome";
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedCampaignLogList"];
-                };
-            };
-        };
-    };
-    campaign_logs_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Yuborilgan xabar. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CampaignLog"];
-                };
-            };
-        };
-    };
     customers_list: {
         parameters: {
             query?: {
@@ -3934,221 +3034,6 @@ export interface operations {
             };
         };
     };
-    feedback_list: {
-        parameters: {
-            query?: {
-                /** @description Which field to use when ordering the results. */
-                ordering?: string;
-                /** @description A page number within the paginated result set. */
-                page?: number;
-                /** @description Number of results to return per page. */
-                page_size?: number;
-                product?: number;
-                rating?: number;
-                /** @description A search term. */
-                search?: string;
-                week?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedUserFeedbackList"];
-                };
-            };
-        };
-    };
-    feedback_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Fikr. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserFeedback"];
-                };
-            };
-        };
-    };
-    feedback_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Fikr. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["UserFeedback"];
-                "application/x-www-form-urlencoded": components["schemas"]["UserFeedback"];
-                "multipart/form-data": components["schemas"]["UserFeedback"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserFeedback"];
-                };
-            };
-        };
-    };
-    feedback_destroy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Fikr. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    feedback_partial_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Fikr. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["PatchedUserFeedback"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedUserFeedback"];
-                "multipart/form-data": components["schemas"]["PatchedUserFeedback"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserFeedback"];
-                };
-            };
-        };
-    };
-    loyalty_accounts_list: {
-        parameters: {
-            query?: {
-                /** @description Which field to use when ordering the results. */
-                ordering?: string;
-                /** @description A page number within the paginated result set. */
-                page?: number;
-                /** @description Number of results to return per page. */
-                page_size?: number;
-                /** @description A search term. */
-                search?: string;
-                /**
-                 * @description * `bronze` - Bronza
-                 *     * `silver` - Kumush
-                 *     * `gold` - Oltin
-                 *     * `platinum` - Platina
-                 */
-                tier?: "bronze" | "gold" | "platinum" | "silver";
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedLoyaltyAccountList"];
-                };
-            };
-        };
-    };
-    loyalty_accounts_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Bonus hisobi. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["LoyaltyAccount"];
-                };
-            };
-        };
-    };
-    loyalty_accounts_adjust_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Bonus hisobi. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["LoyaltyAdjust"];
-                "application/x-www-form-urlencoded": components["schemas"]["LoyaltyAdjust"];
-                "multipart/form-data": components["schemas"]["LoyaltyAdjust"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["LoyaltyAccount"];
-                };
-            };
-        };
-    };
     message_templates_list: {
         parameters: {
             query?: {
@@ -4252,69 +3137,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MessageTemplate"];
-                };
-            };
-        };
-    };
-    points_transactions_list: {
-        parameters: {
-            query?: {
-                /** @description Which field to use when ordering the results. */
-                ordering?: string;
-                /** @description A page number within the paginated result set. */
-                page?: number;
-                /** @description Number of results to return per page. */
-                page_size?: number;
-                /**
-                 * @description * `registration` - Ro'yxatdan o'tish
-                 *     * `purchase` - Xarid
-                 *     * `feedback` - Mahsulotga baho
-                 *     * `progress` - Natija rasmi
-                 *     * `referral` - Do'st taklifi
-                 *     * `birthday` - Tug'ilgan kun
-                 *     * `quiz` - Teri testi
-                 *     * `redeem` - Sovg'aga almashtirildi
-                 *     * `manual` - Admin tuzatishi
-                 */
-                reason?: "birthday" | "feedback" | "manual" | "progress" | "purchase" | "quiz" | "redeem" | "referral" | "registration";
-                /** @description A search term. */
-                search?: string;
-                user?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedPointsTransactionList"];
-                };
-            };
-        };
-    };
-    points_transactions_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Ball harakati. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PointsTransaction"];
                 };
             };
         };
@@ -4676,343 +3498,6 @@ export interface operations {
             };
         };
     };
-    progress_photos_list: {
-        parameters: {
-            query?: {
-                /**
-                 * @description * `before` - Oldin
-                 *     * `after` - Keyin
-                 */
-                label?: "after" | "before";
-                /** @description Which field to use when ordering the results. */
-                ordering?: string;
-                /** @description A page number within the paginated result set. */
-                page?: number;
-                /** @description Number of results to return per page. */
-                page_size?: number;
-                product?: number;
-                /** @description A search term. */
-                search?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedProgressPhotoList"];
-                };
-            };
-        };
-    };
-    progress_photos_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Natija rasmi. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProgressPhoto"];
-                };
-            };
-        };
-    };
-    progress_photos_destroy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Natija rasmi. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    reward_redemptions_list: {
-        parameters: {
-            query?: {
-                is_used?: boolean;
-                /** @description Which field to use when ordering the results. */
-                ordering?: string;
-                /** @description A page number within the paginated result set. */
-                page?: number;
-                /** @description Number of results to return per page. */
-                page_size?: number;
-                /** @description A search term. */
-                search?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedRewardRedemptionList"];
-                };
-            };
-        };
-    };
-    reward_redemptions_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Almashtirilgan sovg'a. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RewardRedemption"];
-                };
-            };
-        };
-    };
-    reward_redemptions_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Almashtirilgan sovg'a. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["RewardRedemption"];
-                "application/x-www-form-urlencoded": components["schemas"]["RewardRedemption"];
-                "multipart/form-data": components["schemas"]["RewardRedemption"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RewardRedemption"];
-                };
-            };
-        };
-    };
-    reward_redemptions_partial_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Almashtirilgan sovg'a. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["PatchedRewardRedemption"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedRewardRedemption"];
-                "multipart/form-data": components["schemas"]["PatchedRewardRedemption"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RewardRedemption"];
-                };
-            };
-        };
-    };
-    rewards_list: {
-        parameters: {
-            query?: {
-                is_active?: boolean;
-                /** @description Which field to use when ordering the results. */
-                ordering?: string;
-                /** @description A page number within the paginated result set. */
-                page?: number;
-                /** @description Number of results to return per page. */
-                page_size?: number;
-                /** @description A search term. */
-                search?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedRewardList"];
-                };
-            };
-        };
-    };
-    rewards_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["Reward"];
-                "application/x-www-form-urlencoded": components["schemas"]["Reward"];
-                "multipart/form-data": components["schemas"]["Reward"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Reward"];
-                };
-            };
-        };
-    };
-    rewards_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Sovg'a. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Reward"];
-                };
-            };
-        };
-    };
-    rewards_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Sovg'a. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["Reward"];
-                "application/x-www-form-urlencoded": components["schemas"]["Reward"];
-                "multipart/form-data": components["schemas"]["Reward"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Reward"];
-                };
-            };
-        };
-    };
-    rewards_destroy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Sovg'a. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    rewards_partial_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Sovg'a. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["PatchedReward"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedReward"];
-                "multipart/form-data": components["schemas"]["PatchedReward"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Reward"];
-                };
-            };
-        };
-    };
     settings_global_retrieve: {
         parameters: {
             query?: never;
@@ -5053,50 +3538,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GlobalSettings"];
-                };
-            };
-        };
-    };
-    settings_loyalty_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["LoyaltySettings"];
-                };
-            };
-        };
-    };
-    settings_loyalty_partial_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["PatchedLoyaltySettings"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedLoyaltySettings"];
-                "multipart/form-data": components["schemas"]["PatchedLoyaltySettings"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["LoyaltySettings"];
                 };
             };
         };

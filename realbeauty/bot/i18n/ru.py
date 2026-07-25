@@ -11,7 +11,6 @@ STRINGS: dict[str, str] = {
     "menu.quiz_retake": "🔄 Пройти тест заново",
     "menu.support": "✍️ Вопрос / Обращение",
     "menu.discounts": "🎁 Скидки",
-    "menu.bonus": "💎 Мои бонусы",
     "menu.profile": "👤 Профиль",
     "menu.help": "ℹ️ Помощь",
     "menu.legacy_tutorials": "📚 Руководства",
@@ -103,7 +102,6 @@ STRINGS: dict[str, str] = {
         "«✍️ Вопрос / Обращение»."
     ),
     "quiz.retake": "🔄 Пройти тест заново",
-    "quiz.saved_points": "💎 За тест начислено <b>{points}</b> баллов!",
     "quiz.q1": (
         "Если после умывания час не наносить никакой крем, в каком состоянии "
         "будет ваша кожа?"
@@ -280,104 +278,17 @@ STRINGS: dict[str, str] = {
     ),
     "support.no_unanswered": "✅ Обращений без ответа нет.",
     "support.unanswered_header": "🔁 Переотправляем обращения без ответа: {count}",
-    # ------------------------------------------------------------- progress
-    "progress.ask_before": "📷 Сначала отправьте фото <b>ДО</b>.",
-    "progress.ask_after": "📷 Теперь отправьте фото <b>ПОСЛЕ</b>.",
-    "progress.not_photo": "Пожалуйста, отправьте фото, а не текст.",
-    "progress.save_error": "Не удалось сохранить фото. Попробуйте ещё раз.",
-    "progress.done": "🙏 Спасибо! Наша команда посмотрит ваш результат.",
     # ------------------------------------------------------------ discounts
     "discount.none": "Активных скидок пока нет.",
     "discount.header": "🎁 <b>Активные скидки:</b>",
     "discount.until": "⏳ до {date}",
-    # -------------------------------------------------------------- loyalty
-    "loyalty.disabled": (
-        "Бонусная программа сейчас закрыта. Скоро вернётся — следите за новостями!"
-    ),
-    "loyalty.header": "💎 <b>Ваш бонусный счёт</b>",
-    "loyalty.balance": "🪙 Ваши баллы: <b>{points}</b>",
-    "loyalty.tier": "🏅 Ваш уровень: <b>{tier}</b> — кэшбэк {cashback}%",
-    "loyalty.next_tier": (
-        "⬆️ До уровня <b>{next_tier}</b> осталось <b>{remaining}</b> баллов\n{bar}"
-    ),
-    "loyalty.max_tier": "👑 Вы на высшем уровне. Спасибо!",
-    "loyalty.lifetime": "📈 Всего накоплено: {lifetime} баллов",
-    "loyalty.how_to_earn": (
-        "<b>Как копятся баллы</b>\n"
-        "• За каждую покупку — {purchase} баллов\n"
-        "• Оценка товара — {feedback} баллов\n"
-        "• Фото до/после — {progress} баллов\n"
-        "• Тест кожи — {quiz} баллов\n"
-        "• Приглашение друга — {referral} баллов\n"
-        "• В ваш день рождения — {birthday} баллов"
-    ),
-    "loyalty.invite_teaser": "🎁 Приглашайте друзей и копите баллы!",
-    "loyalty.invite_btn": "🎁 Пригласить друзей",
-    # --- premium "invite a friend" screen ---
-    "loyalty.invite_header": "🎉✨ <b>Приглашайте друзей!</b>",
-    "loyalty.invite_body": (
-        "👯 Если друг присоединится к Real Beauty по <b>вашей персональной "
-        "ссылке</b>:\n\n"
-        "💎 <b>Вам</b> — {referral} баллов в подарок\n"
-        "🎁 <b>Другу</b> — приветственный бонус\n\n"
-        "🚀 Без ограничений — чем больше друзей пригласите, тем больше "
-        "баллов накопите!"
-    ),
-    "loyalty.invite_link_label": "🔗 <b>Ваша персональная ссылка:</b>",
-    "loyalty.invite_share_btn": "📤 Поделиться с друзьями",
-    "loyalty.invite_share_text": (
-        "✨ Я пользуюсь ботом Real Beauty — секреты красоты, персональный "
-        "анализ кожи и подарки прямо здесь! 🎁 Присоединяйся по моей "
-        "ссылке — бонус получим оба 👇"
-    ),
-    "loyalty.rewards_btn": "🎁 Потратить баллы",
-    "loyalty.history_btn": "🧾 История",
-    "loyalty.rewards_header": (
-        "🎁 <b>Подарки за баллы</b>\n\nВаш баланс: <b>{points}</b> баллов"
-    ),
-    "loyalty.rewards_empty": "Список подарков пока пуст. Скоро добавим!",
-    "loyalty.reward_line": "{title} — <b>{cost}</b> баллов",
-    "loyalty.redeem_ok": (
-        "🎉 <b>{title}</b> ваш!\n\n"
-        "🔑 Промокод: <code>{code}</code>\n"
-        "Покажите его в магазине.\n\n"
-        "Остаток баллов: <b>{points}</b>"
-    ),
-    "loyalty.redeem_not_enough": (
-        "😔 Баллов не хватает. Нужно: <b>{cost}</b>, у вас: <b>{points}</b>.\n"
-        "Покупайте или оставляйте отзывы — баллы копятся."
-    ),
-    "loyalty.redeem_error": "Не удалось обменять. Попробуйте позже.",
-    "loyalty.redeem_unavailable": "Этот подарок сейчас недоступен.",
-    "loyalty.history_header": "🧾 <b>Последние операции</b>",
-    "loyalty.history_empty": "Пока операций нет. Появятся после первой покупки.",
-    "loyalty.history_line": "{sign}{points} — {reason} · {date}",
-    "loyalty.tier.bronze": "Бронза",
-    "loyalty.tier.silver": "Серебро",
-    "loyalty.tier.gold": "Золото",
-    "loyalty.tier.platinum": "Платина",
-    "loyalty.reason.purchase": "Покупка",
-    "loyalty.reason.feedback": "Оценка товара",
-    "loyalty.reason.progress": "Фото результата",
-    "loyalty.reason.referral": "Приглашение друга",
-    "loyalty.reason.birthday": "Подарок на день рождения",
-    "loyalty.reason.quiz": "Тест кожи",
-    "loyalty.reason.registration": "Регистрация",
-    "loyalty.reason.redeem": "Обмен на подарок",
-    "loyalty.reason.manual": "Корректировка админом",
-    "loyalty.earned": "💎 <b>+{points}</b> баллов — {reason}. Всего: <b>{total}</b>",
-    "loyalty.tier_up": (
-        "🎊 Поздравляем! Вы поднялись на уровень <b>{tier}</b>.\n"
-        "Теперь ваш кэшбэк — <b>{cashback}%</b>."
-    ),
     # -------------------------------------------------------------- profile
     "profile.template": (
         "👤 <b>Ваш профиль</b>\n\n"
         "Имя: {full_name}\n"
         "Телефон: {phone}\n"
         "Дата рождения: {birth_date}\n"
-        "Тип кожи: {face}\n"
-        "Бонусы: {points} баллов · {tier}"
+        "Тип кожи: {face}"
     ),
     # ------------------------------------------------------------- fallback
     "fallback.unknown": (

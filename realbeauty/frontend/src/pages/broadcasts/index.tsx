@@ -1,22 +1,28 @@
 import { useState } from 'react'
 
 import { ResourcePage } from '@/widgets/resource-crud'
-import { Button, ConfirmDialog } from '@/shared/ui'
+import { Alert, Button, ConfirmDialog } from '@/shared/ui'
 import { broadcastApi, type Broadcast } from '@/entities/campaign'
 import { broadcastColumns, broadcastFormConfig, type BroadcastFormValues } from '@/features/campaign'
 
+type Notice = { tone: 'success' | 'error'; text: string }
+
 export function BroadcastsPage() {
   const [pendingId, setPendingId] = useState<number | null>(null)
-  const [notice, setNotice] = useState<string>()
+  const [notice, setNotice] = useState<Notice>()
   const [confirming, setConfirming] = useState<Broadcast | null>(null)
 
   async function testToMe(item: Broadcast) {
     setPendingId(item.id)
+    setNotice(undefined)
     try {
       const res = await broadcastApi.testToMe(item.id)
-      setNotice(res.detail)
+      setNotice({ tone: 'success', text: res.detail })
     } catch {
-      setNotice('Test yuborilmadi.')
+      setNotice({
+        tone: 'error',
+        text: "Test yuborilmadi. «Sozlamalar → Telegram guruh» da o'z Telegram ID ingizni tekshiring.",
+      })
     } finally {
       setPendingId(null)
     }
@@ -25,11 +31,12 @@ export function BroadcastsPage() {
   async function sendNow() {
     if (!confirming) return
     setPendingId(confirming.id)
+    setNotice(undefined)
     try {
       const res = await broadcastApi.sendNow(confirming.id)
-      setNotice(res.detail)
+      setNotice({ tone: 'success', text: res.detail })
     } catch {
-      setNotice('Yuborishda xatolik.')
+      setNotice({ tone: 'error', text: 'Yuborishda xatolik.' })
     } finally {
       setPendingId(null)
       setConfirming(null)
@@ -37,8 +44,17 @@ export function BroadcastsPage() {
   }
 
   return (
-    <div className="space-y-2">
-      {notice && <p className="text-sm text-brand-700">{notice}</p>}
+    <div className="space-y-3">
+      <Alert tone="info">
+        E'lon yaratganingizdan keyin u <b>qoralama</b> bo'lib turadi. Mijozlarga borishi
+        uchun ro'yxatdagi <b>«Yuborish»</b> tugmasini bosing. Avval «Menga test» bilan
+        o'zingizga tekshirib ko'ring.
+      </Alert>
+      {notice && (
+        <Alert tone={notice.tone} onDismiss={() => setNotice(undefined)}>
+          {notice.text}
+        </Alert>
+      )}
       <ResourcePage<Broadcast, BroadcastFormValues, Partial<Broadcast>, Partial<Broadcast>>
         title="E'lonlar"
         api={broadcastApi}
@@ -49,13 +65,19 @@ export function BroadcastsPage() {
         formConfig={broadcastFormConfig}
         toCreatePayload={(v) => v}
         toUpdatePayload={(v) => v}
+        createLabel="+ Yangi e'lon"
         rowActions={(item) => (
           <>
-            <Button variant="ghost" disabled={pendingId === item.id} onClick={() => testToMe(item)}>
+            <Button
+              variant="ghost"
+              size="sm"
+              loading={pendingId === item.id}
+              onClick={() => testToMe(item)}
+            >
               Menga test
             </Button>
-            {item.status === 'draft' && (
-              <Button variant="ghost" disabled={pendingId === item.id} onClick={() => setConfirming(item)}>
+            {(item.status === 'draft' || item.status === 'failed') && (
+              <Button size="sm" disabled={pendingId === item.id} onClick={() => setConfirming(item)}>
                 Yuborish
               </Button>
             )}

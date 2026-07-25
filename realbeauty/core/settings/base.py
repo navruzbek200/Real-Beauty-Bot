@@ -316,61 +316,6 @@ UNFOLD = {
                         "link": reverse_lazy("admin:bot_settings_discount_changelist"),
                         "permission": _superuser,
                     },
-                    {
-                        "title": "Yuborilgan xabarlar",
-                        "icon": "receipt_long",
-                        "link": reverse_lazy("admin:campaigns_campaignlog_changelist"),
-                        "permission": _superuser,
-                    },
-                    {
-                        "title": "Avto xabarlar jurnali",
-                        "icon": "history",
-                        "link": reverse_lazy(
-                            "admin:campaigns_automessagelog_changelist"
-                        ),
-                        "permission": _superuser,
-                    },
-                ],
-            },
-            {
-                "title": "Bonus dasturi",
-                "separator": True,
-                "items": [
-                    {
-                        "title": "Bonus hisoblari",
-                        "icon": "loyalty",
-                        "link": reverse_lazy("admin:loyalty_loyaltyaccount_changelist"),
-                        "permission": _superuser,
-                    },
-                    {
-                        "title": "Sovg'alar",
-                        "icon": "redeem",
-                        "link": reverse_lazy("admin:loyalty_reward_changelist"),
-                        "permission": _superuser,
-                    },
-                    {
-                        "title": "Almashtirilgan sovg'alar",
-                        "icon": "confirmation_number",
-                        "link": reverse_lazy(
-                            "admin:loyalty_rewardredemption_changelist"
-                        ),
-                    },
-                    {
-                        "title": "Ball harakatlari",
-                        "icon": "swap_vert",
-                        "link": reverse_lazy(
-                            "admin:loyalty_pointstransaction_changelist"
-                        ),
-                        "permission": _superuser,
-                    },
-                    {
-                        "title": "Bonus sozlamalari",
-                        "icon": "tune",
-                        "link": reverse_lazy(
-                            "admin:loyalty_loyaltysettings_changelist"
-                        ),
-                        "permission": _superuser,
-                    },
                 ],
             },
             {
@@ -378,22 +323,10 @@ UNFOLD = {
                 "separator": True,
                 "items": [
                     {
-                        "title": "Fikrlar",
-                        "icon": "reviews",
-                        "link": reverse_lazy("admin:analytics_userfeedback_changelist"),
-                    },
-                    {
                         "title": "Teri testi natijalari",
                         "icon": "science",
                         "link": reverse_lazy(
                             "admin:analytics_skinquizresult_changelist"
-                        ),
-                    },
-                    {
-                        "title": "Natija rasmlari",
-                        "icon": "photo_library",
-                        "link": reverse_lazy(
-                            "admin:analytics_progressphoto_changelist"
                         ),
                     },
                 ],

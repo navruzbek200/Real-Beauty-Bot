@@ -138,7 +138,6 @@ class AutoMessage(models.Model):
 
     class Action(models.TextChoices):
         NONE = "none", "Tugmasiz (faqat matn)"
-        PROGRESS = "progress", "«Rasm yuborish» tugmasi"
         DISCOUNTS = "discounts", "«Chegirmalarni ko'rish» tugmasi"
 
     _UNIT_SECONDS = {Unit.MINUTE: 60, Unit.HOUR: 3600, Unit.DAY: 86400}
@@ -261,28 +260,22 @@ class AutoMessage(models.Model):
 
         return pick(self, "button_label", lang)
 
-    def keyboard_for(self, lang: str, product_id: int | None) -> dict | None:
+    def keyboard_for(self, lang: str, product_id: int | None = None) -> dict | None:
         """
         The inline keyboard this message carries, as a raw Bot API dict.
 
-        Returns None when there is no button to draw — including when the
-        chosen action needs a product and this send has none, since a callback
-        with a missing id would just error in the customer's face.
+        Returns None when there is no button to draw. `product_id` is accepted
+        and ignored: the only remaining action opens the discount list, which
+        is the same screen for everybody.
         """
-        from bot.keyboards.inline import CB_OPEN_DISCOUNTS, CB_SEND_PROGRESS, SEP
+        from bot.keyboards.inline import CB_OPEN_DISCOUNTS
 
         label = self.label_for(lang)
         if self.button_action == self.Action.NONE or not label:
             return None
-
-        if self.button_action == self.Action.DISCOUNTS:
-            callback = CB_OPEN_DISCOUNTS
-        elif product_id is None:
-            return None
-        else:
-            callback = f"{CB_SEND_PROGRESS}{SEP}{product_id}"
-
-        return {"inline_keyboard": [[{"text": label, "callback_data": callback}]]}
+        return {
+            "inline_keyboard": [[{"text": label, "callback_data": CB_OPEN_DISCOUNTS}]]
+        }
 
 
 class AutoMessageLog(models.Model):
@@ -321,6 +314,72 @@ class AutoMessageLog(models.Model):
 
     def __str__(self) -> str:
         return f"{self.auto_message} → {self.user}"
+
+
+class ReminderRule(models.Model):
+    """
+    A recurring "every N days" nudge to one specific customer — e.g. a
+    reorder reminder every 2 weeks — as opposed to `AutoMessage`, which fires
+    once per purchase/registration anchor.
+
+    Deliberately one row per customer rather than one global rule fanning out
+    to everyone: a recurring reminder is usually set up for a specific person
+    ("remind Aziza to reorder"), and `next_run_at` needs to live somewhere
+    that survives independently per recipient once it starts drifting from
+    however the rule was originally scheduled.
+    """
+
+    user = models.ForeignKey(
+        "users.TelegramUser",
+        on_delete=models.CASCADE,
+        related_name="reminder_rules",
+        verbose_name="Mijoz",
+        help_text="Faqat botga ulangan (telegram_id bor) mijozlarga yuboriladi.",
+    )
+    name = models.CharField(
+        max_length=128,
+        verbose_name="Nomi",
+        help_text="Faqat siz uchun. Masalan: «Har 2 haftada — qayta buyurtma».",
+    )
+    body = models.TextField(
+        verbose_name="Xabar matni",
+        help_text="{{ user.full_name }} ishlaydi. Telegram HTML.",
+    )
+    interval_days = models.PositiveSmallIntegerField(
+        default=14,
+        verbose_name="Necha kunda bir marta",
+    )
+    next_run_at = models.DateTimeField(verbose_name="Keyingi yuborilish vaqti")
+    last_sent_at = models.DateTimeField(
+        null=True, blank=True, editable=False, verbose_name="Oxirgi yuborilgan"
+    )
+    is_active = models.BooleanField(default=True, verbose_name="Yoqilgan")
+    send_count = models.PositiveIntegerField(
+        default=0, editable=False, verbose_name="Yuborilgan marta"
+    )
+    error_count = models.PositiveIntegerField(
+        default=0, editable=False, verbose_name="Xatolar soni"
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Yaratilgan")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Yangilangan")
+
+    class Meta:
+        verbose_name = "Takrorlanuvchi eslatma"
+        verbose_name_plural = "Takrorlanuvchi eslatmalar"
+        ordering = ["next_run_at"]
+
+    def __str__(self) -> str:
+        return f"{self.name} → {self.user}"
+
+    @property
+    def interval(self) -> timedelta:
+        return timedelta(days=self.interval_days)
+
+    def render(self, lang: str | None = None) -> str:
+        return render_body(
+            self.body, {"user": self.user}, html=True
+        )
 
 
 class Broadcast(models.Model):

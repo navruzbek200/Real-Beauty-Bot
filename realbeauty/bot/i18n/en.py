@@ -11,7 +11,6 @@ STRINGS: dict[str, str] = {
     "menu.quiz_retake": "🔄 Retake the skin test",
     "menu.support": "✍️ Question / Request",
     "menu.discounts": "🎁 Discounts",
-    "menu.bonus": "💎 My bonuses",
     "menu.profile": "👤 Profile",
     "menu.help": "ℹ️ Help",
     "menu.legacy_tutorials": "📚 Tutorials",
@@ -101,7 +100,6 @@ STRINGS: dict[str, str] = {
         "«✍️ Question / Request»."
     ),
     "quiz.retake": "🔄 Retake the quiz",
-    "quiz.saved_points": "💎 <b>{points}</b> points added for the quiz!",
     "quiz.q1": (
         "One hour after washing your face, with no cream applied, how does "
         "your skin feel?"
@@ -278,104 +276,17 @@ STRINGS: dict[str, str] = {
     ),
     "support.no_unanswered": "✅ No unanswered requests.",
     "support.unanswered_header": "🔁 Re-sending unanswered requests: {count}",
-    # ------------------------------------------------------------- progress
-    "progress.ask_before": "📷 First send your <b>BEFORE</b> photo.",
-    "progress.ask_after": "📷 Now send your <b>AFTER</b> photo.",
-    "progress.not_photo": "Please send a photo, not text.",
-    "progress.save_error": "Couldn't save the photo. Please try again.",
-    "progress.done": "🙏 Thank you! Our team will review your result.",
     # ------------------------------------------------------------ discounts
     "discount.none": "No active discounts right now.",
     "discount.header": "🎁 <b>Active discounts:</b>",
     "discount.until": "⏳ until {date}",
-    # -------------------------------------------------------------- loyalty
-    "loyalty.disabled": (
-        "The bonus programme is closed for now. It will be back soon — stay tuned!"
-    ),
-    "loyalty.header": "💎 <b>Your bonus account</b>",
-    "loyalty.balance": "🪙 Your points: <b>{points}</b>",
-    "loyalty.tier": "🏅 Your tier: <b>{tier}</b> — {cashback}% cashback",
-    "loyalty.next_tier": (
-        "⬆️ <b>{remaining}</b> points to go until <b>{next_tier}</b>\n{bar}"
-    ),
-    "loyalty.max_tier": "👑 You're on the highest tier. Thank you!",
-    "loyalty.lifetime": "📈 Earned in total: {lifetime} points",
-    "loyalty.how_to_earn": (
-        "<b>How points add up</b>\n"
-        "• Every purchase — {purchase} points\n"
-        "• Rating a product — {feedback} points\n"
-        "• Before/after photos — {progress} points\n"
-        "• Taking the skin quiz — {quiz} points\n"
-        "• Inviting a friend — {referral} points\n"
-        "• On your birthday — {birthday} points"
-    ),
-    "loyalty.invite_teaser": "🎁 Invite your friends and rack up points!",
-    "loyalty.invite_btn": "🎁 Invite friends",
-    # --- premium "invite a friend" screen ---
-    "loyalty.invite_header": "🎉✨ <b>Invite your friends!</b>",
-    "loyalty.invite_body": (
-        "👯 When a friend joins Real Beauty through <b>your personal "
-        "link</b>:\n\n"
-        "💎 <b>You</b> get — {referral} points\n"
-        "🎁 <b>Your friend</b> gets — a welcome gift\n\n"
-        "🚀 No limit — the more friends you invite, the more points you "
-        "collect!"
-    ),
-    "loyalty.invite_link_label": "🔗 <b>Your personal link:</b>",
-    "loyalty.invite_share_btn": "📤 Share with friends",
-    "loyalty.invite_share_text": (
-        "✨ I'm using the Real Beauty bot — beauty secrets, a personal skin "
-        "analysis and gifts, all in one place! 🎁 Join through my link and "
-        "we both get a bonus 👇"
-    ),
-    "loyalty.rewards_btn": "🎁 Spend points",
-    "loyalty.history_btn": "🧾 History",
-    "loyalty.rewards_header": (
-        "🎁 <b>Rewards you can claim</b>\n\nYour balance: <b>{points}</b> points"
-    ),
-    "loyalty.rewards_empty": "No rewards listed yet. We'll add some soon!",
-    "loyalty.reward_line": "{title} — <b>{cost}</b> points",
-    "loyalty.redeem_ok": (
-        "🎉 <b>{title}</b> is yours!\n\n"
-        "🔑 Promo code: <code>{code}</code>\n"
-        "Show it at the shop.\n\n"
-        "Points left: <b>{points}</b>"
-    ),
-    "loyalty.redeem_not_enough": (
-        "😔 Not enough points. Needed: <b>{cost}</b>, you have: <b>{points}</b>.\n"
-        "Buy something or leave a review — points add up."
-    ),
-    "loyalty.redeem_error": "Couldn't redeem that. Please try again later.",
-    "loyalty.redeem_unavailable": "That reward isn't available right now.",
-    "loyalty.history_header": "🧾 <b>Recent activity</b>",
-    "loyalty.history_empty": "Nothing here yet. It starts with your first purchase.",
-    "loyalty.history_line": "{sign}{points} — {reason} · {date}",
-    "loyalty.tier.bronze": "Bronze",
-    "loyalty.tier.silver": "Silver",
-    "loyalty.tier.gold": "Gold",
-    "loyalty.tier.platinum": "Platinum",
-    "loyalty.reason.purchase": "Purchase",
-    "loyalty.reason.feedback": "Product rating",
-    "loyalty.reason.progress": "Result photo",
-    "loyalty.reason.referral": "Friend referral",
-    "loyalty.reason.birthday": "Birthday gift",
-    "loyalty.reason.quiz": "Skin quiz",
-    "loyalty.reason.registration": "Registration",
-    "loyalty.reason.redeem": "Redeemed for a reward",
-    "loyalty.reason.manual": "Admin adjustment",
-    "loyalty.earned": "💎 <b>+{points}</b> points — {reason}. Total: <b>{total}</b>",
-    "loyalty.tier_up": (
-        "🎊 Congratulations! You've reached the <b>{tier}</b> tier.\n"
-        "Your cashback is now <b>{cashback}%</b>."
-    ),
     # -------------------------------------------------------------- profile
     "profile.template": (
         "👤 <b>Your profile</b>\n\n"
         "Name: {full_name}\n"
         "Phone: {phone}\n"
         "Date of birth: {birth_date}\n"
-        "Skin type: {face}\n"
-        "Bonuses: {points} points · {tier}"
+        "Skin type: {face}"
     ),
     # ------------------------------------------------------------- fallback
     "fallback.unknown": (

@@ -43,9 +43,10 @@ async def start_with_payload(
     payload = command.args or ""
     if payload.startswith("ref_"):
         await _begin_admin_assisted(message, state, bot, payload, lang)
-    elif payload.startswith("inv_"):
-        await _begin_customer_referral(message, state, payload, lang)
     else:
+        # Includes the retired `inv_` customer-invite links, which stop being
+        # special once the points program they fed is gone — an old link in
+        # somebody's chat history still has to open a normal signup.
         await _begin_self(message, state, lang)
 
 
@@ -101,27 +102,6 @@ async def _begin_self(message: Message, state: FSMContext, lang: str) -> None:
         source=TelegramUser.RegistrationSource.SELF,
     )
     await _ask_language(message, state, SelfReg.language)
-
-
-async def _begin_customer_referral(
-    message: Message, state: FSMContext, payload: str, lang: str
-) -> None:
-    """
-    Someone arrived through another customer's invite link.
-
-    The inviter is only remembered when the link resolves to a real, finished
-    customer — a mistyped id must degrade into a plain signup, not block one.
-    """
-    await _begin_self(message, state, lang)
-    try:
-        inviter_telegram_id = int(payload.removeprefix("inv_"))
-    except ValueError:
-        return
-    if inviter_telegram_id == message.chat.id:
-        return  # inviting yourself
-    inviter = await user_service.get_user_by_telegram_id(inviter_telegram_id)
-    if inviter is not None:
-        await state.update_data(registered_by_id=inviter.pk)
 
 
 async def _begin_admin_assisted(

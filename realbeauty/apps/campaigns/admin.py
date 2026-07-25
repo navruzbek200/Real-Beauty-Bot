@@ -12,7 +12,14 @@ from unfold.decorators import action
 
 from core.admin import RBModelAdmin, yes_no_filter
 
-from .models import AutoMessage, AutoMessageLog, Broadcast, CampaignLog, MessageTemplate
+from .models import (
+    AutoMessage,
+    AutoMessageLog,
+    Broadcast,
+    CampaignLog,
+    MessageTemplate,
+    ReminderRule,
+)
 
 
 @admin.register(MessageTemplate)
@@ -91,55 +98,6 @@ class MessageTemplateAdmin(RBModelAdmin):
 
     def has_view_permission(
         self, request: HttpRequest, obj: MessageTemplate | None = None
-    ) -> bool:
-        return request.user.is_superuser
-
-
-@admin.register(CampaignLog)
-class CampaignLogAdmin(RBModelAdmin):
-    list_display = ["user", "template", "sent_at", "result"]
-    list_filter = [
-        yes_no_filter("success", "Yetkazilganmi", "Yetkazilgan", "Yetkazilmagan"),
-        "template__template_type",
-    ]
-    search_fields = ["user__full_name", "user__phone_number"]
-    readonly_fields = ["user", "template", "sent_at", "success", "error_detail"]
-    date_hierarchy = "sent_at"
-    list_per_page = 30
-
-    def get_queryset(self, request: HttpRequest):
-        return super().get_queryset(request).select_related("user", "template")
-
-    @admin.display(description="Natija")
-    def result(self, obj: CampaignLog) -> str:
-        if obj.success:
-            return format_html('<span style="color:#059669">✅ Yetkazildi</span>')
-        # The reason matters more than the flag: usually "bot was blocked".
-        return format_html(
-            '<span style="color:#dc2626">❌ Yetkazilmadi</span>'
-            '<div style="font-size:11px;color:#6b7280">{}</div>',
-            obj.error_detail[:80],
-        )
-
-    def has_add_permission(self, request: HttpRequest) -> bool:
-        return False
-
-    def has_change_permission(
-        self, request: HttpRequest, obj: CampaignLog | None = None
-    ) -> bool:
-        return False
-
-    def has_delete_permission(
-        self, request: HttpRequest, obj: CampaignLog | None = None
-    ) -> bool:
-        return request.user.is_superuser
-
-    # Sellers must not see logs
-    def has_module_permission(self, request: HttpRequest) -> bool:
-        return request.user.is_superuser
-
-    def has_view_permission(
-        self, request: HttpRequest, obj: CampaignLog | None = None
     ) -> bool:
         return request.user.is_superuser
 
@@ -391,42 +349,56 @@ class AutoMessageAdmin(RBModelAdmin):
         return request.user.is_superuser
 
 
-@admin.register(AutoMessageLog)
-class AutoMessageLogAdmin(RBModelAdmin):
-    list_display = ["auto_message", "user", "sent_at", "result"]
-    list_filter = ["auto_message", yes_no_filter("success", "Natija", "Yetdi", "Yetmadi")]
-    search_fields = ["user__full_name", "user__phone_number"]
-    readonly_fields = ["auto_message", "user", "anchor", "sent_at", "success", "error_detail"]
-    date_hierarchy = "sent_at"
-    list_per_page = 30
+class ReminderRuleForm(forms.ModelForm):
+    class Meta:
+        model = ReminderRule
+        fields = ["user", "name", "body", "interval_days", "next_run_at", "is_active"]
+
+    def clean_user(self):
+        user = self.cleaned_data["user"]
+        if not user.telegram_id:
+            raise forms.ValidationError(
+                "Bu mijoz hali botga ulanmagan (telegram_id yo'q) — eslatma "
+                "yetkazib bo'lmaydi. Mijoz botni ochgach qayta urinib ko'ring."
+            )
+        return user
+
+
+@admin.register(ReminderRule)
+class ReminderRuleAdmin(RBModelAdmin):
+    """
+    A recurring "every N days" nudge to one specific, bot-linked customer —
+    unlike `AutoMessage`, which fires once per purchase/registration anchor.
+    """
+
+    form = ReminderRuleForm
+    list_display = [
+        "name",
+        "user",
+        "interval_days",
+        "next_run_at",
+        "status_badge",
+        "send_count",
+        "error_count",
+    ]
+    list_display_links = ["name"]
+    list_filter = [yes_no_filter("is_active", "Holati", "Yoqilgan", "O'chirilgan")]
+    search_fields = ["name", "user__full_name", "user__username"]
+    readonly_fields = ["last_sent_at", "send_count", "error_count", "created_at"]
+    autocomplete_fields = ["user"]
 
     def get_queryset(self, request: HttpRequest):
-        return super().get_queryset(request).select_related("user", "auto_message")
+        return super().get_queryset(request).select_related("user")
 
-    @admin.display(description="Natija")
-    def result(self, obj: AutoMessageLog) -> str:
-        if obj.success:
-            return format_html('<span style="color:#059669">✅ Yetkazildi</span>')
+    @admin.display(description="Holat")
+    def status_badge(self, obj: ReminderRule) -> str:
+        if not obj.is_active:
+            return format_html('<span style="color:#9ca3af">⏸ O\'chirilgan</span>')
         return format_html(
-            '<span style="color:#dc2626">❌ Yetkazilmadi</span>'
-            '<div style="font-size:11px;color:#6b7280">{}</div>',
-            obj.error_detail[:80],
+            '<span style="color:#059669;font-weight:600">✅ Ishlayapti</span>'
         )
 
-    def has_add_permission(self, request: HttpRequest) -> bool:
-        return False
-
-    def has_change_permission(
-        self, request: HttpRequest, obj: AutoMessageLog | None = None
-    ) -> bool:
-        return False
-
     def has_module_permission(self, request: HttpRequest) -> bool:
-        return request.user.is_superuser
-
-    def has_view_permission(
-        self, request: HttpRequest, obj: AutoMessageLog | None = None
-    ) -> bool:
         return request.user.is_superuser
 
 

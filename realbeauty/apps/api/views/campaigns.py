@@ -9,19 +9,11 @@ from apps.api.pagination import DefaultPagination
 from apps.api.permissions import IsSuperUser
 from apps.api.serializers.common import DetailMessageSerializer
 from apps.api.serializers.campaigns import (
-    AutoMessageLogSerializer,
     AutoMessageSerializer,
     BroadcastSerializer,
-    CampaignLogSerializer,
     MessageTemplateSerializer,
 )
-from apps.campaigns.models import (
-    AutoMessage,
-    AutoMessageLog,
-    Broadcast,
-    CampaignLog,
-    MessageTemplate,
-)
+from apps.campaigns.models import AutoMessage, Broadcast, MessageTemplate
 
 RETIRED_TEMPLATE_TYPES = ("week1_checkin", "week2_progress")
 
@@ -38,16 +30,6 @@ class MessageTemplateViewSet(
     pagination_class = DefaultPagination
     filterset_fields = ["is_active"]
     search_fields = ["name", "body"]
-
-
-class CampaignLogViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
-    queryset = CampaignLog.objects.select_related("user", "template").all()
-    serializer_class = CampaignLogSerializer
-    permission_classes = [IsSuperUser]
-    pagination_class = DefaultPagination
-    filterset_fields = ["success", "template__template_type"]
-    search_fields = ["user__full_name", "user__phone_number"]
-    ordering_fields = ["sent_at"]
 
 
 class AutoMessageViewSet(viewsets.ModelViewSet):
@@ -89,16 +71,6 @@ class AutoMessageViewSet(viewsets.ModelViewSet):
         except TelegramError as exc:
             return Response({"detail": str(exc)}, status=status.HTTP_502_BAD_GATEWAY)
         return Response({"detail": "Test xabar yuborildi."})
-
-
-class AutoMessageLogViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
-    queryset = AutoMessageLog.objects.select_related("user", "auto_message").all()
-    serializer_class = AutoMessageLogSerializer
-    permission_classes = [IsSuperUser]
-    pagination_class = DefaultPagination
-    filterset_fields = ["auto_message", "success"]
-    search_fields = ["user__full_name", "user__phone_number"]
-    ordering_fields = ["sent_at"]
 
 
 class BroadcastViewSet(viewsets.ModelViewSet):

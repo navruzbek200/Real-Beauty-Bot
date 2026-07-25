@@ -11,11 +11,14 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
-      <aside className="w-64 shrink-0 border-r border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-        <div className="border-b border-slate-200 px-4 py-4 dark:border-slate-800">
+      <aside className="hidden w-64 shrink-0 flex-col border-r border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 md:flex">
+        <div className="flex items-center gap-2.5 border-b border-slate-200 px-4 py-4 dark:border-slate-800">
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-sm font-bold text-white">
+            RB
+          </span>
           <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Real Beauty CRM</p>
         </div>
-        <nav className="space-y-5 overflow-y-auto px-2 py-4">
+        <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-4">
           {NAV_SECTIONS.map((section) => {
             const items = section.items.filter((item) => {
               if (item.superuserOnly) return isSuperUser(user)
@@ -34,7 +37,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                     to={item.to}
                     end={item.to === '/'}
                     className={({ isActive }) =>
-                      `block rounded-md px-2 py-1.5 text-sm ${
+                      `block rounded-lg px-2.5 py-2 text-sm transition-colors ${
                         isActive
                           ? 'bg-brand-50 font-medium text-brand-700 dark:bg-brand-900/30 dark:text-brand-300'
                           : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'

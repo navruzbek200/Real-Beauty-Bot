@@ -2,10 +2,8 @@ import { apiClient } from '@/shared/api/client'
 import type { Paginated } from '@/shared/api/types'
 import type {
   AutoMessage,
-  AutoMessageLog,
   Broadcast,
   CampaignListParams,
-  CampaignLog,
   MessageTemplate,
 } from './model/types'
 
@@ -41,8 +39,6 @@ export const messageTemplateApi = {
   },
 }
 
-export const campaignLogApi = makeApi<CampaignLog>('/api/v1/campaign-logs/')
-export const autoMessageLogApi = makeApi<AutoMessageLog>('/api/v1/auto-message-logs/')
 
 export const autoMessageApi = {
   ...makeApi<AutoMessage>('/api/v1/auto-messages/'),

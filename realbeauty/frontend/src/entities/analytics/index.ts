@@ -1,2 +1,2 @@
-export { progressPhotoApi, skinQuizResultApi, userFeedbackApi } from './api'
-export type { AnalyticsListParams, ProgressPhoto, SkinQuizResult, UserFeedback } from './model/types'
+export { skinQuizResultApi } from './api'
+export type { AnalyticsListParams, SkinQuizResult } from './model/types'

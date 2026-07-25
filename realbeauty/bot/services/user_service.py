@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from datetime import date
 from typing import Any
 
@@ -7,6 +8,8 @@ from asgiref.sync import sync_to_async
 from django.db import transaction
 
 from apps.users.models import SellerProfile, TelegramUser, UserProduct
+
+logger = logging.getLogger(__name__)
 
 
 @sync_to_async
@@ -64,6 +67,13 @@ def _find_preregistered(
 
     Matched on username first (exact, cheap), then on the phone number's last
     9 digits so formatting differences don't break the link.
+
+    Two staff-entered cards can share the same last 9 digits (a typo, a
+    reused family number, different country codes). Auto-linking to the
+    wrong one would hand a stranger's purchase history and notes to this
+    customer, so a tail match is only trusted when it is unambiguous — an
+    exact normalized-number match breaks a tie, otherwise nothing is linked
+    and the duplicate is left for staff to sort out by hand.
     """
     unlinked = TelegramUser.objects.filter(telegram_id__isnull=True)
 
@@ -73,8 +83,26 @@ def _find_preregistered(
             return match
 
     tail = TelegramUser.phone_tail_of(phone_number)
-    if tail:
-        return unlinked.filter(phone_tail=tail).first()
+    if not tail:
+        return None
+
+    candidates = list(unlinked.filter(phone_tail=tail))
+    if not candidates:
+        return None
+    if len(candidates) == 1:
+        return candidates[0]
+
+    normalized = TelegramUser.normalize_phone(phone_number)
+    exact = [c for c in candidates if normalized and c.phone_number == normalized]
+    if len(exact) == 1:
+        return exact[0]
+
+    logger.warning(
+        "phone_tail collision on %s: %d unlinked candidates — refusing to "
+        "auto-link, needs manual review",
+        tail,
+        len(candidates),
+    )
     return None
 
 
@@ -187,33 +215,7 @@ def complete_user(
             telegram_id=telegram_id, defaults=defaults
         )
 
-    _award_registration_points(user)
     return user
-
-
-def _award_registration_points(user: TelegramUser) -> None:
-    """
-    Welcome bonus for the customer, referral bonus for whoever brought them.
-
-    Runs after the transaction commits so a loyalty problem can never undo a
-    registration — the customer being in the CRM matters more than the points.
-    """
-    from apps.loyalty.models import PointsTransaction
-    from apps.loyalty.services import award
-
-    award(
-        user,
-        PointsTransaction.Reason.REGISTRATION,
-        reference=f"registration:{user.pk}",
-        notify=False,  # the welcome message lands in the same second
-    )
-    if user.registered_by_id:
-        award(
-            user.registered_by,
-            PointsTransaction.Reason.REFERRAL,
-            reference=f"referral:{user.pk}",
-            note=user.full_name[:200],
-        )
 
 
 @sync_to_async

@@ -144,6 +144,68 @@ def dispatch_auto_messages() -> int:
 
 
 @shared_task
+def dispatch_reminders() -> int:
+    """
+    Send every recurring reminder that has come due, then reschedule it.
+
+    Each row is handled independently — one blocked/deleted recipient must not
+    stop the rest of the batch, same reasoning as `_dispatch_rule` above.
+    Permanent Telegram failures (blocked bot, deleted account) switch the
+    reminder off instead of retrying forever at someone who will never see it.
+    """
+    from apps.campaigns.models import ReminderRule
+
+    now = timezone.now()
+    due = (
+        ReminderRule.objects.select_related("user")
+        .filter(
+            is_active=True,
+            next_run_at__lte=now,
+            user__telegram_id__isnull=False,
+            user__is_active=True,
+        )
+    )
+
+    sent = 0
+    for rule in due:
+        text = rule.render(rule.user.language)
+        if not text.strip():
+            rule.next_run_at = now + rule.interval
+            rule.save(update_fields=["next_run_at"])
+            continue
+
+        try:
+            send_message(rule.user.telegram_id, text, parse_mode="HTML")
+        except TelegramError as exc:
+            rule.error_count += 1
+            update_fields = ["error_count"]
+            if exc.is_permanent:
+                rule.is_active = False
+                update_fields.append("is_active")
+            else:
+                # Transient failure — try again next run instead of drifting
+                # the schedule forward on a message that never went out.
+                pass
+            logger.warning(
+                "reminder %s to %s failed: %s", rule.pk, rule.user.telegram_id, exc
+            )
+            rule.save(update_fields=update_fields)
+            continue
+        except Exception:  # noqa: BLE001
+            logger.exception("reminder %s crashed sending to %s", rule.pk, rule.user_id)
+            rule.error_count += 1
+            rule.save(update_fields=["error_count"])
+            continue
+
+        rule.last_sent_at = now
+        rule.next_run_at = now + rule.interval
+        rule.send_count += 1
+        rule.save(update_fields=["last_sent_at", "next_run_at", "send_count"])
+        sent += 1
+    return sent
+
+
+@shared_task
 def send_birthday_messages() -> int:
     """Send birthday-sale message to users whose birthday is today (Asia/Tashkent)."""
     from apps.bot_settings.models import GlobalSettings
@@ -185,31 +247,10 @@ def send_birthday_messages() -> int:
             delivered = False
         if not delivered:
             # Blocked the bot, deleted their account, or the send otherwise
-            # failed — nobody actually saw a birthday greeting, so there is
-            # nothing to reward. Next year's run tries again from scratch.
+            # failed. Next year's run tries again from scratch.
             continue
         sent += 1
-        _credit_birthday_points(user, today)
     return sent
-
-
-def _credit_birthday_points(user, today) -> None:
-    """
-    The birthday bonus, once a year — only for a greeting that actually landed.
-
-    Keyed on the year so a beat restart cannot pay twice.
-    """
-    from apps.loyalty.models import PointsTransaction
-    from apps.loyalty.services import award
-
-    try:
-        award(
-            user,
-            PointsTransaction.Reason.BIRTHDAY,
-            reference=f"birthday:{today.year}",
-        )
-    except Exception:  # noqa: BLE001
-        logger.exception("birthday points failed for user %s", user.pk)
 
 
 @shared_task

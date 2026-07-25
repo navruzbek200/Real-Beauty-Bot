@@ -20,6 +20,10 @@ app.conf.beat_schedule = {
         "task": "tasks.scheduled.dispatch_auto_messages",
         "schedule": crontab(minute="*"),
     },
+    "recurring-reminders": {
+        "task": "tasks.scheduled.dispatch_reminders",
+        "schedule": crontab(minute="*/15"),
+    },
     "birthday-messages": {
         "task": "tasks.scheduled.send_birthday_messages",
         "schedule": crontab(hour=9, minute=0),

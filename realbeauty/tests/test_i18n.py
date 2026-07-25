@@ -106,8 +106,8 @@ class MainMenuKeyboardTests(SimpleTestCase):
                     for row in reply.main_menu_keyboard(code).keyboard
                     for button in row
                 ]
-                self.assertIn(i18n.t("menu.bonus", code), labels)
                 self.assertIn(i18n.t("menu.top", code), labels)
+                self.assertIn(i18n.t("menu.quiz_retake", code), labels)
                 # The tips section was replaced by the top-products one.
                 self.assertNotIn(i18n.t("menu.legacy_tips", code), labels)
 

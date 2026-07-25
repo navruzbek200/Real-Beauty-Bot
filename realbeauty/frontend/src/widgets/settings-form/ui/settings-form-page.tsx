@@ -51,7 +51,9 @@ export function SettingsFormPage<T extends Record<string, unknown>>({
 
   return (
     <div className="max-w-xl space-y-4">
-      <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{title}</h1>
+      {title && (
+        <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{title}</h1>
+      )}
       <form
         onSubmit={handleSubmit((values) => mutation.mutate(values))}
         className="space-y-4 rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900"

@@ -2,13 +2,7 @@ from __future__ import annotations
 
 from rest_framework import serializers
 
-from apps.campaigns.models import (
-    AutoMessage,
-    AutoMessageLog,
-    Broadcast,
-    CampaignLog,
-    MessageTemplate,
-)
+from apps.campaigns.models import AutoMessage, Broadcast, MessageTemplate
 
 
 class MessageTemplateSerializer(serializers.ModelSerializer):
@@ -26,24 +20,6 @@ class MessageTemplateSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
         read_only_fields = ["template_type", "updated_at"]
-
-
-class CampaignLogSerializer(serializers.ModelSerializer):
-    user_name = serializers.CharField(source="user.full_name", read_only=True)
-    template_name = serializers.CharField(source="template.name", read_only=True)
-
-    class Meta:
-        model = CampaignLog
-        fields = [
-            "id",
-            "user",
-            "user_name",
-            "template",
-            "template_name",
-            "sent_at",
-            "success",
-            "error_detail",
-        ]
 
 
 class AutoMessageSerializer(serializers.ModelSerializer):
@@ -95,20 +71,6 @@ class AutoMessageSerializer(serializers.ModelSerializer):
                     {field: f"Matn 4096 belgidan oshmasligi kerak (hozir {len(value)})."}
                 )
         return attrs
-
-
-class AutoMessageLogSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = AutoMessageLog
-        fields = [
-            "id",
-            "auto_message",
-            "user",
-            "anchor",
-            "sent_at",
-            "success",
-            "error_detail",
-        ]
 
 
 class BroadcastSerializer(serializers.ModelSerializer):

@@ -13,12 +13,7 @@ from bot.filters.menu import MenuText
 from bot.handlers.auth import send_tutorial_intros, send_tutorial_intros_for_products
 from bot.i18n import normalize, t
 from bot.keyboards import inline, reply
-from bot.services import (
-    discount_service,
-    loyalty_service,
-    product_service,
-    user_service,
-)
+from bot.services import discount_service, product_service, user_service
 from core.i18n import pick
 
 logger = logging.getLogger(__name__)
@@ -232,7 +227,6 @@ async def menu_profile(message: Message, state: FSMContext, lang: str) -> None:
         await message.answer(t("user.not_registered", lang))
         return
     face = t(f"skin.type.{user.face_condition}", lang) if user.face_condition else "—"
-    points, tier_key = await loyalty_service.get_summary(message.from_user.id)
     await message.answer(
         t(
             "profile.template",
@@ -241,8 +235,6 @@ async def menu_profile(message: Message, state: FSMContext, lang: str) -> None:
             phone=user.phone_number or "—",
             birth_date=user.birth_date.strftime("%d.%m.%Y") if user.birth_date else "—",
             face=face,
-            points=points,
-            tier=t(tier_key, lang),
         ),
         parse_mode="HTML",
         reply_markup=inline.profile_keyboard(lang),

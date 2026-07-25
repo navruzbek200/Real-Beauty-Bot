@@ -227,12 +227,11 @@ async def _finish(
 ) -> None:
     result = analyze(answers)
     try:
-        _, points = await quiz_service.save_result(
+        await quiz_service.save_result(
             telegram_id=callback.message.chat.id, result=result, language=lang
         )
     except Exception:  # noqa: BLE001 — a storage problem must not eat the result
         logger.exception("Failed to store quiz result for %s", callback.message.chat.id)
-        points = 0
 
     blocks = [
         t("quiz.result_header", lang),
@@ -241,8 +240,6 @@ async def _finish(
         t("quiz.recs_header", lang),
     ]
     blocks += [t(key, lang) for key in result.recommendation_keys]
-    if points:
-        blocks.append(t("quiz.saved_points", lang, points=points))
     blocks.append(t("quiz.done_footer", lang))
 
     await callback.message.answer("\n\n".join(blocks), parse_mode="HTML")

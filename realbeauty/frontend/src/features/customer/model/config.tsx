@@ -6,8 +6,12 @@ import type { Customer } from '@/entities/customer'
 
 export const customerFormSchema = z.object({
   full_name: z.string().min(1, "Ism-familiya shart"),
-  phone_number: z.string().min(1, "Telefon raqami shart"),
-  username: z.string().optional(),
+  // The bot links a customer to their card by phone number, so it's the one
+  // field that actually has to be right. +998… form is enforced server-side.
+  phone_number: z
+    .string()
+    .min(1, "Telefon raqami shart")
+    .regex(/^[+\d][\d\s()-]*$/, "Faqat raqam, masalan: +998 90 123 45 67"),
   birth_date: z.string().optional(),
   face_condition: z.enum(['', 'dry', 'oily', 'combined', 'normal', 'sensitive']).optional(),
   is_active: z.boolean(),
@@ -19,9 +23,13 @@ export const customerFormConfig: ResourceFormConfig<CustomerFormValues> = {
   schema: customerFormSchema,
   fields: [
     { name: 'full_name', label: 'Ism-familiya', type: 'text' },
-    { name: 'phone_number', label: 'Telefon raqami', type: 'text' },
-    { name: 'username', label: 'Telegram username', type: 'text' },
-    { name: 'birth_date', label: "Tug'ilgan sana", type: 'text', help: 'YYYY-MM-DD' },
+    {
+      name: 'phone_number',
+      label: 'Telefon raqami',
+      type: 'text',
+      help: '+998 bilan. Masalan: +998 90 123 45 67',
+    },
+    { name: 'birth_date', label: "Tug'ilgan sana", type: 'text', help: 'kk.oo.yyyy — masalan 1995-12-25. Ixtiyoriy.' },
     {
       name: 'face_condition',
       label: 'Teri turi',
@@ -38,16 +46,14 @@ export const customerFormConfig: ResourceFormConfig<CustomerFormValues> = {
   ],
   defaultValues: {
     full_name: '',
-    phone_number: '',
-    username: '',
+    phone_number: '+998 ',
     birth_date: '',
     face_condition: '',
     is_active: true,
   },
   toFormValues: (item) => ({
     full_name: (item.full_name as string) ?? '',
-    phone_number: (item.phone_number as string) ?? '',
-    username: (item.username as string) ?? '',
+    phone_number: (item.phone_number as string) || '+998 ',
     birth_date: (item.birth_date as string) ?? '',
     face_condition: (item.face_condition as CustomerFormValues['face_condition']) ?? '',
     is_active: Boolean(item.is_active),
@@ -78,4 +84,3 @@ export const customerColumns: ResourceColumn<Customer>[] = [
     render: (c) => new Date(c.created_at as string).toLocaleDateString('uz-UZ'),
   },
 ]
-

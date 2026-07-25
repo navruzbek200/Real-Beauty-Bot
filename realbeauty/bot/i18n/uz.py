@@ -11,10 +11,8 @@ STRINGS: dict[str, str] = {
     "menu.quiz_retake": "🔄 Testni qayta topshirish",
     "menu.support": "✍️ Savol / Murojaat",
     "menu.discounts": "🎁 Chegirmalar",
-    "menu.bonus": "💎 Bonuslarim",
     "menu.profile": "👤 Profil",
     "menu.help": "ℹ️ Yordam",
-    # Customers keep whatever keyboard was on screen the last time they wrote,
     # so labels we have already shipped must keep matching after a rename.
     "menu.legacy_tutorials": "📚 Qo'llanmalar",
     "menu.legacy_feedback": "💬 Fikr bildirish",
@@ -106,7 +104,6 @@ STRINGS: dict[str, str] = {
         "«✍️ Savol / Murojaat» tugmasini bosing."
     ),
     "quiz.retake": "🔄 Testni qayta topshirish",
-    "quiz.saved_points": "💎 Test uchun <b>{points}</b> ball qo'shildi!",
     # Question texts — the legend goes in the message, the buttons are digits.
     "quiz.q1": (
         "Yuzingizni yuvgandan keyin 1 soat davomida hech qanday krem surtilmasa, "
@@ -289,104 +286,17 @@ STRINGS: dict[str, str] = {
     ),
     "support.no_unanswered": "✅ Javobsiz murojaatlar yo'q.",
     "support.unanswered_header": "🔁 Javobsiz murojaatlar qayta yuborilmoqda: {count}",
-    # ------------------------------------------------------------- progress
-    "progress.ask_before": "📷 Avval <b>OLDIN</b> rasmingizni yuboring.",
-    "progress.ask_after": "📷 Endi <b>KEYIN</b> rasmingizni yuboring.",
-    "progress.not_photo": "Iltimos, matn emas, rasm yuboring.",
-    "progress.save_error": "Rasmni saqlab bo'lmadi. Qaytadan urinib ko'ring.",
-    "progress.done": "🙏 Rahmat! Jamoamiz natijangizni ko'rib chiqadi.",
     # ------------------------------------------------------------ discounts
     "discount.none": "Hozircha faol chegirmalar yo'q.",
     "discount.header": "🎁 <b>Faol chegirmalar:</b>",
     "discount.until": "⏳ {date} gacha",
-    # -------------------------------------------------------------- loyalty
-    "loyalty.disabled": (
-        "Bonus dasturi hozircha yopiq. Tez orada qaytadi — kuzatib boring!"
-    ),
-    "loyalty.header": "💎 <b>Bonus hisobingiz</b>",
-    "loyalty.balance": "🪙 Ballaringiz: <b>{points}</b>",
-    "loyalty.tier": "🏅 Darajangiz: <b>{tier}</b> — keshbek {cashback}%",
-    "loyalty.next_tier": (
-        "⬆️ <b>{next_tier}</b> darajasiga <b>{remaining}</b> ball qoldi\n{bar}"
-    ),
-    "loyalty.max_tier": "👑 Siz eng yuqori darajadasiz. Rahmat!",
-    "loyalty.lifetime": "📈 Jami yig'ilgan: {lifetime} ball",
-    "loyalty.how_to_earn": (
-        "<b>Ball qanday yig'iladi</b>\n"
-        "• Har xariddan — {purchase} ball\n"
-        "• Mahsulotga baho — {feedback} ball\n"
-        "• Oldin/keyin rasmi — {progress} ball\n"
-        "• Teri testini topshirsangiz — {quiz} ball\n"
-        "• Do'stingizni taklif qilsangiz — {referral} ball\n"
-        "• Tug'ilgan kuningizda — {birthday} ball"
-    ),
-    "loyalty.invite_teaser": "🎁 Do'stlaringizni taklif qiling va ball to'plang!",
-    "loyalty.invite_btn": "🎁 Do'stlarni taklif qilish",
-    # --- premium "invite a friend" screen ---
-    "loyalty.invite_header": "🎉✨ <b>Do'stlaringizni taklif qiling!</b>",
-    "loyalty.invite_body": (
-        "👯 Do'stingiz <b>sizning shaxsiy havolangiz</b> orqali Real Beauty "
-        "botiga qo'shilsa:\n\n"
-        "💎 <b>Sizga</b> — {referral} ball sovg'a\n"
-        "🎁 <b>Do'stingizga</b> — xush kelibsiz sovg'asi\n\n"
-        "🚀 Cheklov yo'q — qancha ko'p do'st taklif qilsangiz, shuncha ko'p "
-        "ball yig'asiz!"
-    ),
-    "loyalty.invite_link_label": "🔗 <b>Sizning shaxsiy havolangiz:</b>",
-    "loyalty.invite_share_btn": "📤 Do'stlarga ulashish",
-    "loyalty.invite_share_text": (
-        "✨ Men Real Beauty botidan foydalanyapman — chiroy sirlari, shaxsiy "
-        "teri tahlili va sovg'alar shu yerda! 🎁 Mening havolam orqali "
-        "qo'shiling, ikkalamizga ham bonus bo'ladi 👇"
-    ),
-    "loyalty.rewards_btn": "🎁 Ballni sarflash",
-    "loyalty.history_btn": "🧾 Tarix",
-    "loyalty.rewards_header": (
-        "🎁 <b>Ballga almashtiriladigan sovg'alar</b>\n\nBalansingiz: <b>{points}</b> ball"
-    ),
-    "loyalty.rewards_empty": "Hozircha sovg'alar ro'yxati bo'sh. Tez orada qo'shamiz!",
-    "loyalty.reward_line": "{title} — <b>{cost}</b> ball",
-    "loyalty.redeem_ok": (
-        "🎉 <b>{title}</b> sizniki!\n\n"
-        "🔑 Promokod: <code>{code}</code>\n"
-        "Do'konda shu kodni ko'rsating.\n\n"
-        "Qolgan balansingiz: <b>{points}</b> ball"
-    ),
-    "loyalty.redeem_not_enough": (
-        "😔 Ball yetarli emas. Kerak: <b>{cost}</b>, sizda: <b>{points}</b>.\n"
-        "Xarid qiling yoki fikr qoldiring — ball yig'iladi."
-    ),
-    "loyalty.redeem_error": "Almashtirib bo'lmadi. Keyinroq urinib ko'ring.",
-    "loyalty.redeem_unavailable": "Bu sovg'a hozir mavjud emas.",
-    "loyalty.history_header": "🧾 <b>Oxirgi harakatlar</b>",
-    "loyalty.history_empty": "Hozircha harakat yo'q. Birinchi xaridingizdan keyin paydo bo'ladi.",
-    "loyalty.history_line": "{sign}{points} — {reason} · {date}",
-    "loyalty.tier.bronze": "Bronza",
-    "loyalty.tier.silver": "Kumush",
-    "loyalty.tier.gold": "Oltin",
-    "loyalty.tier.platinum": "Platina",
-    "loyalty.reason.purchase": "Xarid",
-    "loyalty.reason.feedback": "Mahsulotga baho",
-    "loyalty.reason.progress": "Natija rasmi",
-    "loyalty.reason.referral": "Do'st taklifi",
-    "loyalty.reason.birthday": "Tug'ilgan kun sovg'asi",
-    "loyalty.reason.quiz": "Teri testi",
-    "loyalty.reason.registration": "Ro'yxatdan o'tish",
-    "loyalty.reason.redeem": "Sovg'aga almashtirildi",
-    "loyalty.reason.manual": "Admin tuzatishi",
-    "loyalty.earned": "💎 <b>+{points}</b> ball qo'shildi — {reason}. Jami: <b>{total}</b>",
-    "loyalty.tier_up": (
-        "🎊 Tabriklaymiz! Siz <b>{tier}</b> darajasiga ko'tarildingiz.\n"
-        "Endi keshbegingiz — <b>{cashback}%</b>."
-    ),
     # -------------------------------------------------------------- profile
     "profile.template": (
         "👤 <b>Profilingiz</b>\n\n"
         "Ism: {full_name}\n"
         "Telefon: {phone}\n"
         "Tug'ilgan sana: {birth_date}\n"
-        "Teri turi: {face}\n"
-        "Bonus: {points} ball · {tier}"
+        "Teri turi: {face}"
     ),
     # ------------------------------------------------------------- fallback
     "fallback.unknown": (

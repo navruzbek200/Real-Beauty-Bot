@@ -10,7 +10,7 @@ _MAIN_MENU_ROWS: tuple[tuple[str, ...], ...] = (
     ("menu.ingredients", "menu.catalog"),
     ("menu.top", "menu.quiz_retake"),
     ("menu.support", "menu.discounts"),
-    ("menu.bonus", "menu.profile"),
+    ("menu.profile",),
     ("menu.help",),
 )
 

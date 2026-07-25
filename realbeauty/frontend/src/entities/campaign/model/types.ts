@@ -1,9 +1,7 @@
 import type { Schemas } from '@/shared/api/schema'
 
 export type MessageTemplate = Schemas['MessageTemplate']
-export type CampaignLog = Schemas['CampaignLog']
 export type AutoMessage = Schemas['AutoMessage']
-export type AutoMessageLog = Schemas['AutoMessageLog']
 export type Broadcast = Schemas['Broadcast']
 
 export interface CampaignListParams {

@@ -4,9 +4,7 @@ import type { ResourceColumn, ResourceFormConfig } from '@/shared/lib/resource-c
 import { Badge } from '@/shared/ui'
 import type {
   AutoMessage,
-  AutoMessageLog,
   Broadcast,
-  CampaignLog,
   MessageTemplate,
 } from '@/entities/campaign'
 
@@ -39,18 +37,6 @@ export const messageTemplateColumns: ResourceColumn<MessageTemplate>[] = [
     header: 'Holat',
     render: (t) => <Badge tone={t.is_active ? 'success' : 'neutral'}>{t.is_active ? 'Yoqilgan' : "O'chirilgan"}</Badge>,
   },
-]
-
-// --- Campaign log (read-only) ---
-export const campaignLogColumns: ResourceColumn<CampaignLog>[] = [
-  { key: 'user_name', header: 'Xaridor', render: (l) => l.user_name },
-  { key: 'template_name', header: 'Shablon', render: (l) => l.template_name },
-  {
-    key: 'success',
-    header: 'Natija',
-    render: (l) => <Badge tone={l.success ? 'success' : 'danger'}>{l.success ? 'Yetdi' : 'Yetmadi'}</Badge>,
-  },
-  { key: 'sent_at', header: 'Vaqt', render: (l) => new Date(l.sent_at).toLocaleString('uz-UZ') },
 ]
 
 // --- Auto messages ---
@@ -122,17 +108,6 @@ export const autoMessageColumns: ResourceColumn<AutoMessage>[] = [
   { key: 'sent_total', header: 'Yuborilgan', render: (m) => `${m.sent_total ?? 0} ta` },
 ]
 
-// --- Auto message log (read-only) ---
-export const autoMessageLogColumns: ResourceColumn<AutoMessageLog>[] = [
-  { key: 'user', header: 'Mijoz ID', render: (l) => l.user },
-  {
-    key: 'success',
-    header: 'Natija',
-    render: (l) => <Badge tone={l.success ? 'success' : 'danger'}>{l.success ? 'Yetdi' : 'Yetmadi'}</Badge>,
-  },
-  { key: 'sent_at', header: 'Vaqt', render: (l) => new Date(l.sent_at).toLocaleString('uz-UZ') },
-]
-
 // --- Broadcasts ---
 export const broadcastFormSchema = z.object({
   title: z.string().min(1),
@@ -169,17 +144,42 @@ export const broadcastFormConfig: ResourceFormConfig<BroadcastFormValues> = {
     product: (item.product as number) ?? undefined,
   }),
 }
+const BROADCAST_STATUS: Record<string, { tone: 'neutral' | 'success' | 'warning' | 'danger'; label: string }> = {
+  draft: { tone: 'neutral', label: 'Qoralama — hali yuborilmagan' },
+  sending: { tone: 'warning', label: 'Yuborilmoqda…' },
+  sent: { tone: 'success', label: 'Yuborildi' },
+  failed: { tone: 'danger', label: 'Xatolik' },
+}
+
 export const broadcastColumns: ResourceColumn<Broadcast>[] = [
   { key: 'title', header: 'Sarlavha', render: (b) => b.title },
+  {
+    key: 'audience',
+    header: 'Kimlarga',
+    render: (b) =>
+      b.audience === 'all'
+        ? 'Hamma'
+        : b.audience === 'by_skin'
+          ? 'Teri turi'
+          : 'Mahsulot xaridorlari',
+  },
   {
     key: 'status',
     header: 'Holat',
     render: (b) => {
-      const tone =
-        b.status === 'sent' ? 'success' : b.status === 'failed' ? 'danger' : b.status === 'sending' ? 'warning' : 'neutral'
-      return <Badge tone={tone}>{b.status}</Badge>
+      const s = BROADCAST_STATUS[b.status as string] ?? { tone: 'neutral' as const, label: b.status }
+      return <Badge tone={s.tone}>{s.label}</Badge>
     },
   },
-  { key: 'reach', header: 'Yetib bordi', render: (b) => (b.status === 'sent' ? `${b.sent_count} ta` : '—') },
+  {
+    key: 'reach',
+    header: 'Yetib bordi',
+    render: (b) =>
+      b.status === 'sent'
+        ? `${b.sent_count}/${b.total} ta`
+        : b.status === 'draft'
+          ? `~${b.recipients_count ?? 0} ta kutilmoqda`
+          : '—',
+  },
   { key: 'created_at', header: 'Yaratilgan', render: (b) => new Date(b.created_at as string).toLocaleDateString('uz-UZ') },
 ]

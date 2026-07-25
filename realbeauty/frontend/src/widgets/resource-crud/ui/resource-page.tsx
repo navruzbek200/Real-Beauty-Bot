@@ -3,7 +3,7 @@ import { useState, type ReactNode } from 'react'
 import type { ResourceApi } from '@/shared/lib/create-resource-hooks'
 import { createResourceHooks } from '@/shared/lib/create-resource-hooks'
 import { useTableQueryState } from '@/shared/lib/use-table-query-state'
-import { Button, ConfirmDialog, EmptyState, Input, Pagination, Spinner, Table, TableBody, TableHead, Td, Th, Tr } from '@/shared/ui'
+import { Button, ConfirmDialog, EmptyState, Input, PageHeader, Pagination, Spinner, Table, TableBody, TableHead, Td, Th, Tr } from '@/shared/ui'
 import { hasPermission, useSessionStore } from '@/entities/session'
 import type {
   ResourceColumn,
@@ -121,33 +121,59 @@ export function ResourcePage<
     setDeleting(null)
   }
 
+  const addButton =
+    canAdd && formConfig ? <Button onClick={() => setCreating(true)}>{createLabel}</Button> : null
+
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{title}</h1>
-        {canAdd && formConfig && (
-          <Button onClick={() => setCreating(true)}>{createLabel}</Button>
-        )}
-      </div>
+      {(title || addButton) && (
+        <PageHeader
+          title={title}
+          count={listQuery.data?.count}
+          actions={addButton}
+        />
+      )}
 
       <div className="flex flex-wrap items-center gap-2">
-        <Input
-          placeholder={searchPlaceholder}
-          value={tableState.rawSearch}
-          onChange={(e) => tableState.setSearch(e.target.value)}
-          className="max-w-xs"
-        />
+        <div className="relative max-w-xs flex-1">
+          <svg
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+            width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.3-4.3" />
+          </svg>
+          <Input
+            placeholder={searchPlaceholder}
+            value={tableState.rawSearch}
+            onChange={(e) => tableState.setSearch(e.target.value)}
+            className="pl-9"
+          />
+        </div>
         {filterBar?.(tableState)}
       </div>
 
       {listQuery.isLoading ? (
-        <div className="flex justify-center py-12">
-          <Spinner />
+        <div className="flex justify-center py-16">
+          <Spinner className="h-8 w-8" />
         </div>
       ) : listQuery.isError ? (
-        <EmptyState message="Ma'lumotlarni yuklab bo'lmadi." />
+        <EmptyState
+          tone="error"
+          message="Ma'lumotlarni yuklab bo'lmadi."
+          hint="Internet aloqasini tekshirib, sahifani yangilang."
+          action={
+            <Button variant="secondary" onClick={() => listQuery.refetch()}>
+              Qayta urinish
+            </Button>
+          }
+        />
       ) : listQuery.data && listQuery.data.results.length === 0 ? (
-        <EmptyState message="Hozircha yozuvlar yo'q." />
+        <EmptyState
+          message={tableState.search ? 'Qidiruv bo\'yicha natija topilmadi.' : "Hozircha yozuvlar yo'q."}
+          hint={tableState.search ? 'Boshqa so\'z bilan urinib ko\'ring.' : undefined}
+          action={!tableState.search ? addButton : undefined}
+        />
       ) : listQuery.data ? (
         <Table>
           <TableHead>
@@ -171,14 +197,19 @@ export function ResourcePage<
                 ))}
                 {(canChange || canDelete || rowActions) && (
                   <Td>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap items-center gap-1">
                       {canChange && formConfig && (
-                        <Button variant="ghost" onClick={() => setEditing(item)}>
+                        <Button variant="ghost" size="sm" onClick={() => setEditing(item)}>
                           Tahrirlash
                         </Button>
                       )}
                       {canDelete && (
-                        <Button variant="ghost" onClick={() => setDeleting(item)}>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-900/30"
+                          onClick={() => setDeleting(item)}
+                        >
                           O'chirish
                         </Button>
                       )}

@@ -10,8 +10,9 @@ export interface NavSection {
   items: NavItem[]
 }
 
-// Mirrors the old Unfold admin's sidebar grouping, so the move to the SPA
-// doesn't also relearn where everything lives.
+// One short, task-shaped sidebar: the sections a shop actually opens the CRM
+// to do, nothing that writes to a retired system. Settings that used to be
+// four separate pages now live behind one "Sozlamalar" entry with tabs.
 export const NAV_SECTIONS: NavSection[] = [
   {
     title: 'Asosiy',
@@ -31,7 +32,6 @@ export const NAV_SECTIONS: NavSection[] = [
         label: 'Video darsliklar',
         permission: 'products.view_producttutorialstep',
       },
-      { to: '/user-products', label: 'Sotib olingan mahsulotlar', permission: 'users.view_userproduct' },
     ],
   },
   {
@@ -40,44 +40,20 @@ export const NAV_SECTIONS: NavSection[] = [
       { to: '/auto-messages', label: 'Avtomatik xabarlar', permission: 'campaigns.view_automessage' },
       { to: '/broadcasts', label: "E'lonlar", permission: 'campaigns.view_broadcast' },
       { to: '/message-templates', label: 'Xabar shablonlari', permission: 'campaigns.view_messagetemplate' },
-      { to: '/discounts', label: 'Chegirmalar', permission: 'bot_settings.view_discount' },
-      { to: '/campaign-logs', label: 'Yuborilgan xabarlar', permission: 'campaigns.view_campaignlog' },
-      { to: '/auto-message-logs', label: 'Avto xabarlar jurnali', superuserOnly: true },
-    ],
-  },
-  {
-    title: 'Bonus dasturi',
-    items: [
-      { to: '/loyalty-accounts', label: 'Bonus hisoblari', permission: 'loyalty.view_loyaltyaccount' },
-      { to: '/rewards', label: "Sovg'alar", permission: 'loyalty.view_reward' },
-      {
-        to: '/reward-redemptions',
-        label: "Almashtirilgan sovg'alar",
-        permission: 'loyalty.view_rewardredemption',
-      },
-      {
-        to: '/points-transactions',
-        label: 'Ball harakatlari',
-        permission: 'loyalty.view_pointstransaction',
-      },
-      { to: '/loyalty-settings', label: 'Bonus sozlamalari', permission: 'loyalty.view_loyaltysettings' },
     ],
   },
   {
     title: 'Analitika',
     items: [
-      { to: '/feedback', label: "Mijozlar fikri / Baholar", permission: 'analytics.view_userfeedback' },
-      { to: '/skin-quiz-results', label: 'Teri testi natijalari', permission: 'analytics.view_skinquizresult' },
-      { to: '/progress-photos', label: 'Natija rasmlari', permission: 'analytics.view_progressphoto' },
+      {
+        to: '/skin-quiz-results',
+        label: 'Teri testi natijalari',
+        permission: 'analytics.view_skinquizresult',
+      },
     ],
   },
   {
     title: 'Sozlamalar',
-    items: [
-      { to: '/global-settings', label: 'Umumiy sozlamalar', superuserOnly: true },
-      { to: '/staff', label: 'Xodimlar', superuserOnly: true },
-      { to: '/support-settings', label: 'Telegram guruh', superuserOnly: true },
-      { to: '/support-admins', label: 'Guruh adminlari', superuserOnly: true },
-    ],
+    items: [{ to: '/settings', label: 'Sozlamalar', superuserOnly: true }],
   },
 ]
