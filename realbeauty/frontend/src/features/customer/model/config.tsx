@@ -7,11 +7,13 @@ import type { Customer } from '@/entities/customer'
 export const customerFormSchema = z.object({
   full_name: z.string().min(1, "Ism-familiya shart"),
   // The bot links a customer to their card by phone number, so it's the one
-  // field that actually has to be right. +998… form is enforced server-side.
+  // field that actually has to be right. The country is detected server-side
+  // (UZ by default, +code for anyone abroad), so the form only checks it
+  // looks phone-ish.
   phone_number: z
     .string()
     .min(1, "Telefon raqami shart")
-    .regex(/^[+\d][\d\s()-]*$/, "Faqat raqam, masalan: +998 90 123 45 67"),
+    .regex(/^[+\d][\d\s()-]*$/, "Faqat raqam. UZ: 90 123 45 67 · boshqa: +7…"),
   birth_date: z.string().optional(),
   face_condition: z.enum(['', 'dry', 'oily', 'combined', 'normal', 'sensitive']).optional(),
   is_active: z.boolean(),
@@ -27,7 +29,7 @@ export const customerFormConfig: ResourceFormConfig<CustomerFormValues> = {
       name: 'phone_number',
       label: 'Telefon raqami',
       type: 'text',
-      help: '+998 bilan. Masalan: +998 90 123 45 67',
+      help: "O'zbekiston: 90 123 45 67 (o'zi +998 qo'yadi). Chet el: +7 916 …",
     },
     { name: 'birth_date', label: "Tug'ilgan sana", type: 'text', help: 'kk.oo.yyyy — masalan 1995-12-25. Ixtiyoriy.' },
     {

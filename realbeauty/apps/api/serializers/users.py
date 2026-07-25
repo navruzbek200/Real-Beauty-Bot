@@ -79,7 +79,8 @@ class TelegramUserSerializer(serializers.ModelSerializer):
         normalized = TelegramUser.normalize_phone(value)
         if normalized is None:
             raise serializers.ValidationError(
-                "Raqam noto'g'ri. Masalan: +998 90 123 45 67"
+                "Raqam noto'g'ri. O'zbekiston uchun: 90 123 45 67. "
+                "Boshqa davlat uchun kod bilan: +7 916 123 45 67."
             )
         return normalized
 

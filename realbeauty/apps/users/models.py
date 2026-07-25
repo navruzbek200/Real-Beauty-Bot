@@ -194,21 +194,52 @@ class TelegramUser(models.Model):
         digits = "".join(ch for ch in (phone or "") if ch.isdigit())
         return digits[-9:] if len(digits) >= 9 else ""
 
+    # The shop is ~90% Uzbekistan, so a bare 9-digit local number defaults to
+    # +998. But customers standing in Russia, the US, anywhere — reachable on
+    # the same bot — must work too, which a hard-coded 998 prefix broke.
+    DEFAULT_REGION = "UZ"
+
     @staticmethod
     def normalize_phone(phone: str | None) -> str | None:
         """
-        Canonical +998XXXXXXXXX form, or None if this cannot be a phone number.
+        Canonical E.164 (+<country><number>), or None if it isn't a real number.
 
-        Customers type their number every imaginable way and Telegram hands
-        contacts over with no leading +, so what gets stored is settled here
-        rather than at each call site.
+        Country is detected, not assumed: a "+" or an international-length
+        number is parsed for its own country code (Russia +7, the US +1 …),
+        and only a short local number falls back to Uzbekistan. Telegram hands
+        contacts over without a leading "+", so those are tried as
+        international first before the local fallback.
         """
-        digits = "".join(ch for ch in (phone or "") if ch.isdigit())
-        if len(digits) == 9:  # 901234567 — local, assume Uzbekistan
-            digits = f"998{digits}"
-        if not 11 <= len(digits) <= 15:  # E.164 bounds, minus implausibly short
+        import phonenumbers
+
+        raw = (phone or "").strip()
+        if not raw:
             return None
-        return f"+{digits}"
+
+        candidates: list[str] = []
+        if raw.startswith("+"):
+            candidates.append(raw)
+        else:
+            digits = "".join(ch for ch in raw if ch.isdigit())
+            if not digits:
+                return None
+            # 11+ digits can only be carrying a country code (UZ local is 9),
+            # so read it as international first; then fall back to a local
+            # number in the default region.
+            if len(digits) >= 11:
+                candidates.append("+" + digits)
+            candidates.append(digits)
+
+        for candidate in candidates:
+            try:
+                parsed = phonenumbers.parse(candidate, TelegramUser.DEFAULT_REGION)
+            except phonenumbers.NumberParseException:
+                continue
+            if phonenumbers.is_valid_number(parsed):
+                return phonenumbers.format_number(
+                    parsed, phonenumbers.PhoneNumberFormat.E164
+                )
+        return None
 
     @property
     def is_birthday_today(self) -> bool:
