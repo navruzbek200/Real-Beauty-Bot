@@ -11,7 +11,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
-      <aside className="hidden w-64 shrink-0 flex-col border-r border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 md:flex">
+      <aside className="flex w-64 shrink-0 flex-col border-r border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
         <div className="flex items-center gap-2.5 border-b border-slate-200 px-4 py-4 dark:border-slate-800">
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-sm font-bold text-white">
             RB
@@ -53,11 +53,17 @@ export function AppShell({ children }: { children: ReactNode }) {
         </nav>
       </aside>
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-3 dark:border-slate-800 dark:bg-slate-900">
-          <span className="text-sm text-slate-500 dark:text-slate-400">
-            {user?.username} {user?.is_superuser ? '(Administrator)' : '(Sotuvchi)'}
+        <header className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white/80 px-6 py-3 backdrop-blur dark:border-slate-800 dark:bg-slate-900/80">
+          <span className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold uppercase text-slate-500 dark:bg-slate-800 dark:text-slate-300">
+              {user?.username?.[0] ?? '?'}
+            </span>
+            <span className="font-medium">{user?.username}</span>
+            <span className="hidden text-slate-400 sm:inline">
+              {user?.is_superuser ? 'Administrator' : 'Sotuvchi'}
+            </span>
           </span>
-          <Button variant="secondary" onClick={logout}>
+          <Button variant="secondary" size="sm" onClick={logout}>
             Chiqish
           </Button>
         </header>
