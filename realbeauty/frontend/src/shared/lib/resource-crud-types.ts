@@ -8,7 +8,7 @@ export interface ResourceColumn<T> {
   render: (item: T) => ReactNode
 }
 
-export type FieldType = 'text' | 'textarea' | 'number' | 'checkbox' | 'select' | 'file'
+export type FieldType = 'text' | 'textarea' | 'number' | 'checkbox' | 'select' | 'file' | 'date'
 
 export interface ResourceFormField {
   name: string

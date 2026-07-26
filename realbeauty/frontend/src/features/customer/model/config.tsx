@@ -31,7 +31,7 @@ export const customerFormConfig: ResourceFormConfig<CustomerFormValues> = {
       type: 'text',
       help: "O'zbekiston: 90 123 45 67 (o'zi +998 qo'yadi). Chet el: +7 916 …",
     },
-    { name: 'birth_date', label: "Tug'ilgan sana", type: 'text', help: 'kk.oo.yyyy — masalan 1995-12-25. Ixtiyoriy.' },
+    { name: 'birth_date', label: "Tug'ilgan sana", type: 'date', help: 'Ixtiyoriy.' },
     {
       name: 'face_condition',
       label: 'Teri turi',

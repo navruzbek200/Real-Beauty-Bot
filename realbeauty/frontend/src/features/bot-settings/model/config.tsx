@@ -20,7 +20,7 @@ export const discountFormConfig: ResourceFormConfig<DiscountFormValues> = {
     { name: 'percent', label: 'Chegirma foizi (%)', type: 'number' },
     { name: 'description', label: 'Tavsif', type: 'textarea' },
     { name: 'promo_code', label: 'Promokod', type: 'text' },
-    { name: 'valid_until', label: 'Amal qilish muddati', type: 'text', help: 'YYYY-MM-DD' },
+    { name: 'valid_until', label: 'Amal qilish muddati', type: 'date', help: 'Ixtiyoriy — bo\'sh qoldirsangiz muddatsiz.' },
     { name: 'is_active', label: 'Faol', type: 'checkbox' },
   ],
   defaultValues: {

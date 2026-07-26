@@ -84,6 +84,18 @@ export function ResourceFormDialog<TFormValues extends Record<string, unknown>>(
                     </Select>
                   )
                 }
+                if (field.type === 'date') {
+                  // Native date picker — the value is always YYYY-MM-DD, so the
+                  // server's DateField never sees a malformed string.
+                  return (
+                    <Input
+                      id={field.name}
+                      type="date"
+                      {...rhf}
+                      value={(rhf.value as string) ?? ''}
+                    />
+                  )
+                }
                 if (field.type === 'file') {
                   return (
                     <input
@@ -109,7 +121,7 @@ export function ResourceFormDialog<TFormValues extends Record<string, unknown>>(
           </div>
         ))}
         {serverError && (
-          <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-300">
+          <div className="whitespace-pre-line rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-300">
             {serverError}
           </div>
         )}

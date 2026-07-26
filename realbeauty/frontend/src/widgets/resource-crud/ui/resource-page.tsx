@@ -16,6 +16,22 @@ interface WithId {
   id: number
 }
 
+// Turn a DRF error body ({field: ["msg", ...]} or {detail: "..."}) into one
+// readable line, so the dialog says *which* field is wrong instead of a blanket
+// "check the fields". Falls back to a generic note for network/other errors.
+function formatServerError(error: unknown): string {
+  const generic = "Saqlashda xatolik yuz berdi. Maydonlarni tekshiring."
+  if (!error || typeof error !== 'object') return generic
+  const body = error as Record<string, unknown>
+  if (typeof body.detail === 'string') return body.detail
+  const parts: string[] = []
+  for (const [field, value] of Object.entries(body)) {
+    const msg = Array.isArray(value) ? value.join(' ') : String(value)
+    parts.push(field === 'non_field_errors' ? msg : `${field}: ${msg}`)
+  }
+  return parts.length ? parts.join('\n') : generic
+}
+
 interface ResourcePageProps<
   T extends WithId,
   TFormValues extends Record<string, unknown>,
@@ -99,8 +115,8 @@ export function ResourcePage<
     try {
       await createMutation.mutateAsync(toCreatePayload(values))
       setCreating(false)
-    } catch {
-      setFormError("Saqlashda xatolik yuz berdi. Maydonlarni tekshiring.")
+    } catch (error) {
+      setFormError(formatServerError(error))
     }
   }
 
@@ -110,8 +126,8 @@ export function ResourcePage<
     try {
       await updateMutation.mutateAsync({ id: editing.id, data: toUpdatePayload(values) })
       setEditing(null)
-    } catch {
-      setFormError("Saqlashda xatolik yuz berdi. Maydonlarni tekshiring.")
+    } catch (error) {
+      setFormError(formatServerError(error))
     }
   }
 
