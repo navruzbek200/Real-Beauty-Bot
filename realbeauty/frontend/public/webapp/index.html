@@ -7,126 +7,140 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
-      --bg: var(--tg-theme-bg-color, #ffffff);
-      --surface: var(--tg-theme-secondary-bg-color, #f4f4f7);
-      --text: var(--tg-theme-text-color, #14161a);
-      --hint: var(--tg-theme-hint-color, #8a8f98);
-      --accent: var(--tg-theme-button-color, #2f6bff);
-      --accent-text: var(--tg-theme-button-text-color, #ffffff);
-      --card: var(--bg);
-      --line: color-mix(in srgb, var(--text) 8%, transparent);
+      /* Base follows the Telegram theme; the accent is a fixed brand emerald so
+         the app never inherits the flat Telegram blue. */
+      --bg: var(--tg-theme-bg-color, #0f1512);
+      --text: var(--tg-theme-text-color, #eef4f0);
+      --hint: var(--tg-theme-hint-color, #93a29a);
+      --accent: #10b981;
+      --accent-2: #34d399;
+      --accent-deep: #0b7a5c;
+      --accent-text: #04140f;
+      --glass: color-mix(in srgb, var(--bg) 58%, transparent);
+      --glass-line: color-mix(in srgb, var(--text) 14%, transparent);
       --radius: 20px;
-      --shadow: 0 8px 24px -12px color-mix(in srgb, var(--text) 40%, transparent);
+      --glow: 0 0 22px color-mix(in srgb, var(--accent) 55%, transparent);
     }
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    html, body { margin: 0; padding: 0; background: var(--surface); color: var(--text);
+    html, body { margin: 0; padding: 0; color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       -webkit-font-smoothing: antialiased; }
-    body { padding-bottom: calc(28px + env(safe-area-inset-bottom)); overflow-x: hidden; }
+    /* soft emerald mesh so the frosted glass reads as glass */
+    body { position: relative; min-height: 100vh; overflow-x: hidden;
+      background:
+        radial-gradient(60% 40% at 12% 8%, color-mix(in srgb, var(--accent) 30%, transparent), transparent 60%),
+        radial-gradient(55% 45% at 92% 4%, color-mix(in srgb, var(--accent-2) 26%, transparent), transparent 60%),
+        radial-gradient(70% 50% at 50% 108%, color-mix(in srgb, var(--accent-deep) 26%, transparent), transparent 60%),
+        var(--bg);
+      background-attachment: fixed;
+      padding-bottom: calc(30px + env(safe-area-inset-bottom)); }
     img { display: block; max-width: 100%; }
 
+    .glass { background: var(--glass); backdrop-filter: blur(18px) saturate(1.3);
+      -webkit-backdrop-filter: blur(18px) saturate(1.3); border: 1px solid var(--glass-line); }
+
     /* ---------- hero ---------- */
-    .hero { position: relative; padding: calc(26px + env(safe-area-inset-top)) 20px 26px;
-      background:
-        radial-gradient(120% 90% at 15% 0%, color-mix(in srgb, var(--accent) 42%, transparent), transparent 60%),
-        radial-gradient(120% 90% at 100% 10%, color-mix(in srgb, var(--accent) 26%, transparent), transparent 55%),
-        linear-gradient(160deg, color-mix(in srgb, var(--accent) 88%, #000), color-mix(in srgb, var(--accent) 62%, #000));
-      color: #fff; border-radius: 0 0 28px 28px; overflow: hidden; }
-    .hero::after { content: ""; position: absolute; inset: 0;
-      background: radial-gradient(60% 50% at 85% 90%, rgba(255,255,255,.18), transparent 70%); pointer-events: none; }
-    .hero .kicker { font-size: 12px; letter-spacing: .18em; text-transform: uppercase; opacity: .85; }
-    .hero h1 { margin: 6px 0 0; font-size: 30px; font-weight: 800; letter-spacing: -.02em; }
-    .hero p { margin: 8px 0 0; font-size: 14px; opacity: .9; max-width: 22ch; line-height: 1.4; }
-    .hero .spark { position: absolute; top: 18px; right: 20px; font-size: 22px; opacity: .9;
-      animation: float 4s ease-in-out infinite; }
+    .hero { position: relative; margin: 0; padding: calc(30px + env(safe-area-inset-top)) 20px 26px;
+      text-align: center; overflow: hidden; }
+    .hero::before { content: ""; position: absolute; inset: -40% -10% auto; height: 120%;
+      background: radial-gradient(50% 60% at 50% 0%, color-mix(in srgb, var(--accent) 45%, transparent), transparent 70%);
+      filter: blur(30px); pointer-events: none; }
+    .hero .spark { position: relative; font-size: 26px; filter: drop-shadow(0 0 12px color-mix(in srgb,var(--accent) 80%,transparent));
+      animation: float 4s ease-in-out infinite; display: inline-block; }
     @keyframes float { 0%,100%{ transform: translateY(0) } 50%{ transform: translateY(-6px) } }
+    .hero .kicker { position: relative; margin-top: 6px; font-size: 11px; letter-spacing: .28em;
+      text-transform: uppercase; color: var(--accent-2); font-weight: 700; }
+    .hero h1 { position: relative; margin: 6px 0 0; font-size: 34px; font-weight: 800; letter-spacing: -.02em;
+      color: #fff; text-shadow: 0 0 26px color-mix(in srgb, var(--accent-2) 75%, transparent), 0 2px 10px rgba(0,0,0,.35); }
+    .hero p { position: relative; margin: 8px auto 0; font-size: 14px; color: var(--hint); max-width: 24ch; line-height: 1.45; }
 
     /* ---------- search + chips ---------- */
-    .controls { padding: 16px 16px 4px; }
-    .search { position: relative; margin-bottom: 12px; }
-    .search input { width: 100%; border: none; outline: none; background: var(--bg);
-      color: var(--text); border-radius: 14px; padding: 13px 14px 13px 42px; font-size: 15px; box-shadow: var(--shadow); }
-    .search svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); opacity: .5; }
+    .controls { padding: 6px 16px 4px; }
+    .search { position: relative; margin-bottom: 12px; border-radius: 15px; }
+    .search input { width: 100%; border: none; outline: none; background: transparent; color: var(--text);
+      padding: 13px 14px 13px 44px; font-size: 15px; }
+    .search { display: flex; }
+    .search .wrap { position: relative; width: 100%; border-radius: 15px; }
+    .search svg { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); opacity: .55; }
     .chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none; }
     .chips::-webkit-scrollbar { display: none; }
-    .chip { flex: 0 0 auto; border: 1px solid var(--line); background: var(--bg); color: var(--text);
-      border-radius: 999px; padding: 8px 15px; font-size: 13px; font-weight: 600; cursor: pointer;
-      transition: transform .12s ease, background .15s ease; }
-    .chip:active { transform: scale(.95); }
-    .chip.active { background: var(--accent); color: var(--accent-text); border-color: transparent; }
+    .chip { flex: 0 0 auto; border-radius: 999px; padding: 9px 16px; font-size: 13px; font-weight: 700;
+      cursor: pointer; color: var(--text); transition: transform .12s ease, box-shadow .2s ease; }
+    .chip:active { transform: scale(.94); }
+    .chip.active { background: linear-gradient(135deg, var(--accent-2), var(--accent)); color: var(--accent-text);
+      border-color: transparent; box-shadow: var(--glow); }
 
     /* ---------- grid ---------- */
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 12px 16px 8px; }
-    .card { background: var(--card); border-radius: var(--radius); overflow: hidden; cursor: pointer;
-      display: flex; flex-direction: column; box-shadow: var(--shadow); border: 1px solid var(--line);
-      transition: transform .14s ease; animation: rise .4s both; }
+    .card { border-radius: var(--radius); overflow: hidden; cursor: pointer; display: flex; flex-direction: column;
+      transition: transform .14s ease, box-shadow .2s ease; animation: rise .45s both; }
     .card:active { transform: scale(.97); }
-    @keyframes rise { from { opacity: 0; transform: translateY(10px) } to { opacity: 1; transform: none } }
+    @keyframes rise { from { opacity: 0; transform: translateY(12px) } to { opacity: 1; transform: none } }
     .thumb-wrap { position: relative; }
-    .thumb { aspect-ratio: 1/1; width: 100%; object-fit: cover; background:
-      linear-gradient(135deg, color-mix(in srgb, var(--accent) 20%, var(--surface)), var(--surface)); }
+    .thumb { aspect-ratio: 1/1; width: 100%; object-fit: cover;
+      background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 26%, transparent), transparent); }
     div.thumb { display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: 800;
-      color: color-mix(in srgb, var(--accent) 80%, var(--text)); }
+      color: var(--accent-2); }
     .badges { position: absolute; top: 9px; left: 9px; display: flex; gap: 5px; flex-wrap: wrap; }
-    .badge { font-size: 10px; font-weight: 800; letter-spacing: .02em; padding: 3px 8px; border-radius: 999px;
-      backdrop-filter: blur(6px); }
-    .badge.sale { background: #ff3b30; color: #fff; }
-    .badge.top { background: rgba(255,255,255,.85); color: #b8860b; }
+    .badge { font-size: 10px; font-weight: 800; padding: 3px 9px; border-radius: 999px; backdrop-filter: blur(6px); }
+    .badge.sale { background: linear-gradient(135deg,#ff5a5f,#e11d48); color: #fff; box-shadow: 0 0 14px rgba(225,29,72,.5); }
+    .badge.top { background: linear-gradient(135deg, var(--accent-2), var(--accent)); color: var(--accent-text); box-shadow: var(--glow); }
     .card-body { padding: 11px 12px 13px; display: flex; flex-direction: column; gap: 7px; flex: 1; }
     .name { font-size: 13.5px; font-weight: 600; line-height: 1.3; min-height: 2.6em;
       display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .price-row { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
-    .price { font-size: 16px; font-weight: 800; letter-spacing: -.01em; }
+    .price { font-size: 16px; font-weight: 800; color: var(--accent-2); }
     .old { font-size: 12px; color: var(--hint); text-decoration: line-through; }
     .buy { margin-top: auto; border: none; border-radius: 12px; padding: 9px; font-size: 13px; font-weight: 700;
-      background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); cursor: pointer; }
+      background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent-2); cursor: pointer;
+      border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent); }
 
-    /* ---------- menu (socials) ---------- */
+    /* ---------- socials menu ---------- */
     .section { padding: 18px 16px 6px; }
     .section h2 { margin: 0 0 10px; font-size: 15px; font-weight: 700; }
-    .menu { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
-      border: 1px solid var(--line); overflow: hidden; }
-    .row { display: flex; align-items: center; gap: 13px; padding: 13px 15px; cursor: pointer;
-      transition: background .15s ease; }
-    .row:active { background: var(--surface); }
-    .row + .row { border-top: 1px solid var(--line); }
+    .menu { border-radius: var(--radius); overflow: hidden; }
+    .row { display: flex; align-items: center; gap: 13px; padding: 13px 15px; cursor: pointer; transition: background .15s ease; }
+    .row:active { background: color-mix(in srgb, var(--text) 6%, transparent); }
+    .row + .row { border-top: 1px solid var(--glass-line); }
     .ic { width: 38px; height: 38px; border-radius: 11px; display: flex; align-items: center; justify-content: center;
       flex: 0 0 auto; color: #fff; }
     .ic.ig { background: linear-gradient(135deg,#feda75,#d62976 45%,#4f5bd5); }
     .ic.yt { background: #ff0000; }
     .ic.tg { background: linear-gradient(135deg,#37bbfe,#007dbb); }
-    .ic.sp { background: linear-gradient(135deg,#34c759,#248a3d); }
+    .ic.sp { background: linear-gradient(135deg, var(--accent-2), var(--accent-deep)); }
     .row .label { flex: 1; font-size: 15px; font-weight: 600; }
-    .row .chev { color: var(--hint); }
+    .row .chev { color: var(--hint); font-size: 20px; }
 
     /* ---------- states ---------- */
     .state { text-align: center; color: var(--hint); padding: 56px 24px; font-size: 15px; }
-    .sk { background: var(--card); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow);
-      border: 1px solid var(--line); }
+    .sk { border-radius: var(--radius); overflow: hidden; }
     .sk .thumb { animation: pulse 1.3s ease-in-out infinite; }
-    .sk .b { height: 12px; margin: 12px; border-radius: 6px; background: var(--line); animation: pulse 1.3s infinite; }
+    .sk .b { height: 12px; margin: 12px; border-radius: 6px; background: var(--glass-line); animation: pulse 1.3s infinite; }
     .sk .b.short { width: 55%; }
-    @keyframes pulse { 0%,100%{opacity:.55} 50%{opacity:1} }
+    @keyframes pulse { 0%,100%{opacity:.5} 50%{opacity:1} }
 
     /* ---------- detail sheet ---------- */
-    .backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.5); opacity: 0; pointer-events: none;
+    .backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.55); opacity: 0; pointer-events: none;
       transition: opacity .22s ease; z-index: 20; }
     .backdrop.open { opacity: 1; pointer-events: auto; }
     .sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 21; background: var(--bg);
       border-radius: 24px 24px 0 0; transform: translateY(101%); transition: transform .3s cubic-bezier(.2,.9,.2,1);
-      max-height: 90vh; overflow-y: auto; padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
+      max-height: 90vh; overflow-y: auto; padding-bottom: calc(20px + env(safe-area-inset-bottom));
+      border-top: 1px solid var(--glass-line); }
     .sheet.open { transform: none; }
     .grab { width: 42px; height: 4px; border-radius: 2px; background: var(--hint); opacity: .4; margin: 9px auto 2px; }
-    .sheet-photo { width: 100%; aspect-ratio: 1/1; object-fit: cover; background: var(--surface);
-      display: flex; align-items: center; justify-content: center; font-size: 64px; font-weight: 800; color: var(--accent); }
+    .sheet-photo { width: 100%; aspect-ratio: 1/1; object-fit: cover;
+      background: linear-gradient(135deg, color-mix(in srgb,var(--accent) 26%,transparent), transparent);
+      display: flex; align-items: center; justify-content: center; font-size: 64px; font-weight: 800; color: var(--accent-2); }
     .sheet-body { padding: 18px 18px 6px; }
     .sheet-body h2 { margin: 0 0 10px; font-size: 21px; font-weight: 800; letter-spacing: -.02em; }
     .sheet-price { display: flex; align-items: baseline; gap: 9px; margin-bottom: 14px; }
     .sheet-price .price { font-size: 24px; }
-    .desc { color: var(--text); opacity: .85; font-size: 15px; line-height: 1.55; white-space: pre-wrap; }
+    .desc { color: var(--text); opacity: .86; font-size: 15px; line-height: 1.55; white-space: pre-wrap; }
     .cta { padding: 16px 18px 4px; }
-    .cta button { width: 100%; border: none; border-radius: 15px; padding: 16px; font-size: 16px; font-weight: 700;
-      background: var(--accent); color: var(--accent-text); cursor: pointer; }
+    .cta button { width: 100%; border: none; border-radius: 15px; padding: 16px; font-size: 16px; font-weight: 800;
+      background: linear-gradient(135deg, var(--accent-2), var(--accent)); color: var(--accent-text); cursor: pointer;
+      box-shadow: var(--glow); }
   </style>
 </head>
 <body>
@@ -138,10 +152,10 @@
   </header>
 
   <div class="controls">
-    <div class="search">
+    <div class="search glass"><div class="wrap">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3"/></svg>
       <input id="search" type="text" placeholder="Qidirish…" autocomplete="off" />
-    </div>
+    </div></div>
     <div class="chips" id="chips"></div>
   </div>
 
@@ -149,7 +163,7 @@
 
   <div class="section" id="links-section" hidden>
     <h2 id="links-title">Biz bilan bog'laning</h2>
-    <div class="menu" id="links"></div>
+    <div class="menu glass" id="links"></div>
   </div>
 
   <div class="backdrop" id="backdrop"></div>
@@ -160,7 +174,7 @@
 
   <script>
     const tg = window.Telegram && window.Telegram.WebApp;
-    if (tg) { tg.ready(); tg.expand(); try { tg.setHeaderColor && tg.setHeaderColor('secondary_bg_color'); } catch (e) {} }
+    if (tg) { tg.ready(); tg.expand(); try { tg.setHeaderColor && tg.setHeaderColor('bg_color'); } catch (e) {} }
 
     const LANG = ((tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.language_code) || 'uz').slice(0, 2);
     const T = {
@@ -190,20 +204,15 @@
     const send = (obj) => { try { tg.sendData(JSON.stringify(obj)); } catch (e) {} try { tg.close(); } catch (e) {} };
 
     let ALL = [], FILTER = 'all', QUERY = '';
+    const CHIPS = [{ key: 'all', label: L.all }, { key: 'top', label: L.top }, { key: 'sale', label: L.sale }];
 
-    const CHIPS = [
-      { key: 'all', label: L.all },
-      { key: 'top', label: L.top },
-      { key: 'sale', label: L.sale },
-    ];
     function renderChips() {
       document.getElementById('chips').innerHTML = CHIPS.map(c =>
-        `<button class="chip ${c.key === FILTER ? 'active' : ''}" data-k="${c.key}">${c.label}</button>`).join('');
+        `<button class="chip glass ${c.key === FILTER ? 'active' : ''}" data-k="${c.key}">${c.label}</button>`).join('');
       document.querySelectorAll('.chip').forEach(el => el.addEventListener('click', () => {
         FILTER = el.dataset.k; haptic('light'); renderChips(); renderGrid();
       }));
     }
-
     function visible() {
       return ALL.filter(p => {
         if (FILTER === 'top' && !p.is_top) return false;
@@ -212,7 +221,6 @@
         return true;
       });
     }
-
     function card(p, i) {
       const thumb = p.photo ? `<img class="thumb" loading="lazy" src="${esc(p.photo)}" alt="">`
         : `<div class="thumb">${esc(initial(p.name))}</div>`;
@@ -220,7 +228,7 @@
       if (p.discount_percent) badges.push(`<span class="badge sale">-${p.discount_percent}%</span>`);
       if (p.is_top) badges.push(`<span class="badge top">★ ${L.badgeTop}</span>`);
       const old = (p.old_price && p.old_price > p.price) ? `<span class="old">${money(p.old_price)}</span>` : '';
-      return `<div class="card" data-id="${p.id}" style="animation-delay:${Math.min(i, 8) * 35}ms">
+      return `<div class="card glass" data-id="${p.id}" style="animation-delay:${Math.min(i, 8) * 35}ms">
         <div class="thumb-wrap">${thumb}${badges.length ? `<div class="badges">${badges.join('')}</div>` : ''}</div>
         <div class="card-body">
           <div class="name">${esc(p.name)}</div>
@@ -229,20 +237,16 @@
         </div>
       </div>`;
     }
-
     function renderGrid() {
-      const list = visible();
-      const c = document.getElementById('content');
+      const list = visible(), c = document.getElementById('content');
       if (!list.length) { c.innerHTML = `<div class="state">${L.empty}</div>`; return; }
       c.innerHTML = `<div class="grid">${list.map(card).join('')}</div>`;
       c.querySelectorAll('.card').forEach(el => el.addEventListener('click', () => openSheet(Number(el.dataset.id))));
     }
-
     function skeleton() {
-      const one = `<div class="sk"><div class="thumb"></div><div class="b"></div><div class="b short"></div></div>`;
+      const one = `<div class="sk glass"><div class="thumb"></div><div class="b"></div><div class="b short"></div></div>`;
       document.getElementById('content').innerHTML = `<div class="grid">${one.repeat(6)}</div>`;
     }
-
     function openSheet(id) {
       const p = ALL.find(x => x.id === id); if (!p) return;
       haptic('light');
@@ -268,7 +272,6 @@
       document.getElementById('sheet').classList.remove('open');
     }
     document.getElementById('backdrop').addEventListener('click', closeSheet);
-
     document.getElementById('search').addEventListener('input', (e) => { QUERY = e.target.value.trim().toLowerCase(); renderGrid(); });
 
     const ICONS = {
@@ -278,27 +281,21 @@
       support: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 13v-1a8 8 0 0 1 16 0v1"/><rect x="2.5" y="13" width="4" height="6" rx="2"/><rect x="17.5" y="13" width="4" height="6" rx="2"/><path d="M20 19a4 4 0 0 1-4 3h-2"/></svg>',
     };
     function renderLinks(links) {
-      const rows = [];
-      const map = { instagram: ['ig', L.ig], youtube: ['yt', L.yt], telegram: ['tg', L.tgc] };
+      const rows = [], map = { instagram: ['ig', L.ig], youtube: ['yt', L.yt], telegram: ['tg', L.tgc] };
       links.forEach(l => {
         const m = map[l.kind]; if (!m) return;
-        rows.push(`<div class="row" data-url="${esc(l.url)}"><div class="ic ${m[0]}">${ICONS[l.kind]}</div>
-          <span class="label">${m[1]}</span><span class="chev">›</span></div>`);
+        rows.push(`<div class="row" data-url="${esc(l.url)}"><div class="ic ${m[0]}">${ICONS[l.kind]}</div><span class="label">${m[1]}</span><span class="chev">›</span></div>`);
       });
-      // Support is always available.
-      rows.push(`<div class="row" data-support="1"><div class="ic sp">${ICONS.support}</div>
-        <span class="label">${L.support}</span><span class="chev">›</span></div>`);
+      rows.push(`<div class="row" data-support="1"><div class="ic sp">${ICONS.support}</div><span class="label">${L.support}</span><span class="chev">›</span></div>`);
       document.getElementById('links').innerHTML = rows.join('');
       document.getElementById('links-section').hidden = false;
       document.querySelectorAll('#links .row').forEach(el => el.addEventListener('click', () => {
         haptic('light');
-        if (el.dataset.support) send({ action: 'support' });
-        else openUrl(el.dataset.url);
+        if (el.dataset.support) send({ action: 'support' }); else openUrl(el.dataset.url);
       }));
     }
 
-    skeleton();
-    renderChips();
+    skeleton(); renderChips();
     fetch('/api/v1/webapp/catalog/?lang=' + encodeURIComponent(LANG))
       .then(r => { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
       .then(data => {

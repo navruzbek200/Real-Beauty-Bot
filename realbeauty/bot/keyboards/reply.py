@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from django.conf import settings
 from aiogram.types import (
     KeyboardButton,
     ReplyKeyboardMarkup,
@@ -12,12 +11,14 @@ from bot.i18n import DEFAULT_LANGUAGE, t
 
 # The main menu, as (i18n key) pairs per row. Kept as data so the layout is
 # read in one glance and every language renders the same shape.
+# Six buttons, a clean 2×3 grid. Top products live inside the Mini App's TOP
+# filter, retaking the quiz lives in Profil, and /help still works — so those
+# older labels keep their handlers (MenuText matches them if an old keyboard is
+# still on screen) without cluttering the menu.
 _MAIN_MENU_ROWS: tuple[tuple[str, ...], ...] = (
-    ("menu.ingredients", "menu.catalog"),
-    ("menu.top", "menu.quiz_retake"),
-    ("menu.support", "menu.discounts"),
-    ("menu.bonus", "menu.profile"),
-    ("menu.help",),
+    ("menu.catalog", "menu.ingredients"),
+    ("menu.bonus", "menu.discounts"),
+    ("menu.support", "menu.profile"),
 )
 
 
@@ -32,9 +33,10 @@ def share_contact_keyboard(lang: str = DEFAULT_LANGUAGE) -> ReplyKeyboardMarkup:
 
 
 def _webapp_url() -> str:
-    """The Mini App URL, but only if it's a real https one Telegram will accept."""
-    url = getattr(settings, "WEBAPP_URL", "") or ""
-    return url if url.startswith("https://") else ""
+    """The versioned Mini App URL, only if it's a real https one Telegram accepts."""
+    from bot.utils.webapp import webapp_url
+
+    return webapp_url()
 
 
 def _menu_button(key: str, lang: str) -> KeyboardButton:

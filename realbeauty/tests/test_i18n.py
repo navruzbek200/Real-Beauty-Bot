@@ -99,6 +99,13 @@ class MenuMatchingTests(SimpleTestCase):
 
 class MainMenuKeyboardTests(SimpleTestCase):
     def test_renders_in_each_language(self):
+        # A tidy 2×3 grid: catalogue, ingredients, bonuses, discounts, support,
+        # profile. Top products live in the Mini App's TOP filter and retaking
+        # the quiz lives in Profil, so those are no longer top-level buttons.
+        expected = [
+            "menu.catalog", "menu.ingredients", "menu.bonus",
+            "menu.discounts", "menu.support", "menu.profile",
+        ]
         for code in i18n.LANGUAGES:
             with self.subTest(language=code):
                 labels = [
@@ -106,10 +113,10 @@ class MainMenuKeyboardTests(SimpleTestCase):
                     for row in reply.main_menu_keyboard(code).keyboard
                     for button in row
                 ]
-                self.assertIn(i18n.t("menu.top", code), labels)
-                self.assertIn(i18n.t("menu.quiz_retake", code), labels)
-                # The tips section was replaced by the top-products one.
-                self.assertNotIn(i18n.t("menu.legacy_tips", code), labels)
+                self.assertEqual(len(labels), 6)
+                for key in expected:
+                    self.assertIn(i18n.t(key, code), labels)
+                self.assertNotIn(i18n.t("menu.top", code), labels)
 
     def test_ingredients_button_replaced_the_tutorials_label(self):
         labels = [

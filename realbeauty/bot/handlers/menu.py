@@ -77,13 +77,13 @@ async def menu_catalog(message: Message, state: FSMContext, lang: str) -> None:
     """The shop window. Opens the Mini App when configured (with the in-chat
     browser as the fallback), so tapping «Mahsulotlar» always reaches the app —
     even for customers whose reply keyboard predates the web_app button."""
-    from django.conf import settings
+    from bot.utils.webapp import webapp_url
 
     await state.clear()
     if message.from_user is None:
         return
-    url = getattr(settings, "WEBAPP_URL", "") or ""
-    if url.startswith("https://"):
+    url = webapp_url()
+    if url:
         await message.answer(
             t("webapp.intro", lang),
             parse_mode="HTML",
