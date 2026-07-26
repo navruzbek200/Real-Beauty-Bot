@@ -79,11 +79,23 @@ services:
       - media:/srv/media:ro
       - static:/srv/staticfiles:ro
       - frontend_dist:/srv/frontend:ro
+      - certbot_conf:/etc/letsencrypt:ro
+      - certbot_www:/var/www/certbot
     depends_on:
       django:
         condition: service_started
       frontend-sync:
         condition: service_completed_successfully
+    restart: unless-stopped
+
+  # Renews the Let's Encrypt cert in the background. First issuance is done
+  # once by docker/nginx/init-letsencrypt.sh; after that this keeps it fresh.
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - certbot_conf:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+    entrypoint: /bin/sh -c 'trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot --quiet; sleep 12h & wait $${!}; done'
     restart: unless-stopped
 
   # Copies the baked static files out of the image into the volume nginx reads.
@@ -144,3 +156,5 @@ volumes:
   media:
   static:
   frontend_dist:
+  certbot_conf:
+  certbot_www:
