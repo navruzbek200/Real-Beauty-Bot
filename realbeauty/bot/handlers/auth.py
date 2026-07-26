@@ -207,6 +207,7 @@ async def step_language(callback: CallbackQuery, state: FSMContext) -> None:
     # already moved past it, and Telegram never expires old inline buttons.
     await _clear_keyboard(callback)
 
+    data = await state.get_data()
     if "seller_id" in data:
         await state.set_state(AdminAssistedReg.full_name)
         greeting = t(
