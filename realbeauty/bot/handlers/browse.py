@@ -188,6 +188,9 @@ async def _show_tutorial_detail(
     body = text or t(
         "tutorial.intro_fallback", lang, product=pick(product, "name", lang)
     )
+    if not steps:
+        # A product with no lessons yet must not read as a dead end.
+        body += "\n\n" + t("tutorial.no_steps", lang)
     await _safe_edit(callback, body, keyboard, parse_mode=parse_mode or "HTML")
 
 

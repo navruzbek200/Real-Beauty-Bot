@@ -96,6 +96,36 @@ class CatalogBrowserTests(TestCase):
         self.assertNotIn("reply_markup", msg.sent[0])
 
 
+class TutorialFallbackTests(TestCase):
+    """The «no products» regression: a shop that added a product with a lesson
+    but never ticked "top" used to see nothing under «Tarkiblar»."""
+
+    def test_a_non_top_product_with_a_lesson_is_shown(self):
+        product = Product.objects.create(name="Serum", is_top=False)
+        ProductTutorialStep.objects.create(
+            product=product, order=1, button_label="1-qadam"
+        )
+        result = async_to_sync(
+            __import__("bot.services.product_service", fromlist=["get_tutorial_products"])
+            .get_tutorial_products
+        )(999001)
+        self.assertEqual([p.name for p in result], ["Serum"])
+
+    def test_products_without_lessons_still_appear_rather_than_empty(self):
+        Product.objects.create(name="Krem", is_top=False)
+        from bot.services import product_service
+
+        result = async_to_sync(product_service.get_tutorial_products)(999002)
+        self.assertEqual([p.name for p in result], ["Krem"])
+
+    def test_intro_text_is_optional_on_a_step(self):
+        product = Product.objects.create(name="Toner")
+        step = ProductTutorialStep.objects.create(
+            product=product, order=1, button_label="Qadam", intro_text=""
+        )
+        step.full_clean()  # must not raise — intro_text is blank-allowed now
+
+
 class TutorialBrowserTests(TestCase):
     def test_tutorial_detail_edits_in_place_with_step_and_back_buttons(self):
         user = TelegramUser.objects.create(

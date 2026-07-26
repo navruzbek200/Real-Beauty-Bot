@@ -242,6 +242,7 @@ STRINGS: dict[str, str] = {
     "product.none": "У вас пока нет товаров.",
     "tutorial.intro_fallback": "📘 Руководство по <b>{product}</b>",
     "tutorial.video_soon": "⏳ Видео для этого шага скоро добавим.",
+    "tutorial.no_steps": "⏳ Видеоуроки для этого товара скоро добавим.",
     "tutorial.step_not_found": "Шаг не найден.",
     "catalog.header": "🛍 <b>Наши товары:</b>",
     "catalog.empty": "Каталог пока пуст. Скоро наполним!",

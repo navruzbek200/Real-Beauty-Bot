@@ -8,7 +8,7 @@ export const tutorialStepFormSchema = z.object({
   product: z.coerce.number().min(1, 'Mahsulotni tanlang'),
   order: z.coerce.number().int().min(1),
   button_label: z.string().min(1, 'Tugma matni shart'),
-  intro_text: z.string().min(1, 'Video oldidan matn shart'),
+  intro_text: z.string().optional(),
   video_file: z.instanceof(File).optional(),
 })
 export type TutorialStepFormValues = z.infer<typeof tutorialStepFormSchema>
@@ -37,9 +37,9 @@ export function buildTutorialStepFormConfig(
     },
     {
       name: 'intro_text',
-      label: 'Video oldidan matn',
+      label: 'Video oldidan matn (ixtiyoriy)',
       type: 'textarea',
-      help: 'Video yuborilishidan oldin ko\'rsatiladigan qisqa izoh.',
+      help: 'Ixtiyoriy. Bo\'sh qoldirsangiz — faqat video yuboriladi.',
     },
     {
       name: 'video_file',
@@ -68,7 +68,7 @@ export function toTutorialStepFormData(values: TutorialStepFormValues): FormData
   formData.set('product', String(values.product))
   formData.set('order', String(values.order))
   formData.set('button_label', values.button_label)
-  formData.set('intro_text', values.intro_text)
+  formData.set('intro_text', values.intro_text ?? '')
   if (values.video_file) formData.set('video_file', values.video_file)
   return formData
 }

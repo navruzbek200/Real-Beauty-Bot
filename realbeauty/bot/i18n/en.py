@@ -240,6 +240,7 @@ STRINGS: dict[str, str] = {
     "product.none": "You don't have any products yet.",
     "tutorial.intro_fallback": "📘 Guide for <b>{product}</b>",
     "tutorial.video_soon": "⏳ The video for this step is coming soon.",
+    "tutorial.no_steps": "⏳ Video lessons for this product are coming soon.",
     "tutorial.step_not_found": "Step not found.",
     "catalog.header": "🛍 <b>Our products:</b>",
     "catalog.empty": "The catalogue is empty for now. We'll fill it soon!",

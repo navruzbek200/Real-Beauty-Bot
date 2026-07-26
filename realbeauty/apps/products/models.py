@@ -135,8 +135,10 @@ class ProductTutorialStep(models.Model):
         max_length=64, blank=True, verbose_name="Tugma matni (inglizcha)"
     )
     intro_text = models.TextField(
+        blank=True,
         verbose_name="Video oldidan matn",
-        help_text="Video yuborilishidan oldin ko'rsatiladigan qisqa izoh.",
+        help_text="Ixtiyoriy: video yuborilishidan oldin ko'rsatiladigan qisqa "
+        "izoh. Bo'sh qoldirsangiz — faqat video yuboriladi.",
     )
     intro_text_ru = models.TextField(
         blank=True, verbose_name="Video oldidan matn (ruscha)"

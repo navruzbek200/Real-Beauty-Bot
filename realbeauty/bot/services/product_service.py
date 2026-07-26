@@ -48,10 +48,16 @@ def get_product(product_id: int) -> Product | None:
 def get_tutorial_products(telegram_id: int) -> list[Product]:
     """Products whose lessons a customer can open from «Tarkiblar».
 
-    Their own purchases first. A brand-new customer with nothing on file
-    shouldn't hit a dead end, so we fall back to this month's top products that
-    actually have a lesson attached — a promo card with no steps behind it would
-    just confuse in a "learn the ingredients" context.
+    Order of preference, so a customer never hits a false "you have no
+    products" while real products sit in the catalogue:
+
+    1. their own purchases;
+    2. any active product that actually has a lesson (top ones first);
+    3. failing that, every active product — its card still opens, and the
+       detail says "video coming soon" instead of the whole section vanishing.
+
+    The old version only ever showed *top* products that *also* had a lesson,
+    so a shop that added a product without ticking "top" saw nothing at all.
     """
     owned = list(
         Product.objects.filter(
@@ -62,13 +68,16 @@ def get_tutorial_products(telegram_id: int) -> list[Product]:
     )
     if owned:
         return owned
-    return list(
-        Product.objects.filter(
-            is_top=True, is_active=True, tutorial_steps__isnull=False
-        )
+
+    with_lessons = list(
+        Product.objects.filter(is_active=True, tutorial_steps__isnull=False)
         .distinct()
-        .order_by("top_order", "name")
+        .order_by("-is_top", "top_order", "name")
     )
+    if with_lessons:
+        return with_lessons
+
+    return list(Product.objects.filter(is_active=True).order_by("name"))
 
 
 @sync_to_async
