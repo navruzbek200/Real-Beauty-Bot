@@ -96,9 +96,9 @@ export const productColumns: ResourceColumn<Product>[] = [
     header: '',
     render: (p) =>
       p.photo ? (
-        <img src={p.photo} alt="" className="h-8 w-8 rounded object-cover" />
+        <img src={p.photo} alt="" className="h-12 w-12 rounded-lg border border-slate-100 object-cover dark:border-slate-800" />
       ) : (
-        <span className="text-slate-300">—</span>
+        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 text-slate-300 dark:bg-slate-800">—</div>
       ),
   },
   { key: 'name', header: 'Nomi', sortField: 'name', render: (p) => p.name },

@@ -266,6 +266,7 @@ export function ResourcePage<
             open={editing !== null}
             title={`${title} — tahrirlash`}
             config={formConfig}
+            currentItem={editing as Record<string, unknown> | undefined}
             initialValues={editing ? formConfig.toFormValues(editing as Record<string, unknown>) : undefined}
             pending={updateMutation.isPending}
             serverError={formError}

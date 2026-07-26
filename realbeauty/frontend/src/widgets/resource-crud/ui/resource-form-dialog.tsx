@@ -9,6 +9,10 @@ interface ResourceFormDialogProps<TFormValues extends Record<string, unknown>> {
   title: string
   config: ResourceFormConfig<TFormValues>
   initialValues?: TFormValues
+  // The raw record being edited, used to preview an existing image next to a
+  // file input (a file field can't hold the saved URL, so it would otherwise
+  // look empty — "nega rasmi yo'q").
+  currentItem?: Record<string, unknown>
   pending?: boolean
   serverError?: string
   onSubmit: (values: TFormValues) => void
@@ -20,6 +24,7 @@ export function ResourceFormDialog<TFormValues extends Record<string, unknown>>(
   title,
   config,
   initialValues,
+  currentItem,
   pending,
   serverError,
   onSubmit,
@@ -97,13 +102,28 @@ export function ResourceFormDialog<TFormValues extends Record<string, unknown>>(
                   )
                 }
                 if (field.type === 'file') {
+                  const existing = currentItem?.[field.name]
+                  const previewUrl =
+                    typeof existing === 'string' && existing ? existing : undefined
+                  const picked = (rhf.value as unknown) instanceof File ? (rhf.value as File) : undefined
+                  const shownUrl = picked ? URL.createObjectURL(picked) : previewUrl
                   return (
-                    <input
-                      id={field.name}
-                      type="file"
-                      onChange={(e) => rhf.onChange(e.target.files?.[0])}
-                      className="block w-full text-sm text-slate-600 file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-1.5 file:text-sm dark:text-slate-300 dark:file:bg-slate-700"
-                    />
+                    <div className="space-y-2">
+                      {shownUrl && (
+                        <img
+                          src={shownUrl}
+                          alt=""
+                          className="h-24 w-24 rounded-lg border border-slate-200 object-cover dark:border-slate-700"
+                        />
+                      )}
+                      <input
+                        id={field.name}
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => rhf.onChange(e.target.files?.[0])}
+                        className="block w-full text-sm text-slate-600 file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-1.5 file:text-sm dark:text-slate-300 dark:file:bg-slate-700"
+                      />
+                    </div>
                   )
                 }
                 return (
