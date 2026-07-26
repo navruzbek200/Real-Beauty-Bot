@@ -16,8 +16,8 @@ from bot.i18n import DEFAULT_LANGUAGE, t
 # older labels keep their handlers (MenuText matches them if an old keyboard is
 # still on screen) without cluttering the menu.
 _MAIN_MENU_ROWS: tuple[tuple[str, ...], ...] = (
-    ("menu.catalog", "menu.ingredients"),
-    ("menu.bonus", "menu.discounts"),
+    ("menu.catalog", "menu.discounts"),
+    ("menu.ingredients", "menu.bonus"),
     ("menu.support", "menu.profile"),
 )
 

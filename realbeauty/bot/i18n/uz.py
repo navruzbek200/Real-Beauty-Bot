@@ -4,13 +4,13 @@ from __future__ import annotations
 
 STRINGS: dict[str, str] = {
     # ------------------------------------------------------------------ menu
-    "menu.ingredients": "🧪 Qaysi tarkiblarni o'rganamiz",
-    "menu.catalog": "🛍 Mahsulotlar",
+    "menu.ingredients": "🧴 Teringizni o'rganing 🚀",
+    "menu.catalog": "🛍 Mahsulotlar ✨",
     "menu.top": "🔥 Bu oydagi top mahsulotlar",
     "menu.feedback": "⭐️ Mahsulotga baho",  # legacy label kept for MenuText matching
     "menu.quiz_retake": "🔄 Testni qayta topshirish",
-    "menu.support": "✍️ Savol / Murojaat",
-    "menu.discounts": "🎁 Chegirmalar",
+    "menu.support": "💬 Yordam / Murojaat",
+    "menu.discounts": "💣 Qaynoq chegirmalar 💥",
     "menu.bonus": "💎 Bonuslarim",
     "menu.profile": "👤 Profil",
     "menu.help": "ℹ️ Yordam",
@@ -338,14 +338,14 @@ STRINGS: dict[str, str] = {
     # ----------------------------------------------------------------- help
     "help.text": (
         "ℹ️ <b>Real Beauty bot</b>\n\n"
-        "• 🧪 Qaysi tarkiblarni o'rganamiz — siz olgan mahsulotlar tarkibi va "
+        "• 🧴 Teringizni o'rganing 🚀 — siz olgan mahsulotlar tarkibi va "
         "video darslar\n"
-        "• 🛍 Mahsulotlar — do'konimizdagi barcha mahsulotlar katalogi\n"
+        "• 🛍 Mahsulotlar ✨ — do'konimizdagi barcha mahsulotlar katalogi\n"
         "• 🔥 Bu oydagi top mahsulotlar — shu oyning eng zo'r tanlovlari\n"
         "• ⭐️ Mahsulotga baho — olgan mahsulotingizga yulduz va fikr "
         "qoldirasiz\n"
-        "• ✍️ Savol / Murojaat — jamoamiz bilan jonli yozishma\n"
-        "• 🎁 Chegirmalar — joriy aksiyalar va promokodlar\n"
+        "• 💬 Yordam / Murojaat — jamoamiz bilan jonli yozishma\n"
+        "• 💣 Qaynoq chegirmalar 💥 — joriy aksiyalar va promokodlar\n"
         "• 💎 Bonuslarim — ballaringiz, darajangiz va sovg'alar\n"
         "• 👤 Profil — ma'lumotlaringiz va til sozlamasi\n\n"
         "Menyuni ochish uchun /menu buyrug'ini yuboring."
