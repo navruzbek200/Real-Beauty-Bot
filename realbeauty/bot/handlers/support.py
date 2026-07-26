@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import html
+import json
 import logging
 
 from aiogram import F, Router
@@ -48,6 +50,35 @@ async def open_support(message: Message, state: FSMContext, lang: str) -> None:
         return
     await state.set_state(SupportState.message)
     await message.answer(t("support.ask", lang), parse_mode="HTML")
+
+
+@router.message(F.web_app_data)
+async def from_webapp(message: Message, state: FSMContext, lang: str) -> None:
+    """
+    The Mini App's «Ask a question» button. Telegram delivers the product the
+    customer was looking at as web_app_data; we drop them straight into the
+    support flow with that product named, so the seller has context.
+    """
+    if message.from_user is None:
+        return
+    user = await user_service.get_user(message.from_user.id)
+    if user is None or not user.full_name:
+        await message.answer(t("user.not_registered", lang))
+        return
+    name = ""
+    try:
+        payload = json.loads(message.web_app_data.data)
+        name = str(payload.get("name", ""))[:128]
+    except (ValueError, AttributeError):
+        pass
+    await state.set_state(SupportState.message)
+    if name:
+        await message.answer(
+            t("webapp.ask_product", lang, product=html.escape(name)),
+            parse_mode="HTML",
+        )
+    else:
+        await message.answer(t("support.ask", lang), parse_mode="HTML")
 
 
 @router.callback_query(F.data == inline.CB_SUPPORT_REPLY)

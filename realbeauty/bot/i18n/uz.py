@@ -288,6 +288,10 @@ STRINGS: dict[str, str] = {
     "browse.counter": "{page}/{total}",
     "browse.back": "⬅️ Ro'yxatga qaytish",
     # -------------------------------------------------------------- support
+    "webapp.ask_product": (
+        "🛍 <b>{product}</b> haqida savolingizni yozing 👇\n"
+        "Jamoamiz shu yerda javob beradi."
+    ),
     "support.ask": (
         "✍️ Savolingiz yoki murojaatingizni yozing.\n\n"
         "Matn yoki rasm yuborishingiz mumkin — jamoamiz shu yerda javob beradi.\n"

@@ -279,6 +279,10 @@ STRINGS: dict[str, str] = {
     "browse.counter": "{page}/{total}",
     "browse.back": "⬅️ Back to list",
     # -------------------------------------------------------------- support
+    "webapp.ask_product": (
+        "🛍 Write your question about <b>{product}</b> 👇\n"
+        "Our team will reply right here."
+    ),
     "support.ask": (
         "✍️ Write your question or request.\n\n"
         "You can send text or a photo — our team answers right here.\n"

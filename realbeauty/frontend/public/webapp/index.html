@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Real Beauty</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root {
+      --bg: var(--tg-theme-bg-color, #ffffff);
+      --secondary-bg: var(--tg-theme-secondary-bg-color, #f2f2f7);
+      --text: var(--tg-theme-text-color, #111111);
+      --hint: var(--tg-theme-hint-color, #8a8a8e);
+      --link: var(--tg-theme-link-color, #2b7cff);
+      --button: var(--tg-theme-button-color, #2b7cff);
+      --button-text: var(--tg-theme-button-text-color, #ffffff);
+      --radius: 16px;
+      --gap: 12px;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom); }
+
+    header { position: sticky; top: 0; z-index: 5; background: var(--bg);
+      padding: 14px 16px 10px; }
+    header h1 { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+    header p { margin: 2px 0 0; color: var(--hint); font-size: 13px; }
+    .search { margin: 12px 16px 4px; position: relative; }
+    .search input { width: 100%; border: none; outline: none; background: var(--secondary-bg);
+      color: var(--text); border-radius: 12px; padding: 12px 14px; font-size: 15px; }
+    .search input::placeholder { color: var(--hint); }
+
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gap);
+      padding: 12px 16px 24px; }
+    .card { background: var(--secondary-bg); border-radius: var(--radius); overflow: hidden;
+      display: flex; flex-direction: column; cursor: pointer; transition: transform .12s ease;
+      border: 1px solid color-mix(in srgb, var(--text) 6%, transparent); }
+    .card:active { transform: scale(.97); }
+    .thumb { aspect-ratio: 1/1; width: 100%; object-fit: cover; background:
+      linear-gradient(135deg, color-mix(in srgb, var(--button) 22%, var(--secondary-bg)),
+      var(--secondary-bg)); display: flex; align-items: center; justify-content: center;
+      font-size: 34px; }
+    .card-body { padding: 10px 11px 12px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
+    .name { font-size: 14px; font-weight: 600; line-height: 1.25; }
+    .price-row { display: flex; align-items: baseline; gap: 6px; margin-top: auto; flex-wrap: wrap; }
+    .price { font-size: 15px; font-weight: 700; }
+    .old { font-size: 12px; color: var(--hint); text-decoration: line-through; }
+    .badges { display: flex; gap: 5px; flex-wrap: wrap; }
+    .badge { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 999px;
+      background: var(--button); color: var(--button-text); }
+    .badge.discount { background: #ff3b30; color: #fff; }
+    .badge.top { background: color-mix(in srgb, var(--button) 16%, transparent); color: var(--button); }
+
+    .state { text-align: center; color: var(--hint); padding: 64px 24px; font-size: 15px; }
+    .skeleton .thumb { animation: pulse 1.2s ease-in-out infinite; }
+    .skeleton .line { height: 12px; border-radius: 6px; background: color-mix(in srgb, var(--text) 8%, transparent);
+      animation: pulse 1.2s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:.5} 50%{opacity:1} }
+
+    /* detail sheet */
+    .sheet-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.45);
+      opacity: 0; pointer-events: none; transition: opacity .2s ease; z-index: 20; }
+    .sheet-backdrop.open { opacity: 1; pointer-events: auto; }
+    .sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 21;
+      background: var(--bg); border-radius: 20px 20px 0 0; transform: translateY(100%);
+      transition: transform .26s cubic-bezier(.2,.8,.2,1); max-height: 88vh; overflow-y: auto;
+      padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
+    .sheet.open { transform: translateY(0); }
+    .grabber { width: 40px; height: 4px; border-radius: 2px; background: var(--hint);
+      opacity: .4; margin: 8px auto 4px; }
+    .sheet-photo { width: 100%; aspect-ratio: 4/3; object-fit: cover; background: var(--secondary-bg);
+      display:flex; align-items:center; justify-content:center; font-size: 56px; }
+    .sheet-body { padding: 16px; }
+    .sheet-body h2 { margin: 0 0 8px; font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
+    .sheet-price { display: flex; align-items: baseline; gap: 8px; margin-bottom: 12px; }
+    .sheet-price .price { font-size: 22px; }
+    .desc { color: var(--text); opacity: .82; font-size: 15px; line-height: 1.5; white-space: pre-wrap; }
+    .cta { margin: 18px 16px 0; }
+    .cta button { width: 100%; border: none; border-radius: 14px; padding: 15px;
+      background: var(--button); color: var(--button-text); font-size: 16px; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1 id="shop-title">Real Beauty</h1>
+    <p id="shop-sub">Mahsulotlar katalogi</p>
+  </header>
+  <div class="search"><input id="search" type="text" placeholder="Qidirish…" autocomplete="off" /></div>
+  <div id="content"><div class="state" id="loading">Yuklanmoqda…</div></div>
+
+  <div class="sheet-backdrop" id="backdrop"></div>
+  <div class="sheet" id="sheet" role="dialog" aria-modal="true">
+    <div class="grabber"></div>
+    <div id="sheet-content"></div>
+  </div>
+
+  <script>
+    const tg = window.Telegram && window.Telegram.WebApp;
+    if (tg) { tg.ready(); tg.expand(); }
+
+    const LANG = ((tg && tg.initDataUnsafe && tg.initDataUnsafe.user &&
+      tg.initDataUnsafe.user.language_code) || 'uz').slice(0, 2);
+    const T = {
+      uz: { sub: 'Mahsulotlar katalogi', search: 'Qidirish…', empty: 'Mahsulotlar topilmadi',
+        err: 'Yuklab bo‘lmadi. Qaytadan urinib ko‘ring.', ask: 'Savol berish',
+        top: 'TOP', som: 'so‘m', nothing: 'Hech narsa topilmadi' },
+      ru: { sub: 'Каталог товаров', search: 'Поиск…', empty: 'Товары не найдены',
+        err: 'Не удалось загрузить. Попробуйте ещё раз.', ask: 'Задать вопрос',
+        top: 'ТОП', som: 'сум', nothing: 'Ничего не найдено' },
+      en: { sub: 'Product catalogue', search: 'Search…', empty: 'No products found',
+        err: 'Could not load. Please try again.', ask: 'Ask a question',
+        top: 'TOP', som: 'UZS', nothing: 'Nothing found' },
+    };
+    const L = T[LANG] || T.uz;
+    document.getElementById('shop-sub').textContent = L.sub;
+    document.getElementById('search').placeholder = L.search;
+
+    const money = (n) => n == null ? '' : (n.toLocaleString('ru-RU').replace(/,/g, ' ') + ' ' + L.som);
+    const esc = (s) => (s || '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+    const initial = (s) => (s || '✨').trim().charAt(0).toUpperCase();
+
+    let ALL = [];
+
+    function card(p) {
+      const thumb = p.photo
+        ? `<img class="thumb" loading="lazy" src="${esc(p.photo)}" alt="">`
+        : `<div class="thumb">${esc(initial(p.name))}</div>`;
+      const badges = [];
+      if (p.discount_percent) badges.push(`<span class="badge discount">-${p.discount_percent}%</span>`);
+      if (p.is_top) badges.push(`<span class="badge top">★ ${L.top}</span>`);
+      const price = p.price ? `<span class="price">${money(p.price)}</span>` : '';
+      const old = (p.old_price && p.old_price > p.price) ? `<span class="old">${money(p.old_price)}</span>` : '';
+      return `<div class="card" data-id="${p.id}">
+        ${thumb}
+        <div class="card-body">
+          ${badges.length ? `<div class="badges">${badges.join('')}</div>` : ''}
+          <div class="name">${esc(p.name)}</div>
+          <div class="price-row">${price}${old}</div>
+        </div>
+      </div>`;
+    }
+
+    function render(list) {
+      const content = document.getElementById('content');
+      if (!list.length) { content.innerHTML = `<div class="state">${L.nothing}</div>`; return; }
+      content.innerHTML = `<div class="grid">${list.map(card).join('')}</div>`;
+      content.querySelectorAll('.card').forEach(el => {
+        el.addEventListener('click', () => openSheet(Number(el.dataset.id)));
+      });
+    }
+
+    function openSheet(id) {
+      const p = ALL.find(x => x.id === id);
+      if (!p) return;
+      if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+      const photo = p.photo
+        ? `<img class="sheet-photo" src="${esc(p.photo)}" alt="">`
+        : `<div class="sheet-photo">${esc(initial(p.name))}</div>`;
+      const old = (p.old_price && p.old_price > p.price) ? `<span class="old">${money(p.old_price)}</span>` : '';
+      const disc = p.discount_percent ? `<span class="badge discount">-${p.discount_percent}%</span>` : '';
+      document.getElementById('sheet-content').innerHTML = `
+        ${photo}
+        <div class="sheet-body">
+          <h2>${esc(p.name)}</h2>
+          <div class="sheet-price">
+            ${p.price ? `<span class="price">${money(p.price)}</span>` : ''}
+            ${old} ${disc}
+          </div>
+          ${p.description ? `<div class="desc">${esc(p.description)}</div>` : ''}
+        </div>
+        <div class="cta"><button id="ask-btn">${L.ask}</button></div>`;
+      document.getElementById('backdrop').classList.add('open');
+      document.getElementById('sheet').classList.add('open');
+      const ask = document.getElementById('ask-btn');
+      if (ask) ask.addEventListener('click', () => {
+        // Hand the customer back to the chat to ask about this product.
+        if (tg) { try { tg.sendData(JSON.stringify({ ask: p.id, name: p.name })); } catch (e) {} tg.close(); }
+      });
+    }
+    function closeSheet() {
+      document.getElementById('backdrop').classList.remove('open');
+      document.getElementById('sheet').classList.remove('open');
+    }
+    document.getElementById('backdrop').addEventListener('click', closeSheet);
+
+    document.getElementById('search').addEventListener('input', (e) => {
+      const q = e.target.value.trim().toLowerCase();
+      render(q ? ALL.filter(p => (p.name || '').toLowerCase().includes(q)) : ALL);
+    });
+
+    fetch('/api/v1/webapp/catalog/?lang=' + encodeURIComponent(LANG))
+      .then(r => { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+      .then(data => { ALL = data.products || []; ALL.length ? render(ALL)
+        : (document.getElementById('content').innerHTML = `<div class="state">${L.empty}</div>`); })
+      .catch(() => { document.getElementById('content').innerHTML = `<div class="state">${L.err}</div>`; });
+  </script>
+</body>
+</html>

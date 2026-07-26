@@ -128,6 +128,10 @@ STATICFILES_DIRS = [BASE_DIR / "core" / "static"]
 # Bot
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "")
 BOT_USERNAME = os.environ.get("BOT_USERNAME", "RealBeautyBot")
+# HTTPS URL of the Telegram Mini App (the product catalogue WebApp). Telegram
+# only allows web_app buttons with an https URL, so when this is unset or not
+# https the bot silently falls back to the in-chat message browser.
+WEBAPP_URL = os.environ.get("WEBAPP_URL", "")
 REDIS_URL = os.environ.get("REDIS_URL", "redis://redis:6379/0")
 
 # Shared secret the Flutter app sends in the X-Api-Key header when it posts a

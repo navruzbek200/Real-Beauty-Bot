@@ -81,3 +81,27 @@ class TopProductApiTests(APITestCase):
         self.assertEqual(response.data["updated"], 0)
         outside.refresh_from_db()
         self.assertFalse(outside.is_top)
+
+
+class WebAppCatalogTests(APITestCase):
+    """The Mini App catalogue is public, read-only and localized."""
+
+    def test_catalog_is_public_and_lists_active_products(self):
+        from apps.products.models import Product
+
+        Product.objects.create(name="Serum", current_price=100, is_active=True)
+        Product.objects.create(name="Yashirin", is_active=False)
+
+        # No auth on purpose — it's a shopfront.
+        response = self.client.get("/api/v1/webapp/catalog/?lang=uz")
+        self.assertEqual(response.status_code, 200)
+        names = [p["name"] for p in response.data["products"]]
+        self.assertIn("Serum", names)
+        self.assertNotIn("Yashirin", names)
+
+    def test_catalog_localizes_names(self):
+        from apps.products.models import Product
+
+        Product.objects.create(name="Krem", name_ru="Крем", current_price=1)
+        response = self.client.get("/api/v1/webapp/catalog/?lang=ru")
+        self.assertEqual(response.data["products"][0]["name"], "Крем")
