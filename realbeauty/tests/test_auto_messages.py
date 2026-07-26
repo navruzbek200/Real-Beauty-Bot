@@ -133,7 +133,9 @@ class DispatchTests(TestCase):
         send.assert_not_called()
         self.assertEqual(AutoMessageLog.objects.count(), 1)
 
-    def test_two_purchases_each_get_their_own_message(self):
+    def test_bulk_purchases_in_one_window_collapse_to_a_single_message(self):
+        # A customer given several products at once must not get one
+        # "how was your week?" per product — that was the 30-message flood.
         second = Product.objects.create(name="Krem")
         self._purchase(minutes_ago=2)
         up = UserProduct.objects.create(user=self.user, product=second)
@@ -141,8 +143,30 @@ class DispatchTests(TestCase):
             purchased_at=timezone.now() - timedelta(minutes=2)
         )
 
-        count, _send = self._run()
-        self.assertEqual(count, 2)
+        count, send = self._run()
+
+        self.assertEqual(count, 1)  # one message, not two
+        self.assertEqual(send.call_count, 1)
+        # Both purchases are settled, so neither fires again on the next run.
+        self.assertEqual(AutoMessageLog.objects.count(), 2)
+        count_again, send_again = self._run()
+        self.assertEqual(count_again, 0)
+        send_again.assert_not_called()
+
+    def test_purchases_in_different_windows_are_greeted_separately(self):
+        # Time-separated purchases are not the flood case; each still gets its
+        # own check-in when its own window comes due.
+        self._purchase(minutes_ago=2)
+        first_count, _ = self._run()
+        self.assertEqual(first_count, 1)
+
+        second = Product.objects.create(name="Krem")
+        up = UserProduct.objects.create(user=self.user, product=second)
+        UserProduct.objects.filter(pk=up.pk).update(
+            purchased_at=timezone.now() - timedelta(minutes=2)
+        )
+        second_count, _ = self._run()
+        self.assertEqual(second_count, 1)
 
     def test_switched_off_rules_are_skipped(self):
         self._purchase(minutes_ago=2)

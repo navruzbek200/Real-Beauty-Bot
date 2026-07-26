@@ -30,6 +30,17 @@ CB_OPEN_DISCOUNTS = "open_discounts"
 CB_OPEN_REWARDS = "open_rewards"
 CB_REDEEM_REWARD = "redeem"         # redeem:<reward_id>
 
+# Paginated product browser. One prefix, three "kinds" (catalogue / top /
+# tutorials) so the whole shop window is one list message you page through
+# instead of one Telegram message per product.
+CB_BROWSE = "pb"                    # pb:<kind>:<action>:<arg>[:<page>]
+PB_CATALOG = "cat"
+PB_TOP = "top"
+PB_TUTORIAL = "tut"
+PB_PAGE = "pg"                      # pb:<kind>:pg:<page>
+PB_VIEW = "v"                       # pb:<kind>:v:<product_id>:<page>
+PB_NOOP = "nop"                     # the page counter — does nothing
+
 SEP = ":"
 
 
@@ -149,6 +160,69 @@ def profile_keyboard(lang: str) -> InlineKeyboardMarkup:
     )
 
 
+def product_browser_keyboard(
+    kind: str,
+    items: list[tuple[int, str]],
+    page: int,
+    total_pages: int,
+    lang: str,
+) -> InlineKeyboardMarkup:
+    """A page of product buttons with a ◀ x/y ▶ nav row underneath.
+
+    `items` is (product_id, button_label) already sliced to this page. The nav
+    row is omitted entirely when everything fits on one page, so a small shop
+    never sees dead paging controls.
+    """
+    builder = InlineKeyboardBuilder()
+    for product_id, label in items:
+        builder.button(
+            text=label,
+            callback_data=f"{CB_BROWSE}{SEP}{kind}{SEP}{PB_VIEW}{SEP}{product_id}{SEP}{page}",
+        )
+    builder.adjust(1)
+
+    if total_pages > 1:
+        nav: list[InlineKeyboardButton] = []
+        if page > 0:
+            nav.append(
+                InlineKeyboardButton(
+                    text=t("browse.prev", lang),
+                    callback_data=f"{CB_BROWSE}{SEP}{kind}{SEP}{PB_PAGE}{SEP}{page - 1}",
+                )
+            )
+        nav.append(
+            InlineKeyboardButton(
+                text=t("browse.counter", lang, page=page + 1, total=total_pages),
+                callback_data=f"{CB_BROWSE}{SEP}{kind}{SEP}{PB_NOOP}{SEP}0",
+            )
+        )
+        if page < total_pages - 1:
+            nav.append(
+                InlineKeyboardButton(
+                    text=t("browse.next", lang),
+                    callback_data=f"{CB_BROWSE}{SEP}{kind}{SEP}{PB_PAGE}{SEP}{page + 1}",
+                )
+            )
+        builder.row(*nav)
+    return builder.as_markup()
+
+
+def product_card_keyboard(
+    kind: str, page: int, lang: str, extra: list[InlineKeyboardButton] | None = None
+) -> InlineKeyboardMarkup:
+    """The keyboard under an on-demand product card: any extras, then «back»."""
+    builder = InlineKeyboardBuilder()
+    for button in extra or []:
+        builder.row(button)
+    builder.row(
+        InlineKeyboardButton(
+            text=t("browse.back", lang),
+            callback_data=f"{CB_BROWSE}{SEP}{kind}{SEP}{PB_PAGE}{SEP}{page}",
+        )
+    )
+    return builder.as_markup()
+
+
 def bonus_keyboard(
     lang: str, share_url: str, *, has_rewards: bool
 ) -> InlineKeyboardMarkup:
@@ -201,9 +275,17 @@ def skip_photo_keyboard(lang: str) -> InlineKeyboardMarkup:
 
 
 def tutorial_steps_keyboard(
-    product_id: int, steps: Iterable[tuple[int, str]]
+    product_id: int,
+    steps: Iterable[tuple[int, str]],
+    *,
+    back_page: int | None = None,
+    lang: str = "uz",
 ) -> InlineKeyboardMarkup:
-    """steps: iterable of (step_id, button_label)."""
+    """steps: iterable of (step_id, button_label).
+
+    When `back_page` is given the card also carries a «back to the list» button
+    returning to that page of the tutorial browser.
+    """
     builder = InlineKeyboardBuilder()
     for step_id, label in steps:
         builder.button(
@@ -211,4 +293,11 @@ def tutorial_steps_keyboard(
             callback_data=f"{CB_TUTORIAL_STEP}{SEP}{product_id}{SEP}{step_id}",
         )
     builder.adjust(1)
+    if back_page is not None:
+        builder.row(
+            InlineKeyboardButton(
+                text=t("browse.back", lang),
+                callback_data=f"{CB_BROWSE}{SEP}{PB_TUTORIAL}{SEP}{PB_PAGE}{SEP}{back_page}",
+            )
+        )
     return builder.as_markup()

@@ -23,7 +23,9 @@ def _due_purchases(rule, window):
         # produce a guaranteed-failing send that blocked the whole batch.
         user__telegram_id__isnull=False,
         user__is_active=True,
-    )
+        # Most recent purchase first, so the one message a customer gets after
+        # a bulk assignment references their newest product (see _dispatch_rule).
+    ).order_by("-purchased_at")
     if rule.is_test_mode:
         qs = qs.filter(user_id=rule.test_user_id) if rule.test_user_id else qs.none()
     return [(f"up:{up.pk}", up.user, up.product) for up in qs]
@@ -64,6 +66,14 @@ def _dispatch_rule(rule) -> int:
     the bot, deleted Telegram…) must not abort the rest of the batch — an
     earlier version raised out of the loop and starved everyone queued behind
     the failing row, every single day.
+
+    One message per customer per run. A customer given 30 products in one go
+    (a bulk assignment) has 30 purchases fall due in the same window; sending
+    one check-in per purchase would fire 30 near-identical messages at once.
+    Instead each customer gets a single message (referencing their newest
+    product), and every other due purchase in that window is marked done so it
+    never fires on a later run — genuinely time-separated purchases still land
+    in different windows and are greeted on their own.
     """
     from apps.campaigns.models import AutoMessageLog
 
@@ -81,11 +91,34 @@ def _dispatch_rule(rule) -> int:
         ).values_list("anchor", flat=True)
     )
 
-    sent = 0
+    # Group by customer, preserving the (newest-first) order the anchors arrived
+    # in, so each customer is messaged at most once per run.
+    groups: dict[int, list] = {}
     for anchor, user, product in candidates:
-        if anchor in already:
+        groups.setdefault(user.pk, []).append((anchor, user, product))
+
+    def _mark_done(items: list, *, success: bool = True, error: str = "") -> None:
+        for anchor, user, _product in items:
+            AutoMessageLog.objects.get_or_create(
+                auto_message=rule,
+                anchor=anchor,
+                defaults={
+                    "user": user,
+                    "success": success,
+                    "error_detail": error[:500],
+                },
+            )
+
+    sent = 0
+    for group in groups.values():
+        # Only purchases still un-greeted this run are collapsed together; a
+        # purchase greeted on an earlier run is already logged and simply drops
+        # out, so a genuinely later purchase still gets its own message.
+        pending = [item for item in group if item[0] not in already]
+        if not pending:
             continue
 
+        anchor, user, product = pending[0]
         lang = user.language
         text = rule.render({"user": user, "product": product}, lang)
         if not text.strip():
@@ -101,23 +134,14 @@ def _dispatch_rule(rule) -> int:
             # done so they stop being retried forever; transient ones are left
             # alone and the next run picks them up again.
             if exc.is_permanent:
-                AutoMessageLog.objects.get_or_create(
-                    auto_message=rule,
-                    anchor=anchor,
-                    defaults={
-                        "user": user,
-                        "success": False,
-                        "error_detail": str(exc)[:500],
-                    },
-                )
+                _mark_done(pending, success=False, error=str(exc))
             continue
         except Exception:  # noqa: BLE001
             logger.exception("auto-message %s crashed on %s", rule.pk, anchor)
             continue
 
-        AutoMessageLog.objects.get_or_create(
-            auto_message=rule, anchor=anchor, defaults={"user": user}
-        )
+        # One send settles every purchase this customer had due in this run.
+        _mark_done(pending)
         sent += 1
     return sent
 

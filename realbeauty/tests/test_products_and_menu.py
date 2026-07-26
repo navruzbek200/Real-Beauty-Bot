@@ -4,7 +4,8 @@ from asgiref.sync import async_to_sync
 from django.test import TestCase
 
 from apps.products.models import Product, TopProduct
-from bot.handlers.menu import _format_price, month_name
+from bot.utils.products import current_month_name as month_name
+from bot.utils.products import format_price as _format_price
 from bot.i18n import LANGUAGES
 from bot.services import product_service
 

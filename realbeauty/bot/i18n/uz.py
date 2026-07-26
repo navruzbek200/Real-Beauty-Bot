@@ -268,6 +268,24 @@ STRINGS: dict[str, str] = {
     "top.rank": "#{rank}",
     "top.price": "💵 <b>{current} so'm</b>",
     "top.price_discount": "💸 <s>{old} so'm</s>  ➜  <b>{current} so'm</b>  (-{percent}%)",
+    # --------------------------------------------------------- product browser
+    "catalog.list_header": (
+        "🛍 <b>Mahsulotlar</b> · {total} ta\n"
+        "Batafsil ko'rish uchun mahsulotni tanlang 👇"
+    ),
+    "top.list_header": (
+        "🔥 <b>{month} — top mahsulotlar</b>\n"
+        "Batafsil ko'rish uchun tanlang 👇"
+    ),
+    "tutorial.list_header": (
+        "🎓 <b>Qo'llanmalar</b>\n"
+        "Mahsulotni tanlang — video darslar ochiladi 👇"
+    ),
+    "catalog.gone": "Bu mahsulot endi mavjud emas.",
+    "browse.prev": "◀️ Oldingi",
+    "browse.next": "Keyingi ▶️",
+    "browse.counter": "{page}/{total}",
+    "browse.back": "⬅️ Ro'yxatga qaytish",
     # -------------------------------------------------------------- support
     "support.ask": (
         "✍️ Savolingiz yoki murojaatingizni yozing.\n\n"

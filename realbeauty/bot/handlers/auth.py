@@ -11,11 +11,11 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
 from apps.users.models import TelegramUser
+from bot.handlers import browse
 from bot.i18n import normalize, t
 from bot.keyboards import inline, reply
 from bot.services import (
     loyalty_service,
-    product_service,
     template_service,
     user_service,
 )
@@ -436,8 +436,11 @@ async def _finalize_registration(
         reply.main_menu_keyboard(lang),
     )
 
-    # 2. Immediately send product instructions + inline video buttons
-    await send_tutorial_intros(bot, user.telegram_id, lang)
+    # 2. If an admin already set the customer up with products, offer the
+    # lessons as a single tap-to-open list — never one message per product.
+    owned = await user_service.get_user_products(user.telegram_id)
+    if owned:
+        await browse.open_tutorials(bot, message, user.telegram_id, lang)
 
     # 3. Credit loyalty points — one-off for finishing signup, and the referral
     # bonus to the friend who invited them. Both are idempotent, so re-running
@@ -455,65 +458,6 @@ async def _finalize_registration(
             t("admin.user_registered", "uz", full_name=html.escape(user.full_name)),
             "HTML",
         )
-
-
-async def send_tutorial_intros(bot: Bot, telegram_id: int, lang: str) -> None:
-    """Send one intro message + inline step buttons per owned product."""
-    from core.i18n import pick
-
-    user_products = await user_service.get_user_products(telegram_id)
-    for up in user_products:
-        product = up.product
-        text, parse_mode = await template_service.render_template(
-            "product_intro", {"product": product}, lang
-        )
-        steps = await product_service.get_tutorial_steps(product.pk)
-        keyboard = inline.tutorial_steps_keyboard(
-            product.pk, [(s.pk, pick(s, "button_label", lang)) for s in steps]
-        )
-        body = text or t(
-            "tutorial.intro_fallback",
-            lang,
-            product=html.escape(pick(product, "name", lang)),
-        )
-        await _safe_send(bot, telegram_id, body, parse_mode, keyboard)
-
-
-async def send_tutorial_intros_for_products(
-    bot: Bot, telegram_id: int, products: list, lang: str
-) -> int:
-    """
-    Send one intro card per product in `products` that actually has a
-    tutorial step.
-
-    Used as the `menu_ingredients` fallback for a customer with no
-    purchases: showing this month's top products, but only the ones with
-    real content — a promotional card with no steps behind it would just
-    be confusing in a "tarkiblarni o'rganamiz" (learn the ingredients)
-    context. Returns how many cards were sent, so the caller can show the
-    empty state when it's zero.
-    """
-    from core.i18n import pick
-
-    sent = 0
-    for product in products:
-        steps = await product_service.get_tutorial_steps(product.pk)
-        if not steps:
-            continue
-        text, parse_mode = await template_service.render_template(
-            "product_intro", {"product": product}, lang
-        )
-        keyboard = inline.tutorial_steps_keyboard(
-            product.pk, [(s.pk, pick(s, "button_label", lang)) for s in steps]
-        )
-        body = text or t(
-            "tutorial.intro_fallback",
-            lang,
-            product=html.escape(pick(product, "name", lang)),
-        )
-        await _safe_send(bot, telegram_id, body, parse_mode, keyboard)
-        sent += 1
-    return sent
 
 
 async def _safe_send(

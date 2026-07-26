@@ -77,16 +77,23 @@ class MenuIngredientsFallbackTests(TestCase):
         async_to_sync(menu.menu_ingredients)(msg, bot, state, "uz")
         return msg, bot
 
+    @staticmethod
+    def _button_labels(message: dict) -> list[str]:
+        kb = message["reply_markup"]
+        return [b.text for row in kb.inline_keyboard for b in row]
+
     def test_a_top_products_video_reaches_a_customer_with_no_purchases(self):
         top = Product.objects.create(name="Top serum", is_top=True, top_order=1)
         ProductTutorialStep.objects.create(
             product=top, order=1, button_label="1-qadam", intro_text="Intro"
         )
 
-        _msg, bot = self._run()
+        msg, bot = self._run()
 
-        self.assertEqual(len(bot.sent), 1)
-        self.assertEqual(bot.sent[0]["chat_id"], 4001)
+        # A single paged list message — not one message per product.
+        self.assertEqual(len(msg.sent), 1)
+        self.assertEqual(bot.sent, [])
+        self.assertTrue(any("Top serum" in label for label in self._button_labels(msg.sent[0])))
 
     def test_a_top_product_with_no_lesson_is_not_shown(self):
         Product.objects.create(name="Top serum", is_top=True, top_order=1)
@@ -104,9 +111,13 @@ class MenuIngredientsFallbackTests(TestCase):
         Product.objects.create(name="Top serum", is_top=True, top_order=1)
         UserProduct.objects.create(user=self.user, product=owned)
 
-        _msg, bot = self._run()
+        msg, bot = self._run()
 
-        self.assertEqual(len(bot.sent), 1)
+        self.assertEqual(len(msg.sent), 1)
+        labels = self._button_labels(msg.sent[0])
+        self.assertTrue(any("Sotib olingan" in label for label in labels))
+        # Owned products win — the top-list fallback must not leak in.
+        self.assertFalse(any("Top serum" in label for label in labels))
 
 
 class MenuQuizRetakeTests(TestCase):

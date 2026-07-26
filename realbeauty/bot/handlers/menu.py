@@ -4,48 +4,20 @@ import html
 import logging
 
 from aiogram import Bot, F, Router
-from aiogram.exceptions import TelegramAPIError
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, FSInputFile, Message
+from aiogram.types import CallbackQuery, Message
 
 from bot.filters.menu import MenuText
-from bot.handlers.auth import send_tutorial_intros, send_tutorial_intros_for_products
+from bot.handlers import browse
 from bot.i18n import normalize, t
 from bot.keyboards import inline, reply
-from bot.services import discount_service, product_service, user_service
-from core.i18n import pick
+from bot.services import discount_service, user_service
 
 logger = logging.getLogger(__name__)
 router = Router(name="menu")
 # Customer menu only — a group admin's /menu or button taps must not fire this.
 router.message.filter(F.chat.type == "private")
-
-# Telegram's caption limit; a longer caption is rejected outright rather than
-# truncated, taking the whole product card with it.
-CAPTION_LIMIT = 1024
-CATALOG_PAGE = 10
-
-_MONTHS = {
-    "uz": (
-        "Yanvar", "Fevral", "Mart", "Aprel", "May", "Iyun",
-        "Iyul", "Avgust", "Sentabr", "Oktabr", "Noyabr", "Dekabr",
-    ),
-    "ru": (
-        "январь", "февраль", "март", "апрель", "май", "июнь",
-        "июль", "август", "сентябрь", "октябрь", "ноябрь", "декабрь",
-    ),
-    "en": (
-        "January", "February", "March", "April", "May", "June",
-        "July", "August", "September", "October", "November", "December",
-    ),
-}
-
-
-def month_name(lang: str) -> str:
-    from django.utils import timezone
-
-    return _MONTHS[normalize(lang)][timezone.localdate().month - 1]
 
 
 @router.message(Command("menu"))
@@ -68,24 +40,15 @@ async def menu_ingredients(
     message: Message, bot: Bot, state: FSMContext, lang: str
 ) -> None:
     """
-    The ingredient lessons — one card per product the customer owns, or,
-    failing that, this month's top products that actually have a lesson
-    attached. A brand-new customer with no purchase on file used to hit a
-    flat "you have no products" dead end here, which meant a video added in
-    the CRM was unreachable until somebody bought something.
+    The ingredient lessons — a single, paged list of the products a customer
+    owns (or, for a brand-new customer, this month's top products that actually
+    have a lesson attached). Tapping one opens its lesson in place. This used to
+    fire one message per product, which flooded anyone with a full shelf.
     """
     await state.clear()
     if message.from_user is None:
         return
-    products = await user_service.get_user_products(message.from_user.id)
-    if products:
-        await send_tutorial_intros(bot, message.from_user.id, lang)
-        return
-
-    top = await product_service.get_top_products()
-    sent = await send_tutorial_intros_for_products(bot, message.from_user.id, top, lang)
-    if not sent:
-        await message.answer(t("product.none", lang))
+    await browse.open_tutorials(bot, message, message.from_user.id, lang)
 
 
 @router.message(MenuText("menu.quiz_retake", "menu.feedback", "menu.legacy_feedback"))
@@ -111,77 +74,20 @@ async def menu_quiz_retake(message: Message, state: FSMContext, lang: str) -> No
 
 @router.message(MenuText("menu.catalog"))
 async def menu_catalog(message: Message, state: FSMContext, lang: str) -> None:
-    """Every active product — the shop window, not just what this user owns."""
+    """Every active product — the shop window, browsed one page at a time."""
     await state.clear()
-    products = await product_service.get_active_products()
-    if not products:
-        await message.answer(t("catalog.empty", lang))
+    if message.from_user is None:
         return
-    await message.answer(t("catalog.header", lang), parse_mode="HTML")
-    for product in products[:CATALOG_PAGE]:
-        await _send_product_card(message, product, lang)
-    await message.answer(t("catalog.footer", lang))
+    await browse.open_catalog(message, message.from_user.id, lang)
 
 
 @router.message(MenuText("menu.top", "menu.legacy_tips"))
 async def menu_top_products(message: Message, state: FSMContext, lang: str) -> None:
     """This month's curated picks, in the order the shop arranged them."""
     await state.clear()
-    products = await product_service.get_top_products()
-    if not products:
-        await message.answer(t("top.empty", lang))
+    if message.from_user is None:
         return
-    await message.answer(
-        t("top.header", lang, month=month_name(lang)), parse_mode="HTML"
-    )
-    for rank, product in enumerate(products[:CATALOG_PAGE], start=1):
-        await _send_product_card(message, product, lang, rank=rank)
-    await message.answer(t("top.footer", lang))
-
-
-def _format_price(product, lang: str) -> str:
-    """Chiroyli narx qatori: chegirma bo'lsa eski/yangi narx, bo'lmasa faqat narx."""
-    if not product.current_price:
-        return ""
-    current = f"{product.current_price:,}".replace(",", " ")
-    if product.old_price and product.old_price > product.current_price:
-        old = f"{product.old_price:,}".replace(",", " ")
-        percent = product.discount_percent
-        return t("top.price_discount", lang, old=old, current=current, percent=percent)
-    return t("top.price", lang, current=current)
-
-
-async def _send_product_card(
-    message: Message, product, lang: str, rank: int | None = None
-) -> None:
-    title = html.escape(pick(product, "name", lang))
-    if rank is not None:
-        title = f"{t('top.rank', lang, rank=rank)} {title}"
-    caption = f"<b>{title}</b>"
-
-    note = pick(product, "top_note", lang) if rank is not None else ""
-    if note:
-        caption += f"\n🏷 <i>{html.escape(note)}</i>"
-
-    price = _format_price(product, lang)
-    if price:
-        caption += f"\n{price}"
-
-    description = pick(product, "description", lang)
-    if description:
-        caption += f"\n\n{html.escape(description)}"
-    caption = caption[:CAPTION_LIMIT]
-
-    try:
-        if product.photo and product.photo.name:
-            await message.answer_photo(
-                FSInputFile(product.photo.path), caption=caption, parse_mode="HTML"
-            )
-        else:
-            await message.answer(caption, parse_mode="HTML")
-    except (TelegramAPIError, OSError, ValueError):
-        # A missing file on disk must not take the rest of the list with it.
-        logger.exception("Failed to send product card %s", product.pk)
+    await browse.open_top(message, message.from_user.id, lang)
 
 
 @router.message(MenuText("menu.discounts"))

@@ -19,6 +19,7 @@ from aiogram.types import BotCommand  # noqa: E402
 from bot.handlers import (  # noqa: E402
     auth,
     birthday,
+    browse,
     fallback,
     loyalty,
     menu,
@@ -66,6 +67,7 @@ async def main() -> None:
     dp.include_router(quiz.router)
     dp.include_router(menu.router)
     dp.include_router(loyalty.router)
+    dp.include_router(browse.router)
     dp.include_router(products.router)
     dp.include_router(support.router)
     dp.include_router(support_group.router)

@@ -259,6 +259,24 @@ STRINGS: dict[str, str] = {
     "top.rank": "#{rank}",
     "top.price": "💵 <b>{current} UZS</b>",
     "top.price_discount": "💸 <s>{old} UZS</s>  ➜  <b>{current} UZS</b>  (-{percent}%)",
+    # --------------------------------------------------------- product browser
+    "catalog.list_header": (
+        "🛍 <b>Products</b> · {total}\n"
+        "Pick a product to see the details 👇"
+    ),
+    "top.list_header": (
+        "🔥 <b>{month} — top products</b>\n"
+        "Pick one to see the details 👇"
+    ),
+    "tutorial.list_header": (
+        "🎓 <b>Guides</b>\n"
+        "Pick a product to open its video lessons 👇"
+    ),
+    "catalog.gone": "This product is no longer available.",
+    "browse.prev": "◀️ Prev",
+    "browse.next": "Next ▶️",
+    "browse.counter": "{page}/{total}",
+    "browse.back": "⬅️ Back to list",
     # -------------------------------------------------------------- support
     "support.ask": (
         "✍️ Write your question or request.\n\n"

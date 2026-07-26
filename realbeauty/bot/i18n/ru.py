@@ -260,6 +260,24 @@ STRINGS: dict[str, str] = {
     "top.rank": "#{rank}",
     "top.price": "💵 <b>{current} сум</b>",
     "top.price_discount": "💸 <s>{old} сум</s>  ➜  <b>{current} сум</b>  (-{percent}%)",
+    # --------------------------------------------------------- product browser
+    "catalog.list_header": (
+        "🛍 <b>Товары</b> · {total} шт.\n"
+        "Выберите товар, чтобы посмотреть подробнее 👇"
+    ),
+    "top.list_header": (
+        "🔥 <b>{month} — топ товаров</b>\n"
+        "Выберите, чтобы посмотреть подробнее 👇"
+    ),
+    "tutorial.list_header": (
+        "🎓 <b>Инструкции</b>\n"
+        "Выберите товар — откроются видеоуроки 👇"
+    ),
+    "catalog.gone": "Этого товара больше нет.",
+    "browse.prev": "◀️ Назад",
+    "browse.next": "Вперёд ▶️",
+    "browse.counter": "{page}/{total}",
+    "browse.back": "⬅️ К списку",
     # -------------------------------------------------------------- support
     "support.ask": (
         "✍️ Напишите свой вопрос или обращение.\n\n"
