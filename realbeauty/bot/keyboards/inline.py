@@ -2,10 +2,28 @@ from __future__ import annotations
 
 from typing import Iterable
 
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    WebAppInfo,
+)
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from bot.i18n import language_choices, t
+
+
+def webapp_open_keyboard(lang: str, url: str) -> InlineKeyboardMarkup:
+    """Single button that opens the product catalogue Mini App.
+
+    Works even for customers whose reply keyboard predates the web_app button —
+    tapping «Mahsulotlar» reaches menu_catalog, which sends this, so the app is
+    always one tap away regardless of when they last refreshed the menu.
+    """
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text=t("webapp.open", lang), web_app=WebAppInfo(url=url))]
+        ]
+    )
 
 # --- Callback data prefixes (no magic strings in handlers) ---
 # Two distinct prefixes for what looks like "the same" language picker:

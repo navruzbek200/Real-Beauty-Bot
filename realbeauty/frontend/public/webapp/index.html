@@ -37,15 +37,22 @@
       display: flex; flex-direction: column; cursor: pointer; transition: transform .12s ease;
       border: 1px solid color-mix(in srgb, var(--text) 6%, transparent); }
     .card:active { transform: scale(.97); }
-    .thumb { aspect-ratio: 1/1; width: 100%; object-fit: cover; background:
+    .thumb-wrap { position: relative; }
+    .thumb { aspect-ratio: 1/1; width: 100%; object-fit: cover; display: block; background:
       linear-gradient(135deg, color-mix(in srgb, var(--button) 22%, var(--secondary-bg)),
-      var(--secondary-bg)); display: flex; align-items: center; justify-content: center;
-      font-size: 34px; }
-    .card-body { padding: 10px 11px 12px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
-    .name { font-size: 14px; font-weight: 600; line-height: 1.25; }
-    .price-row { display: flex; align-items: baseline; gap: 6px; margin-top: auto; flex-wrap: wrap; }
-    .price { font-size: 15px; font-weight: 700; }
+      var(--secondary-bg)); }
+    div.thumb { display: flex; align-items: center; justify-content: center; font-size: 40px;
+      color: var(--button); font-weight: 800; }
+    .badges.float { position: absolute; top: 8px; left: 8px; }
+    .card-body { padding: 10px 11px 12px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+    .name { font-size: 14px; font-weight: 600; line-height: 1.3; min-height: 2.6em;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .price-row { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+    .price { font-size: 16px; font-weight: 800; letter-spacing: -0.01em; }
     .old { font-size: 12px; color: var(--hint); text-decoration: line-through; }
+    .card-btn { margin-top: auto; border: none; border-radius: 10px; padding: 9px;
+      background: var(--button); color: var(--button-text); font-size: 13px; font-weight: 600;
+      width: 100%; cursor: pointer; }
     .badges { display: flex; gap: 5px; flex-wrap: wrap; }
     .badge { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 999px;
       background: var(--button); color: var(--button-text); }
@@ -104,13 +111,13 @@
     const T = {
       uz: { sub: 'Mahsulotlar katalogi', search: 'Qidirish…', empty: 'Mahsulotlar topilmadi',
         err: 'Yuklab bo‘lmadi. Qaytadan urinib ko‘ring.', ask: 'Savol berish',
-        top: 'TOP', som: 'so‘m', nothing: 'Hech narsa topilmadi' },
+        top: 'TOP', som: 'so‘m', nothing: 'Hech narsa topilmadi', details: 'Batafsil' },
       ru: { sub: 'Каталог товаров', search: 'Поиск…', empty: 'Товары не найдены',
         err: 'Не удалось загрузить. Попробуйте ещё раз.', ask: 'Задать вопрос',
-        top: 'ТОП', som: 'сум', nothing: 'Ничего не найдено' },
+        top: 'ТОП', som: 'сум', nothing: 'Ничего не найдено', details: 'Подробнее' },
       en: { sub: 'Product catalogue', search: 'Search…', empty: 'No products found',
         err: 'Could not load. Please try again.', ask: 'Ask a question',
-        top: 'TOP', som: 'UZS', nothing: 'Nothing found' },
+        top: 'TOP', som: 'UZS', nothing: 'Nothing found', details: 'Details' },
     };
     const L = T[LANG] || T.uz;
     document.getElementById('shop-sub').textContent = L.sub;
@@ -132,11 +139,11 @@
       const price = p.price ? `<span class="price">${money(p.price)}</span>` : '';
       const old = (p.old_price && p.old_price > p.price) ? `<span class="old">${money(p.old_price)}</span>` : '';
       return `<div class="card" data-id="${p.id}">
-        ${thumb}
+        <div class="thumb-wrap">${thumb}${badges.length ? `<div class="badges float">${badges.join('')}</div>` : ''}</div>
         <div class="card-body">
-          ${badges.length ? `<div class="badges">${badges.join('')}</div>` : ''}
           <div class="name">${esc(p.name)}</div>
           <div class="price-row">${price}${old}</div>
+          <button class="card-btn" type="button">${L.details}</button>
         </div>
       </div>`;
     }

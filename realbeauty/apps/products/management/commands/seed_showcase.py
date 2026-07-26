@@ -10,11 +10,66 @@ production: it only touches products and their lessons, never customers.
 
 from __future__ import annotations
 
+import io
 from typing import Any
 
+from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
 
 from apps.products.models import Product, ProductTutorialStep
+
+# Deliberately mismatched dimensions — portrait, landscape, tiny, huge — so a
+# seeded catalogue proves the Mini App's `object-fit: cover` grid normalises any
+# upload into a clean, equal-sized card. "biri kichik biri sig'may qolgan" was
+# the complaint; this is the regression fixture for it.
+_SIZES = [(600, 800), (900, 500), (300, 300), (1200, 900), (500, 700), (800, 800)]
+_PALETTE = [
+    ((255, 228, 225), (255, 182, 193)),  # rose
+    ((224, 242, 241), (128, 203, 196)),  # mint
+    ((255, 243, 224), (255, 204, 128)),  # amber
+    ((237, 231, 246), (179, 157, 219)),  # lavender
+    ((232, 245, 233), (129, 199, 132)),  # green
+    ((225, 245, 254), (129, 212, 250)),  # sky
+]
+
+
+def _placeholder_image(name: str, index: int) -> ContentFile:
+    """A clean branded gradient card with the product's initial — a stand-in
+    until real photos are added, generated at a deliberately odd size."""
+    from PIL import Image, ImageDraw
+
+    w, h = _SIZES[index % len(_SIZES)]
+    top, bottom = _PALETTE[index % len(_PALETTE)]
+    img = Image.new("RGB", (w, h), top)
+    draw = ImageDraw.Draw(img)
+    for y in range(h):  # vertical gradient
+        f = y / max(1, h - 1)
+        draw.line(
+            [(0, y), (w, y)],
+            fill=tuple(round(top[c] + (bottom[c] - top[c]) * f) for c in range(3)),
+        )
+    # A soft "bottle" silhouette + the product initial, centred — no font files
+    # needed beyond PIL's bundled default, so it renders the same on any host.
+    cx, cy = w / 2, h / 2
+    r = min(w, h) * 0.26
+    draw.ellipse([cx - r, cy - r, cx + r, cy + r], fill=(255, 255, 255))
+    letter = next((c for c in name if c.isalnum()), "R").upper()
+    try:
+        from PIL import ImageFont
+
+        font = ImageFont.load_default(size=int(r))
+    except Exception:  # noqa: BLE001 — older Pillow: default font has no size arg
+        font = None
+    box = draw.textbbox((0, 0), letter, font=font)
+    draw.text(
+        (cx - (box[2] - box[0]) / 2, cy - (box[3] - box[1]) / 2 - box[1]),
+        letter,
+        fill=(120, 95, 110),
+        font=font,
+    )
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG", quality=85)
+    return ContentFile(buf.getvalue())
 
 # name, description, price, old_price, top_order(0=not top), top_note, steps
 # steps: list of (button_label, intro_text)  — intro_text "" means "optional, left blank"
@@ -112,8 +167,15 @@ CATALOGUE: list[dict[str, Any]] = [
 class Command(BaseCommand):
     help = "Seed a realistic demo catalogue (products + lessons + top picks)."
 
+    def add_arguments(self, parser) -> None:
+        parser.add_argument(
+            "--no-images",
+            action="store_true",
+            help="Skip generating placeholder product images.",
+        )
+
     def handle(self, *args: Any, **opts: Any) -> None:
-        for item in CATALOGUE:
+        for index, item in enumerate(CATALOGUE):
             product, _ = Product.objects.update_or_create(
                 name=item["name"],
                 defaults={
@@ -126,6 +188,14 @@ class Command(BaseCommand):
                     "top_note": item["top_note"],
                 },
             )
+            if not opts["no_images"]:
+                # Replace so re-runs don't pile up orphaned files.
+                product.photo.delete(save=False)
+                product.photo.save(
+                    f"demo_{product.pk}.jpg",
+                    _placeholder_image(item["name"], index),
+                    save=True,
+                )
             # Rebuild this product's lessons so re-runs stay clean.
             product.tutorial_steps.all().delete()
             for order, (label, intro) in enumerate(item["steps"], start=1):
@@ -137,7 +207,8 @@ class Command(BaseCommand):
                 )
             steps = len(item["steps"])
             top = "TOP" if item["top"] else "—"
-            self.stdout.write(f"• {item['name']} [{top}] · {steps} dars")
+            img = "—" if opts["no_images"] else "🖼"
+            self.stdout.write(f"• {item['name']} [{top}] · {steps} dars {img}")
 
         self.stdout.write(
             self.style.SUCCESS(

@@ -99,6 +99,10 @@ def award_referral(inviter_pk: int, new_user_pk: int) -> bool:
     Guards the obvious abuse: you cannot refer yourself, the inviter has to be
     a real completed customer, and the reference ties the award to *this* new
     customer so a re-run of registration can never pay twice.
+
+    On success the inviter gets a dedicated "your friend joined" message — the
+    plain "+points" note alone read like nothing had happened, which is exactly
+    why a shop testing referrals thought points were never credited.
     """
     if inviter_pk == new_user_pk:
         return False
@@ -112,7 +116,20 @@ def award_referral(inviter_pk: int, new_user_pk: int) -> bool:
         inviter,
         PointsTransaction.Reason.REFERRAL,
         reference=f"referral:{new_user_pk}",
+        notify=False,  # replaced by the clearer, referral-specific message below
     )
+    if result.awarded and inviter.telegram_id:
+        from bot.i18n import t
+        from core.telegram import send_message
+
+        try:
+            send_message(
+                inviter.telegram_id,
+                t("loyalty.referral_joined", inviter.language, points=result.points),
+                parse_mode="HTML",
+            )
+        except Exception:  # noqa: BLE001 — a lost message must not undo the points
+            logger.info("Could not notify inviter %s of a referral", inviter.telegram_id)
     return result.awarded
 
 

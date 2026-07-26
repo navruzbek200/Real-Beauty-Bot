@@ -74,9 +74,21 @@ async def menu_quiz_retake(message: Message, state: FSMContext, lang: str) -> No
 
 @router.message(MenuText("menu.catalog"))
 async def menu_catalog(message: Message, state: FSMContext, lang: str) -> None:
-    """Every active product — the shop window, browsed one page at a time."""
+    """The shop window. Opens the Mini App when configured (with the in-chat
+    browser as the fallback), so tapping «Mahsulotlar» always reaches the app —
+    even for customers whose reply keyboard predates the web_app button."""
+    from django.conf import settings
+
     await state.clear()
     if message.from_user is None:
+        return
+    url = getattr(settings, "WEBAPP_URL", "") or ""
+    if url.startswith("https://"):
+        await message.answer(
+            t("webapp.intro", lang),
+            parse_mode="HTML",
+            reply_markup=inline.webapp_open_keyboard(lang, url),
+        )
         return
     await browse.open_catalog(message, message.from_user.id, lang)
 

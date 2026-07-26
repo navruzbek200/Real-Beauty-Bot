@@ -67,6 +67,18 @@ class ReferralAwardTests(TestCase):
         account = LoyaltyAccount.objects.get(user=inviter)
         self.assertEqual(account.balance, LoyaltySettings.get().points_referral)
 
+    def test_referral_notifies_the_inviter(self):
+        # The points always worked; the missing "your friend joined" message is
+        # what made a shop think referrals were broken.
+        from unittest.mock import patch
+
+        inviter = _customer(7111, "Taklif")
+        friend = _customer(7112, "Do'st")
+        with patch("core.telegram.send_message") as send:
+            self.assertTrue(award_referral(inviter.pk, friend.pk))
+        send.assert_called_once()
+        self.assertEqual(send.call_args.args[0], inviter.telegram_id)
+
     def test_self_referral_is_rejected(self):
         user = _customer(7103)
         self.assertFalse(award_referral(user.pk, user.pk))

@@ -96,6 +96,54 @@ class CatalogBrowserTests(TestCase):
         self.assertNotIn("reply_markup", msg.sent[0])
 
 
+class CatalogEntryTests(TestCase):
+    """«Mahsulotlar» opens the Mini App when configured, browser otherwise."""
+
+    def setUp(self):
+        Product.objects.create(name="Serum", current_price=100)
+        TelegramUser.objects.create(
+            telegram_id=6100,
+            full_name="Mijoz",
+            registration_status=TelegramUser.RegistrationStatus.COMPLETED,
+        )
+
+    def _run(self):
+        from types import SimpleNamespace
+        from unittest.mock import AsyncMock
+        from aiogram.fsm.context import FSMContext
+        from aiogram.fsm.storage.base import StorageKey
+        from aiogram.fsm.storage.memory import MemoryStorage
+        from bot.handlers import menu
+
+        msg = SimpleNamespace(
+            chat=SimpleNamespace(id=6100),
+            from_user=SimpleNamespace(id=6100, username="m"),
+        )
+        msg.sent = []
+        async def _a(text="", **k):
+            msg.sent.append({"text": text, **k}); return msg
+        msg.answer = AsyncMock(side_effect=_a)
+        state = FSMContext(storage=MemoryStorage(),
+                           key=StorageKey(bot_id=1, chat_id=6100, user_id=6100))
+        async_to_sync(menu.menu_catalog)(msg, state, "uz")
+        return msg
+
+    def test_opens_webapp_when_configured(self):
+        with self.settings(WEBAPP_URL="https://example.com/webapp/"):
+            msg = self._run()
+        kb = msg.sent[0]["reply_markup"]
+        buttons = [b for row in kb.inline_keyboard for b in row]
+        self.assertTrue(any(b.web_app for b in buttons))
+
+    def test_falls_back_to_browser_without_webapp(self):
+        with self.settings(WEBAPP_URL=""):
+            msg = self._run()
+        # Browser list message, not a web_app button.
+        kb = msg.sent[0].get("reply_markup")
+        buttons = [b for row in (kb.inline_keyboard if kb else []) for b in row]
+        self.assertFalse(any(getattr(b, "web_app", None) for b in buttons))
+
+
 class TutorialFallbackTests(TestCase):
     """The «no products» regression: a shop that added a product with a lesson
     but never ticked "top" used to see nothing under «Tarkiblar»."""

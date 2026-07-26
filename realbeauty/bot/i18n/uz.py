@@ -288,6 +288,12 @@ STRINGS: dict[str, str] = {
     "browse.counter": "{page}/{total}",
     "browse.back": "⬅️ Ro'yxatga qaytish",
     # -------------------------------------------------------------- support
+    "webapp.open": "🛍 Do'konni ochish",
+    "webapp.intro": (
+        "🛍 <b>Mahsulotlar do'koni</b>\n\n"
+        "Barcha mahsulotlar, narxlar va chegirmalar — qulay ilovada. "
+        "Ochish uchun pastdagi tugmani bosing 👇"
+    ),
     "webapp.ask_product": (
         "🛍 <b>{product}</b> haqida savolingizni yozing 👇\n"
         "Jamoamiz shu yerda javob beradi."

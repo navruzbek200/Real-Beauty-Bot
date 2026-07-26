@@ -279,6 +279,12 @@ STRINGS: dict[str, str] = {
     "browse.counter": "{page}/{total}",
     "browse.back": "⬅️ Back to list",
     # -------------------------------------------------------------- support
+    "webapp.open": "🛍 Open the shop",
+    "webapp.intro": (
+        "🛍 <b>Product shop</b>\n\n"
+        "All products, prices and discounts — in a convenient app. "
+        "Tap the button below to open 👇"
+    ),
     "webapp.ask_product": (
         "🛍 Write your question about <b>{product}</b> 👇\n"
         "Our team will reply right here."
