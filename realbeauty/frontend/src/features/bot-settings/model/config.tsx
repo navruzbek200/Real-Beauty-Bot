@@ -65,4 +65,38 @@ export const globalSettingsFormConfig: ResourceFormConfig<GlobalSettingsFormValu
     birthday_discount_percent: (item.birthday_discount_percent as number) ?? 30,
   }),
 }
+
+const url = z.string().url('To\'g\'ri havola kiriting').or(z.literal('')).optional()
+export const shopSettingsFormSchema = z.object({
+  shop_name: z.string().min(1, 'Nomi shart'),
+  shop_tagline: z.string().optional(),
+  instagram_url: url,
+  youtube_url: url,
+  telegram_url: url,
+})
+export type ShopSettingsFormValues = z.infer<typeof shopSettingsFormSchema>
+export const shopSettingsFormConfig: ResourceFormConfig<ShopSettingsFormValues> = {
+  schema: shopSettingsFormSchema,
+  fields: [
+    { name: 'shop_name', label: "Do'kon nomi", type: 'text' },
+    { name: 'shop_tagline', label: 'Shior', type: 'text' },
+    { name: 'instagram_url', label: 'Instagram havolasi', type: 'text', help: 'https://instagram.com/...' },
+    { name: 'youtube_url', label: 'YouTube havolasi', type: 'text', help: 'Bo\'sh — yashiriladi' },
+    { name: 'telegram_url', label: 'Telegram kanal havolasi', type: 'text', help: 'Bo\'sh — yashiriladi' },
+  ],
+  defaultValues: {
+    shop_name: 'Real Beauty',
+    shop_tagline: '',
+    instagram_url: '',
+    youtube_url: '',
+    telegram_url: '',
+  },
+  toFormValues: (item) => ({
+    shop_name: (item.shop_name as string) ?? 'Real Beauty',
+    shop_tagline: (item.shop_tagline as string) ?? '',
+    instagram_url: (item.instagram_url as string) ?? '',
+    youtube_url: (item.youtube_url as string) ?? '',
+    telegram_url: (item.telegram_url as string) ?? '',
+  }),
+}
 export type { GlobalSettings }

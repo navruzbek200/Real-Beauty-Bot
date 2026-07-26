@@ -800,6 +800,22 @@ export interface paths {
         patch: operations["user_products_partial_update"];
         trace?: never;
     };
+    "/api/v1/webapp/catalog/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["webapp_catalog_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1014,6 +1030,19 @@ export interface components {
              * @description Tug'ilgan kun xabaridagi foiz. Xabar matnida {{ discount }} o'rniga shu raqam qo'yiladi.
              */
             birthday_discount_percent?: number;
+            /**
+             * Do'kon nomi
+             * @description Mini App sarlavhasida ko'rinadi.
+             */
+            shop_name?: string;
+            /** Do'kon shiori */
+            shop_tagline?: string;
+            /** Instagram havolasi */
+            instagram_url?: string;
+            /** YouTube havolasi */
+            youtube_url?: string;
+            /** Telegram kanal havolasi */
+            telegram_url?: string;
         };
         /**
          * @description * `uz` - O'zbekcha
@@ -1513,6 +1542,19 @@ export interface components {
              * @description Tug'ilgan kun xabaridagi foiz. Xabar matnida {{ discount }} o'rniga shu raqam qo'yiladi.
              */
             birthday_discount_percent?: number;
+            /**
+             * Do'kon nomi
+             * @description Mini App sarlavhasida ko'rinadi.
+             */
+            shop_name?: string;
+            /** Do'kon shiori */
+            shop_tagline?: string;
+            /** Instagram havolasi */
+            instagram_url?: string;
+            /** YouTube havolasi */
+            youtube_url?: string;
+            /** Telegram kanal havolasi */
+            telegram_url?: string;
         };
         PatchedLoyaltySettings: {
             /**
@@ -1656,7 +1698,7 @@ export interface components {
             button_label_en?: string;
             /**
              * Video oldidan matn
-             * @description Video yuborilishidan oldin ko'rsatiladigan qisqa izoh.
+             * @description Ixtiyoriy: video yuborilishidan oldin ko'rsatiladigan qisqa izoh. Bo'sh qoldirsangiz — faqat video yuboriladi.
              */
             intro_text?: string;
             /** Video oldidan matn (ruscha) */
@@ -1957,9 +1999,9 @@ export interface components {
             button_label_en?: string;
             /**
              * Video oldidan matn
-             * @description Video yuborilishidan oldin ko'rsatiladigan qisqa izoh.
+             * @description Ixtiyoriy: video yuborilishidan oldin ko'rsatiladigan qisqa izoh. Bo'sh qoldirsangiz — faqat video yuboriladi.
              */
-            intro_text: string;
+            intro_text?: string;
             /** Video oldidan matn (ruscha) */
             intro_text_ru?: string;
             /** Video oldidan matn (inglizcha) */
@@ -4858,6 +4900,24 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["UserProduct"];
                 };
+            };
+        };
+    };
+    webapp_catalog_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

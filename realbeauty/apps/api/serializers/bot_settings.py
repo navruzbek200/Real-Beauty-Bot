@@ -8,7 +8,14 @@ from apps.bot_settings.models import Discount, GlobalSettings
 class GlobalSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = GlobalSettings
-        fields = ["birthday_discount_percent"]
+        fields = [
+            "birthday_discount_percent",
+            "shop_name",
+            "shop_tagline",
+            "instagram_url",
+            "youtube_url",
+            "telegram_url",
+        ]
 
 
 class DiscountSerializer(serializers.ModelSerializer):

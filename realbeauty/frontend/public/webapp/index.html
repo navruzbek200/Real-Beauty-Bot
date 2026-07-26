@@ -2,188 +2,266 @@
 <html lang="uz">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
   <title>Real Beauty</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
       --bg: var(--tg-theme-bg-color, #ffffff);
-      --secondary-bg: var(--tg-theme-secondary-bg-color, #f2f2f7);
-      --text: var(--tg-theme-text-color, #111111);
-      --hint: var(--tg-theme-hint-color, #8a8a8e);
-      --link: var(--tg-theme-link-color, #2b7cff);
-      --button: var(--tg-theme-button-color, #2b7cff);
-      --button-text: var(--tg-theme-button-text-color, #ffffff);
-      --radius: 16px;
-      --gap: 12px;
+      --surface: var(--tg-theme-secondary-bg-color, #f4f4f7);
+      --text: var(--tg-theme-text-color, #14161a);
+      --hint: var(--tg-theme-hint-color, #8a8f98);
+      --accent: var(--tg-theme-button-color, #2f6bff);
+      --accent-text: var(--tg-theme-button-text-color, #ffffff);
+      --card: var(--bg);
+      --line: color-mix(in srgb, var(--text) 8%, transparent);
+      --radius: 20px;
+      --shadow: 0 8px 24px -12px color-mix(in srgb, var(--text) 40%, transparent);
     }
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-    body { padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom); }
+    html, body { margin: 0; padding: 0; background: var(--surface); color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased; }
+    body { padding-bottom: calc(28px + env(safe-area-inset-bottom)); overflow-x: hidden; }
+    img { display: block; max-width: 100%; }
 
-    header { position: sticky; top: 0; z-index: 5; background: var(--bg);
-      padding: 14px 16px 10px; }
-    header h1 { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
-    header p { margin: 2px 0 0; color: var(--hint); font-size: 13px; }
-    .search { margin: 12px 16px 4px; position: relative; }
-    .search input { width: 100%; border: none; outline: none; background: var(--secondary-bg);
-      color: var(--text); border-radius: 12px; padding: 12px 14px; font-size: 15px; }
-    .search input::placeholder { color: var(--hint); }
+    /* ---------- hero ---------- */
+    .hero { position: relative; padding: calc(26px + env(safe-area-inset-top)) 20px 26px;
+      background:
+        radial-gradient(120% 90% at 15% 0%, color-mix(in srgb, var(--accent) 42%, transparent), transparent 60%),
+        radial-gradient(120% 90% at 100% 10%, color-mix(in srgb, var(--accent) 26%, transparent), transparent 55%),
+        linear-gradient(160deg, color-mix(in srgb, var(--accent) 88%, #000), color-mix(in srgb, var(--accent) 62%, #000));
+      color: #fff; border-radius: 0 0 28px 28px; overflow: hidden; }
+    .hero::after { content: ""; position: absolute; inset: 0;
+      background: radial-gradient(60% 50% at 85% 90%, rgba(255,255,255,.18), transparent 70%); pointer-events: none; }
+    .hero .kicker { font-size: 12px; letter-spacing: .18em; text-transform: uppercase; opacity: .85; }
+    .hero h1 { margin: 6px 0 0; font-size: 30px; font-weight: 800; letter-spacing: -.02em; }
+    .hero p { margin: 8px 0 0; font-size: 14px; opacity: .9; max-width: 22ch; line-height: 1.4; }
+    .hero .spark { position: absolute; top: 18px; right: 20px; font-size: 22px; opacity: .9;
+      animation: float 4s ease-in-out infinite; }
+    @keyframes float { 0%,100%{ transform: translateY(0) } 50%{ transform: translateY(-6px) } }
 
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gap);
-      padding: 12px 16px 24px; }
-    .card { background: var(--secondary-bg); border-radius: var(--radius); overflow: hidden;
-      display: flex; flex-direction: column; cursor: pointer; transition: transform .12s ease;
-      border: 1px solid color-mix(in srgb, var(--text) 6%, transparent); }
+    /* ---------- search + chips ---------- */
+    .controls { padding: 16px 16px 4px; }
+    .search { position: relative; margin-bottom: 12px; }
+    .search input { width: 100%; border: none; outline: none; background: var(--bg);
+      color: var(--text); border-radius: 14px; padding: 13px 14px 13px 42px; font-size: 15px; box-shadow: var(--shadow); }
+    .search svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); opacity: .5; }
+    .chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none; }
+    .chips::-webkit-scrollbar { display: none; }
+    .chip { flex: 0 0 auto; border: 1px solid var(--line); background: var(--bg); color: var(--text);
+      border-radius: 999px; padding: 8px 15px; font-size: 13px; font-weight: 600; cursor: pointer;
+      transition: transform .12s ease, background .15s ease; }
+    .chip:active { transform: scale(.95); }
+    .chip.active { background: var(--accent); color: var(--accent-text); border-color: transparent; }
+
+    /* ---------- grid ---------- */
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 12px 16px 8px; }
+    .card { background: var(--card); border-radius: var(--radius); overflow: hidden; cursor: pointer;
+      display: flex; flex-direction: column; box-shadow: var(--shadow); border: 1px solid var(--line);
+      transition: transform .14s ease; animation: rise .4s both; }
     .card:active { transform: scale(.97); }
+    @keyframes rise { from { opacity: 0; transform: translateY(10px) } to { opacity: 1; transform: none } }
     .thumb-wrap { position: relative; }
-    .thumb { aspect-ratio: 1/1; width: 100%; object-fit: cover; display: block; background:
-      linear-gradient(135deg, color-mix(in srgb, var(--button) 22%, var(--secondary-bg)),
-      var(--secondary-bg)); }
-    div.thumb { display: flex; align-items: center; justify-content: center; font-size: 40px;
-      color: var(--button); font-weight: 800; }
-    .badges.float { position: absolute; top: 8px; left: 8px; }
-    .card-body { padding: 10px 11px 12px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
-    .name { font-size: 14px; font-weight: 600; line-height: 1.3; min-height: 2.6em;
+    .thumb { aspect-ratio: 1/1; width: 100%; object-fit: cover; background:
+      linear-gradient(135deg, color-mix(in srgb, var(--accent) 20%, var(--surface)), var(--surface)); }
+    div.thumb { display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: 800;
+      color: color-mix(in srgb, var(--accent) 80%, var(--text)); }
+    .badges { position: absolute; top: 9px; left: 9px; display: flex; gap: 5px; flex-wrap: wrap; }
+    .badge { font-size: 10px; font-weight: 800; letter-spacing: .02em; padding: 3px 8px; border-radius: 999px;
+      backdrop-filter: blur(6px); }
+    .badge.sale { background: #ff3b30; color: #fff; }
+    .badge.top { background: rgba(255,255,255,.85); color: #b8860b; }
+    .card-body { padding: 11px 12px 13px; display: flex; flex-direction: column; gap: 7px; flex: 1; }
+    .name { font-size: 13.5px; font-weight: 600; line-height: 1.3; min-height: 2.6em;
       display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .price-row { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
-    .price { font-size: 16px; font-weight: 800; letter-spacing: -0.01em; }
+    .price { font-size: 16px; font-weight: 800; letter-spacing: -.01em; }
     .old { font-size: 12px; color: var(--hint); text-decoration: line-through; }
-    .card-btn { margin-top: auto; border: none; border-radius: 10px; padding: 9px;
-      background: var(--button); color: var(--button-text); font-size: 13px; font-weight: 600;
-      width: 100%; cursor: pointer; }
-    .badges { display: flex; gap: 5px; flex-wrap: wrap; }
-    .badge { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 999px;
-      background: var(--button); color: var(--button-text); }
-    .badge.discount { background: #ff3b30; color: #fff; }
-    .badge.top { background: color-mix(in srgb, var(--button) 16%, transparent); color: var(--button); }
+    .buy { margin-top: auto; border: none; border-radius: 12px; padding: 9px; font-size: 13px; font-weight: 700;
+      background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); cursor: pointer; }
 
-    .state { text-align: center; color: var(--hint); padding: 64px 24px; font-size: 15px; }
-    .skeleton .thumb { animation: pulse 1.2s ease-in-out infinite; }
-    .skeleton .line { height: 12px; border-radius: 6px; background: color-mix(in srgb, var(--text) 8%, transparent);
-      animation: pulse 1.2s ease-in-out infinite; }
-    @keyframes pulse { 0%,100%{opacity:.5} 50%{opacity:1} }
+    /* ---------- menu (socials) ---------- */
+    .section { padding: 18px 16px 6px; }
+    .section h2 { margin: 0 0 10px; font-size: 15px; font-weight: 700; }
+    .menu { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
+      border: 1px solid var(--line); overflow: hidden; }
+    .row { display: flex; align-items: center; gap: 13px; padding: 13px 15px; cursor: pointer;
+      transition: background .15s ease; }
+    .row:active { background: var(--surface); }
+    .row + .row { border-top: 1px solid var(--line); }
+    .ic { width: 38px; height: 38px; border-radius: 11px; display: flex; align-items: center; justify-content: center;
+      flex: 0 0 auto; color: #fff; }
+    .ic.ig { background: linear-gradient(135deg,#feda75,#d62976 45%,#4f5bd5); }
+    .ic.yt { background: #ff0000; }
+    .ic.tg { background: linear-gradient(135deg,#37bbfe,#007dbb); }
+    .ic.sp { background: linear-gradient(135deg,#34c759,#248a3d); }
+    .row .label { flex: 1; font-size: 15px; font-weight: 600; }
+    .row .chev { color: var(--hint); }
 
-    /* detail sheet */
-    .sheet-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.45);
-      opacity: 0; pointer-events: none; transition: opacity .2s ease; z-index: 20; }
-    .sheet-backdrop.open { opacity: 1; pointer-events: auto; }
-    .sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 21;
-      background: var(--bg); border-radius: 20px 20px 0 0; transform: translateY(100%);
-      transition: transform .26s cubic-bezier(.2,.8,.2,1); max-height: 88vh; overflow-y: auto;
-      padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
-    .sheet.open { transform: translateY(0); }
-    .grabber { width: 40px; height: 4px; border-radius: 2px; background: var(--hint);
-      opacity: .4; margin: 8px auto 4px; }
-    .sheet-photo { width: 100%; aspect-ratio: 4/3; object-fit: cover; background: var(--secondary-bg);
-      display:flex; align-items:center; justify-content:center; font-size: 56px; }
-    .sheet-body { padding: 16px; }
-    .sheet-body h2 { margin: 0 0 8px; font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
-    .sheet-price { display: flex; align-items: baseline; gap: 8px; margin-bottom: 12px; }
-    .sheet-price .price { font-size: 22px; }
-    .desc { color: var(--text); opacity: .82; font-size: 15px; line-height: 1.5; white-space: pre-wrap; }
-    .cta { margin: 18px 16px 0; }
-    .cta button { width: 100%; border: none; border-radius: 14px; padding: 15px;
-      background: var(--button); color: var(--button-text); font-size: 16px; font-weight: 600; }
+    /* ---------- states ---------- */
+    .state { text-align: center; color: var(--hint); padding: 56px 24px; font-size: 15px; }
+    .sk { background: var(--card); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow);
+      border: 1px solid var(--line); }
+    .sk .thumb { animation: pulse 1.3s ease-in-out infinite; }
+    .sk .b { height: 12px; margin: 12px; border-radius: 6px; background: var(--line); animation: pulse 1.3s infinite; }
+    .sk .b.short { width: 55%; }
+    @keyframes pulse { 0%,100%{opacity:.55} 50%{opacity:1} }
+
+    /* ---------- detail sheet ---------- */
+    .backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.5); opacity: 0; pointer-events: none;
+      transition: opacity .22s ease; z-index: 20; }
+    .backdrop.open { opacity: 1; pointer-events: auto; }
+    .sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 21; background: var(--bg);
+      border-radius: 24px 24px 0 0; transform: translateY(101%); transition: transform .3s cubic-bezier(.2,.9,.2,1);
+      max-height: 90vh; overflow-y: auto; padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
+    .sheet.open { transform: none; }
+    .grab { width: 42px; height: 4px; border-radius: 2px; background: var(--hint); opacity: .4; margin: 9px auto 2px; }
+    .sheet-photo { width: 100%; aspect-ratio: 1/1; object-fit: cover; background: var(--surface);
+      display: flex; align-items: center; justify-content: center; font-size: 64px; font-weight: 800; color: var(--accent); }
+    .sheet-body { padding: 18px 18px 6px; }
+    .sheet-body h2 { margin: 0 0 10px; font-size: 21px; font-weight: 800; letter-spacing: -.02em; }
+    .sheet-price { display: flex; align-items: baseline; gap: 9px; margin-bottom: 14px; }
+    .sheet-price .price { font-size: 24px; }
+    .desc { color: var(--text); opacity: .85; font-size: 15px; line-height: 1.55; white-space: pre-wrap; }
+    .cta { padding: 16px 18px 4px; }
+    .cta button { width: 100%; border: none; border-radius: 15px; padding: 16px; font-size: 16px; font-weight: 700;
+      background: var(--accent); color: var(--accent-text); cursor: pointer; }
   </style>
 </head>
 <body>
-  <header>
-    <h1 id="shop-title">Real Beauty</h1>
-    <p id="shop-sub">Mahsulotlar katalogi</p>
+  <header class="hero">
+    <span class="spark">✨</span>
+    <div class="kicker" id="kicker">Beauty shop</div>
+    <h1 id="shop-name">Real Beauty</h1>
+    <p id="shop-tagline">Teringizga professional g'amxo'rlik</p>
   </header>
-  <div class="search"><input id="search" type="text" placeholder="Qidirish…" autocomplete="off" /></div>
-  <div id="content"><div class="state" id="loading">Yuklanmoqda…</div></div>
 
-  <div class="sheet-backdrop" id="backdrop"></div>
+  <div class="controls">
+    <div class="search">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3"/></svg>
+      <input id="search" type="text" placeholder="Qidirish…" autocomplete="off" />
+    </div>
+    <div class="chips" id="chips"></div>
+  </div>
+
+  <div id="content"></div>
+
+  <div class="section" id="links-section" hidden>
+    <h2 id="links-title">Biz bilan bog'laning</h2>
+    <div class="menu" id="links"></div>
+  </div>
+
+  <div class="backdrop" id="backdrop"></div>
   <div class="sheet" id="sheet" role="dialog" aria-modal="true">
-    <div class="grabber"></div>
+    <div class="grab"></div>
     <div id="sheet-content"></div>
   </div>
 
   <script>
     const tg = window.Telegram && window.Telegram.WebApp;
-    if (tg) { tg.ready(); tg.expand(); }
+    if (tg) { tg.ready(); tg.expand(); try { tg.setHeaderColor && tg.setHeaderColor('secondary_bg_color'); } catch (e) {} }
 
-    const LANG = ((tg && tg.initDataUnsafe && tg.initDataUnsafe.user &&
-      tg.initDataUnsafe.user.language_code) || 'uz').slice(0, 2);
+    const LANG = ((tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.language_code) || 'uz').slice(0, 2);
     const T = {
-      uz: { sub: 'Mahsulotlar katalogi', search: 'Qidirish…', empty: 'Mahsulotlar topilmadi',
-        err: 'Yuklab bo‘lmadi. Qaytadan urinib ko‘ring.', ask: 'Savol berish',
-        top: 'TOP', som: 'so‘m', nothing: 'Hech narsa topilmadi', details: 'Batafsil' },
-      ru: { sub: 'Каталог товаров', search: 'Поиск…', empty: 'Товары не найдены',
-        err: 'Не удалось загрузить. Попробуйте ещё раз.', ask: 'Задать вопрос',
-        top: 'ТОП', som: 'сум', nothing: 'Ничего не найдено', details: 'Подробнее' },
-      en: { sub: 'Product catalogue', search: 'Search…', empty: 'No products found',
-        err: 'Could not load. Please try again.', ask: 'Ask a question',
-        top: 'TOP', som: 'UZS', nothing: 'Nothing found', details: 'Details' },
+      uz: { kicker: 'Go‘zallik do‘koni', search: 'Qidirish…', all: 'Hammasi', top: '🔥 TOP', sale: '💸 Chegirma',
+        empty: 'Mahsulot topilmadi', err: 'Yuklab bo‘lmadi. Qayta urinib ko‘ring.', ask: '💬 Savol berish',
+        badgeTop: 'TOP', som: 'so‘m', details: 'Batafsil', links: 'Biz bilan bog‘laning', support: 'Yordam',
+        ig: 'Instagram', yt: 'YouTube', tgc: 'Telegram kanal' },
+      ru: { kicker: 'Магазин красоты', search: 'Поиск…', all: 'Все', top: '🔥 ТОП', sale: '💸 Скидка',
+        empty: 'Товары не найдены', err: 'Не удалось загрузить. Попробуйте ещё раз.', ask: '💬 Задать вопрос',
+        badgeTop: 'ТОП', som: 'сум', details: 'Подробнее', links: 'Мы на связи', support: 'Поддержка',
+        ig: 'Instagram', yt: 'YouTube', tgc: 'Telegram канал' },
+      en: { kicker: 'Beauty shop', search: 'Search…', all: 'All', top: '🔥 TOP', sale: '💸 Sale',
+        empty: 'No products found', err: 'Could not load. Try again.', ask: '💬 Ask a question',
+        badgeTop: 'TOP', som: 'UZS', details: 'Details', links: 'Get in touch', support: 'Support',
+        ig: 'Instagram', yt: 'YouTube', tgc: 'Telegram channel' },
     };
     const L = T[LANG] || T.uz;
-    document.getElementById('shop-sub').textContent = L.sub;
+    document.getElementById('kicker').textContent = L.kicker;
     document.getElementById('search').placeholder = L.search;
+    document.getElementById('links-title').textContent = L.links;
 
     const money = (n) => n == null ? '' : (n.toLocaleString('ru-RU').replace(/,/g, ' ') + ' ' + L.som);
-    const esc = (s) => (s || '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-    const initial = (s) => (s || '✨').trim().charAt(0).toUpperCase();
+    const esc = (s) => (s || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const initial = (s) => (s || 'R').replace(/[^\p{L}\p{N}]/gu, '').charAt(0).toUpperCase() || 'R';
+    const haptic = (t) => { try { tg && tg.HapticFeedback && tg.HapticFeedback.impactOccurred(t); } catch (e) {} };
+    const openUrl = (u) => { try { u.includes('t.me') ? tg.openTelegramLink(u) : tg.openLink(u); } catch (e) { location.href = u; } };
+    const send = (obj) => { try { tg.sendData(JSON.stringify(obj)); } catch (e) {} try { tg.close(); } catch (e) {} };
 
-    let ALL = [];
+    let ALL = [], FILTER = 'all', QUERY = '';
 
-    function card(p) {
-      const thumb = p.photo
-        ? `<img class="thumb" loading="lazy" src="${esc(p.photo)}" alt="">`
+    const CHIPS = [
+      { key: 'all', label: L.all },
+      { key: 'top', label: L.top },
+      { key: 'sale', label: L.sale },
+    ];
+    function renderChips() {
+      document.getElementById('chips').innerHTML = CHIPS.map(c =>
+        `<button class="chip ${c.key === FILTER ? 'active' : ''}" data-k="${c.key}">${c.label}</button>`).join('');
+      document.querySelectorAll('.chip').forEach(el => el.addEventListener('click', () => {
+        FILTER = el.dataset.k; haptic('light'); renderChips(); renderGrid();
+      }));
+    }
+
+    function visible() {
+      return ALL.filter(p => {
+        if (FILTER === 'top' && !p.is_top) return false;
+        if (FILTER === 'sale' && !p.discount_percent) return false;
+        if (QUERY && !(p.name || '').toLowerCase().includes(QUERY)) return false;
+        return true;
+      });
+    }
+
+    function card(p, i) {
+      const thumb = p.photo ? `<img class="thumb" loading="lazy" src="${esc(p.photo)}" alt="">`
         : `<div class="thumb">${esc(initial(p.name))}</div>`;
       const badges = [];
-      if (p.discount_percent) badges.push(`<span class="badge discount">-${p.discount_percent}%</span>`);
-      if (p.is_top) badges.push(`<span class="badge top">★ ${L.top}</span>`);
-      const price = p.price ? `<span class="price">${money(p.price)}</span>` : '';
+      if (p.discount_percent) badges.push(`<span class="badge sale">-${p.discount_percent}%</span>`);
+      if (p.is_top) badges.push(`<span class="badge top">★ ${L.badgeTop}</span>`);
       const old = (p.old_price && p.old_price > p.price) ? `<span class="old">${money(p.old_price)}</span>` : '';
-      return `<div class="card" data-id="${p.id}">
-        <div class="thumb-wrap">${thumb}${badges.length ? `<div class="badges float">${badges.join('')}</div>` : ''}</div>
+      return `<div class="card" data-id="${p.id}" style="animation-delay:${Math.min(i, 8) * 35}ms">
+        <div class="thumb-wrap">${thumb}${badges.length ? `<div class="badges">${badges.join('')}</div>` : ''}</div>
         <div class="card-body">
           <div class="name">${esc(p.name)}</div>
-          <div class="price-row">${price}${old}</div>
-          <button class="card-btn" type="button">${L.details}</button>
+          <div class="price-row">${p.price ? `<span class="price">${money(p.price)}</span>` : ''}${old}</div>
+          <button class="buy" type="button">${L.details}</button>
         </div>
       </div>`;
     }
 
-    function render(list) {
-      const content = document.getElementById('content');
-      if (!list.length) { content.innerHTML = `<div class="state">${L.nothing}</div>`; return; }
-      content.innerHTML = `<div class="grid">${list.map(card).join('')}</div>`;
-      content.querySelectorAll('.card').forEach(el => {
-        el.addEventListener('click', () => openSheet(Number(el.dataset.id)));
-      });
+    function renderGrid() {
+      const list = visible();
+      const c = document.getElementById('content');
+      if (!list.length) { c.innerHTML = `<div class="state">${L.empty}</div>`; return; }
+      c.innerHTML = `<div class="grid">${list.map(card).join('')}</div>`;
+      c.querySelectorAll('.card').forEach(el => el.addEventListener('click', () => openSheet(Number(el.dataset.id))));
+    }
+
+    function skeleton() {
+      const one = `<div class="sk"><div class="thumb"></div><div class="b"></div><div class="b short"></div></div>`;
+      document.getElementById('content').innerHTML = `<div class="grid">${one.repeat(6)}</div>`;
     }
 
     function openSheet(id) {
-      const p = ALL.find(x => x.id === id);
-      if (!p) return;
-      if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
-      const photo = p.photo
-        ? `<img class="sheet-photo" src="${esc(p.photo)}" alt="">`
+      const p = ALL.find(x => x.id === id); if (!p) return;
+      haptic('light');
+      const photo = p.photo ? `<img class="sheet-photo" src="${esc(p.photo)}" alt="">`
         : `<div class="sheet-photo">${esc(initial(p.name))}</div>`;
       const old = (p.old_price && p.old_price > p.price) ? `<span class="old">${money(p.old_price)}</span>` : '';
-      const disc = p.discount_percent ? `<span class="badge discount">-${p.discount_percent}%</span>` : '';
+      const disc = p.discount_percent ? `<span class="badge sale">-${p.discount_percent}%</span>` : '';
       document.getElementById('sheet-content').innerHTML = `
         ${photo}
         <div class="sheet-body">
           <h2>${esc(p.name)}</h2>
-          <div class="sheet-price">
-            ${p.price ? `<span class="price">${money(p.price)}</span>` : ''}
-            ${old} ${disc}
-          </div>
+          <div class="sheet-price">${p.price ? `<span class="price">${money(p.price)}</span>` : ''}${old}${disc}</div>
           ${p.description ? `<div class="desc">${esc(p.description)}</div>` : ''}
         </div>
-        <div class="cta"><button id="ask-btn">${L.ask}</button></div>`;
+        <div class="cta"><button id="ask">${L.ask}</button></div>`;
       document.getElementById('backdrop').classList.add('open');
       document.getElementById('sheet').classList.add('open');
-      const ask = document.getElementById('ask-btn');
-      if (ask) ask.addEventListener('click', () => {
-        // Hand the customer back to the chat to ask about this product.
-        if (tg) { try { tg.sendData(JSON.stringify({ ask: p.id, name: p.name })); } catch (e) {} tg.close(); }
-      });
+      const ask = document.getElementById('ask');
+      if (ask) ask.addEventListener('click', () => send({ action: 'ask', id: p.id, name: p.name }));
     }
     function closeSheet() {
       document.getElementById('backdrop').classList.remove('open');
@@ -191,15 +269,47 @@
     }
     document.getElementById('backdrop').addEventListener('click', closeSheet);
 
-    document.getElementById('search').addEventListener('input', (e) => {
-      const q = e.target.value.trim().toLowerCase();
-      render(q ? ALL.filter(p => (p.name || '').toLowerCase().includes(q)) : ALL);
-    });
+    document.getElementById('search').addEventListener('input', (e) => { QUERY = e.target.value.trim().toLowerCase(); renderGrid(); });
 
+    const ICONS = {
+      instagram: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>',
+      youtube: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M23 12s0-3.4-.4-5a2.6 2.6 0 0 0-1.8-1.8C19 4.8 12 4.8 12 4.8s-7 0-8.8.4A2.6 2.6 0 0 0 1.4 7C1 8.6 1 12 1 12s0 3.4.4 5a2.6 2.6 0 0 0 1.8 1.8c1.8.4 8.8.4 8.8.4s7 0 8.8-.4A2.6 2.6 0 0 0 22.6 17c.4-1.6.4-5 .4-5ZM10 15.5v-7l6 3.5-6 3.5Z"/></svg>',
+      telegram: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M21.9 4.3 18.6 20c-.2 1-.9 1.3-1.8.8l-4.9-3.6-2.4 2.3c-.3.3-.5.5-1 .5l.3-4.9L18 6.5c.4-.3-.1-.5-.6-.2L6.6 13.2l-4.7-1.5c-1-.3-1-1 .2-1.5L20.6 3c.9-.3 1.6.2 1.3 1.3Z"/></svg>',
+      support: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 13v-1a8 8 0 0 1 16 0v1"/><rect x="2.5" y="13" width="4" height="6" rx="2"/><rect x="17.5" y="13" width="4" height="6" rx="2"/><path d="M20 19a4 4 0 0 1-4 3h-2"/></svg>',
+    };
+    function renderLinks(links) {
+      const rows = [];
+      const map = { instagram: ['ig', L.ig], youtube: ['yt', L.yt], telegram: ['tg', L.tgc] };
+      links.forEach(l => {
+        const m = map[l.kind]; if (!m) return;
+        rows.push(`<div class="row" data-url="${esc(l.url)}"><div class="ic ${m[0]}">${ICONS[l.kind]}</div>
+          <span class="label">${m[1]}</span><span class="chev">›</span></div>`);
+      });
+      // Support is always available.
+      rows.push(`<div class="row" data-support="1"><div class="ic sp">${ICONS.support}</div>
+        <span class="label">${L.support}</span><span class="chev">›</span></div>`);
+      document.getElementById('links').innerHTML = rows.join('');
+      document.getElementById('links-section').hidden = false;
+      document.querySelectorAll('#links .row').forEach(el => el.addEventListener('click', () => {
+        haptic('light');
+        if (el.dataset.support) send({ action: 'support' });
+        else openUrl(el.dataset.url);
+      }));
+    }
+
+    skeleton();
+    renderChips();
     fetch('/api/v1/webapp/catalog/?lang=' + encodeURIComponent(LANG))
       .then(r => { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
-      .then(data => { ALL = data.products || []; ALL.length ? render(ALL)
-        : (document.getElementById('content').innerHTML = `<div class="state">${L.empty}</div>`); })
+      .then(data => {
+        ALL = data.products || [];
+        if (data.shop) {
+          document.getElementById('shop-name').textContent = data.shop.name || 'Real Beauty';
+          if (data.shop.tagline) document.getElementById('shop-tagline').textContent = data.shop.tagline;
+        }
+        ALL.length ? renderGrid() : (document.getElementById('content').innerHTML = `<div class="state">${L.empty}</div>`);
+        renderLinks(data.links || []);
+      })
       .catch(() => { document.getElementById('content').innerHTML = `<div class="state">${L.err}</div>`; });
   </script>
 </body>

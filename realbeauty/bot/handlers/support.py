@@ -70,9 +70,11 @@ async def from_webapp(message: Message, state: FSMContext, lang: str) -> None:
         payload = json.loads(message.web_app_data.data)
         name = str(payload.get("name", ""))[:128]
     except (ValueError, AttributeError):
-        pass
+        payload = {}
     await state.set_state(SupportState.message)
-    if name:
+    # "ask" carries a product; plain "support" (or anything else) is a general
+    # question. Either way the customer lands in the same support flow.
+    if name and payload.get("action") != "support":
         await message.answer(
             t("webapp.ask_product", lang, product=html.escape(name)),
             parse_mode="HTML",

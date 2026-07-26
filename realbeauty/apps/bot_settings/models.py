@@ -23,6 +23,30 @@ class GlobalSettings(models.Model):
         "o'rniga shu raqam qo'yiladi.",
     )
 
+    # Social / channel links shown in the Mini App's "Biz bilan" menu. Each is
+    # optional — a blank one simply hides its row.
+    shop_name = models.CharField(
+        max_length=64,
+        default="Real Beauty",
+        verbose_name="Do'kon nomi",
+        help_text="Mini App sarlavhasida ko'rinadi.",
+    )
+    shop_tagline = models.CharField(
+        max_length=120,
+        blank=True,
+        default="Teringizga professional g'amxo'rlik",
+        verbose_name="Do'kon shiori",
+    )
+    instagram_url = models.URLField(
+        blank=True,
+        default="https://instagram.com/realbeauty_uz",
+        verbose_name="Instagram havolasi",
+    )
+    youtube_url = models.URLField(blank=True, verbose_name="YouTube havolasi")
+    telegram_url = models.URLField(
+        blank=True, verbose_name="Telegram kanal havolasi"
+    )
+
     class Meta:
         verbose_name = "Umumiy sozlamalar"
         verbose_name_plural = "Umumiy sozlamalar"

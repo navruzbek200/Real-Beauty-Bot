@@ -41,6 +41,8 @@ class WebAppCatalogView(APIView):
     authentication_classes: list = []
 
     def get(self, request):
+        from apps.bot_settings.models import GlobalSettings
+
         lang = request.query_params.get("lang", "uz")
         if lang not in _LANGS:
             lang = "uz"
@@ -49,4 +51,22 @@ class WebAppCatalogView(APIView):
             .order_by("-is_top", "top_order", "name")
         )
         items = [_serialize(p, lang, request) for p in products]
-        return Response({"products": items, "count": len(items)})
+
+        conf = GlobalSettings.get()
+        links = [
+            {"kind": kind, "url": url}
+            for kind, url in (
+                ("instagram", conf.instagram_url),
+                ("youtube", conf.youtube_url),
+                ("telegram", conf.telegram_url),
+            )
+            if url
+        ]
+        return Response(
+            {
+                "shop": {"name": conf.shop_name, "tagline": conf.shop_tagline},
+                "links": links,
+                "products": items,
+                "count": len(items),
+            }
+        )

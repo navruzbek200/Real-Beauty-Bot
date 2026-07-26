@@ -29,6 +29,20 @@ class GlobalSettingsAdmin(RBModelAdmin):
                 "sozlanadi.",
             },
         ),
+        (
+            "Do'kon (Mini App)",
+            {
+                "fields": [
+                    "shop_name",
+                    "shop_tagline",
+                    "instagram_url",
+                    "youtube_url",
+                    "telegram_url",
+                ],
+                "description": "Mini App'da ko'rinadigan nom, shior va ijtimoiy "
+                "tarmoq havolalari. Bo'sh havola — o'sha tugma yashiriladi.",
+            },
+        ),
     )
 
     def changelist_view(self, request: HttpRequest, extra_context=None) -> HttpResponse:

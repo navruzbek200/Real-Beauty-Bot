@@ -13,6 +13,7 @@ import {
   discountColumns,
   discountFormConfig,
   globalSettingsFormConfig,
+  shopSettingsFormConfig,
   type DiscountFormValues,
 } from '@/features/bot-settings'
 import {
@@ -32,6 +33,7 @@ import {
 const TABS: TabItem[] = [
   { key: 'discounts', label: 'Chegirmalar' },
   { key: 'bonus', label: 'Bonus dasturi' },
+  { key: 'shop', label: "Do'kon (ilova)" },
   { key: 'telegram', label: 'Telegram guruh' },
   { key: 'staff', label: 'Xodimlar' },
 ]
@@ -64,6 +66,7 @@ export function SettingsPage() {
 
       {active === 'discounts' && <DiscountsTab />}
       {active === 'bonus' && <BonusTab />}
+      {active === 'shop' && <ShopTab />}
       {active === 'telegram' && <TelegramTab />}
       {active === 'staff' && <StaffTab />}
     </div>
@@ -190,6 +193,29 @@ function TelegramTab() {
           toUpdatePayload={(v) => v}
         />
       </section>
+    </div>
+  )
+}
+
+function ShopTab() {
+  return (
+    <div className="space-y-3">
+      <div>
+        <h2 className="text-base font-semibold text-slate-800 dark:text-slate-200">
+          Do'kon ilovasi (Mini App)
+        </h2>
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          Botdagi «🛍 Mahsulotlar» ilovasining nomi, shiori va ijtimoiy tarmoq
+          havolalari. Bo'sh havola — o'sha tugma ilovada ko'rinmaydi.
+        </p>
+      </div>
+      <SettingsFormPage
+        title=""
+        queryKey={['global-settings']}
+        api={globalSettingsApi}
+        config={shopSettingsFormConfig}
+        canEdit
+      />
     </div>
   )
 }

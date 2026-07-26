@@ -105,3 +105,18 @@ class WebAppCatalogTests(APITestCase):
         Product.objects.create(name="Krem", name_ru="Крем", current_price=1)
         response = self.client.get("/api/v1/webapp/catalog/?lang=ru")
         self.assertEqual(response.data["products"][0]["name"], "Крем")
+
+    def test_catalog_carries_shop_name_and_only_the_set_links(self):
+        from apps.bot_settings.models import GlobalSettings
+
+        conf = GlobalSettings.get()
+        conf.shop_name = "Real Beauty"
+        conf.instagram_url = "https://instagram.com/realbeauty_uz"
+        conf.youtube_url = ""  # blank → its row must not appear
+        conf.telegram_url = "https://t.me/realbeauty"
+        conf.save()
+
+        data = self.client.get("/api/v1/webapp/catalog/").data
+        self.assertEqual(data["shop"]["name"], "Real Beauty")
+        kinds = {link["kind"] for link in data["links"]}
+        self.assertEqual(kinds, {"instagram", "telegram"})  # youtube omitted
