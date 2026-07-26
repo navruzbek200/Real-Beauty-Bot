@@ -67,11 +67,13 @@ async def send_protected_video(
       3. nothing                  → "coming soon" placeholder
     """
     try:
-        await bot.send_message(
-            chat_id=chat_id,
-            text=pick(step, "intro_text", lang),
-            parse_mode="HTML",
-        )
+        intro_text = pick(step, "intro_text", lang)
+        if intro_text:
+            await bot.send_message(
+                chat_id=chat_id,
+                text=intro_text,
+                parse_mode="HTML",
+            )
 
         if step.video_file_id:
             await bot.send_video(

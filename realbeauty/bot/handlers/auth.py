@@ -20,6 +20,7 @@ from bot.services import (
     user_service,
 )
 from bot.states.registration import AdminAssistedReg, SelfReg
+from bot.utils.message import cleanup_user_msg, replace_prompt, replace_prompt_callback
 
 logger = logging.getLogger(__name__)
 router = Router(name="auth")
@@ -182,11 +183,12 @@ async def _ask_language(message: Message, state: FSMContext, target_state) -> No
     have yet.
     """
     await state.set_state(target_state)
-    await message.answer(
+    msg = await message.answer(
         t("lang.choose", "uz"),
         parse_mode="HTML",
         reply_markup=inline.language_setup_keyboard(),
     )
+    await state.update_data(prompt_msg_id=msg.message_id)
 
 
 @router.callback_query(
@@ -205,7 +207,6 @@ async def step_language(callback: CallbackQuery, state: FSMContext) -> None:
     # already moved past it, and Telegram never expires old inline buttons.
     await _clear_keyboard(callback)
 
-    data = await state.get_data()
     if "seller_id" in data:
         await state.set_state(AdminAssistedReg.full_name)
         greeting = t(
@@ -216,9 +217,7 @@ async def step_language(callback: CallbackQuery, state: FSMContext) -> None:
     else:
         await state.set_state(SelfReg.full_name)
         greeting = t("reg.greeting_self", chosen)
-    await callback.message.answer(
-        greeting, parse_mode="HTML", reply_markup=reply.remove_keyboard()
-    )
+    await replace_prompt_callback(callback, state, greeting, reply_markup=reply.remove_keyboard())
 
 
 # ---------------------------------------------------------------------------
@@ -227,65 +226,63 @@ async def step_language(callback: CallbackQuery, state: FSMContext) -> None:
 @router.message(SelfReg.full_name)
 @router.message(AdminAssistedReg.full_name)
 async def step_full_name(message: Message, state: FSMContext) -> None:
+    await cleanup_user_msg(message)
     lang = await _reg_language(state)
     name = " ".join((message.text or "").split())
     if not name:
-        await message.answer(t("reg.ask_name", lang))
+        await replace_prompt(message, state, t("reg.ask_name", lang))
         return
     if len(name) < 3:
-        await message.answer(t("reg.name_short", lang))
+        await replace_prompt(message, state, t("reg.name_short", lang))
         return
     # "<" or ">" in a name breaks every later HTML-mode message that embeds
     # it (welcome, campaigns, profile) — Telegram rejects the whole send.
     if "<" in name or ">" in name:
-        await message.answer(t("reg.name_invalid", lang))
+        await replace_prompt(message, state, t("reg.name_invalid", lang))
         return
     await state.update_data(full_name=name)
     await _advance(state, SelfReg.birth_date, AdminAssistedReg.birth_date)
-    await message.answer(t("reg.ask_birth", lang))
+    await replace_prompt(message, state, t("reg.ask_birth", lang))
 
 
 @router.message(SelfReg.birth_date)
 @router.message(AdminAssistedReg.birth_date)
 async def step_birth_date(message: Message, state: FSMContext) -> None:
+    await cleanup_user_msg(message)
     lang = await _reg_language(state)
     raw = (message.text or "").strip()
     try:
         birth_date = datetime.strptime(raw, DATE_FORMAT).date()
     except ValueError:
-        await message.answer(t("reg.invalid_date", lang), parse_mode="HTML")
+        await replace_prompt(message, state, t("reg.invalid_date", lang))
         return
     # A typo here is silent otherwise: the birthday campaign would simply never
     # fire, or fire on a date nobody expects.
     today = date.today()
     if birth_date > today:
-        await message.answer(t("reg.date_future", lang))
+        await replace_prompt(message, state, t("reg.date_future", lang))
         return
     if birth_date.year < today.year - MAX_AGE_YEARS:
-        await message.answer(t("reg.date_old", lang))
+        await replace_prompt(message, state, t("reg.date_old", lang))
         return
     await state.update_data(birth_date=birth_date.isoformat())
     await _advance(state, SelfReg.phone, AdminAssistedReg.phone)
-    await message.answer(
-        t("reg.ask_phone", lang), reply_markup=reply.share_contact_keyboard(lang)
-    )
+    await replace_prompt(message, state, t("reg.ask_phone", lang), reply_markup=reply.share_contact_keyboard(lang))
 
 
 @router.message(SelfReg.phone, F.contact)
 @router.message(AdminAssistedReg.phone, F.contact)
 async def step_phone_contact(message: Message, state: FSMContext) -> None:
+    await cleanup_user_msg(message)
     lang = await _reg_language(state)
     # The contact picker will happily send a friend's card; that number would
     # then link this customer to somebody else's pre-registered card.
     if message.from_user and message.contact.user_id != message.from_user.id:
-        await message.answer(
-            t("reg.contact_not_yours", lang),
-            reply_markup=reply.share_contact_keyboard(lang),
-        )
+        await replace_prompt(message, state, t("reg.contact_not_yours", lang), reply_markup=reply.share_contact_keyboard(lang))
         return
     phone = TelegramUser.normalize_phone(message.contact.phone_number)
     if phone is None:
-        await message.answer(t("reg.invalid_phone", lang), parse_mode="HTML")
+        await replace_prompt(message, state, t("reg.invalid_phone", lang))
         return
     await state.update_data(phone_number=phone)
     await ask_skin_step(message, state, lang)
@@ -294,18 +291,15 @@ async def step_phone_contact(message: Message, state: FSMContext) -> None:
 @router.message(SelfReg.phone)
 @router.message(AdminAssistedReg.phone)
 async def step_phone_text(message: Message, state: FSMContext) -> None:
+    await cleanup_user_msg(message)
     lang = await _reg_language(state)
     raw = (message.text or "").strip()
     if not raw:
-        await message.answer(t("reg.ask_phone_again", lang))
+        await replace_prompt(message, state, t("reg.ask_phone_again", lang))
         return
     phone = TelegramUser.normalize_phone(raw)
     if phone is None:
-        await message.answer(
-            t("reg.invalid_phone", lang),
-            parse_mode="HTML",
-            reply_markup=reply.share_contact_keyboard(lang),
-        )
+        await replace_prompt(message, state, t("reg.invalid_phone", lang), reply_markup=reply.share_contact_keyboard(lang))
         return
     await state.update_data(phone_number=phone)
     await ask_skin_step(message, state, lang)
@@ -318,11 +312,7 @@ async def ask_skin_step(message: Message, state: FSMContext, lang: str) -> None:
     ones who don't know get an answer instead of a coin flip.
     """
     await _advance(state, SelfReg.face_condition, AdminAssistedReg.face_condition)
-    await message.answer(
-        t("skin.know_question", lang),
-        parse_mode="HTML",
-        reply_markup=inline.know_skin_keyboard(lang),
-    )
+    await replace_prompt(message, state, t("skin.know_question", lang), reply_markup=inline.know_skin_keyboard(lang))
 
 
 @router.callback_query(
@@ -354,34 +344,51 @@ async def continue_after_skin(message: Message, state: FSMContext, bot: Bot) -> 
         await _finalize_registration(message, state, bot, photo_bytes=None)
         return
     await state.set_state(SelfReg.photo)
-    await message.answer(
-        t("reg.ask_photo", lang), reply_markup=inline.skip_photo_keyboard(lang)
-    )
+    await replace_prompt(message, state, t("reg.ask_photo", lang), reply_markup=inline.skip_photo_keyboard(lang))
 
 
 @router.message(SelfReg.photo, F.photo)
 async def step_photo_upload(message: Message, state: FSMContext, bot: Bot) -> None:
+    await cleanup_user_msg(message)
     photo = message.photo[-1]
     file = await bot.get_file(photo.file_id)
     buffer = await bot.download_file(file.file_path)
     photo_bytes = buffer.read() if buffer is not None else None
+    
+    # Delete the final prompt before completing registration
+    data = await state.get_data()
+    last_id = data.get("prompt_msg_id")
+    if last_id:
+        try:
+            await bot.delete_message(message.chat.id, last_id)
+        except Exception:
+            pass
+
     await _finalize_registration(message, state, bot, photo_bytes=photo_bytes)
 
 
 @router.callback_query(SelfReg.photo, F.data == inline.CB_SKIP_PHOTO)
 async def step_photo_skip(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
+    
+    data = await state.get_data()
+    last_id = data.get("prompt_msg_id")
+    if last_id:
+        try:
+            await callback.bot.delete_message(callback.message.chat.id, last_id)
+        except Exception:
+            pass
+            
     await _finalize_registration(callback.message, state, callback.bot, photo_bytes=None)
 
 
 @router.message(SelfReg.photo)
 async def step_photo_not_a_photo(message: Message, state: FSMContext) -> None:
+    await cleanup_user_msg(message)
     # Without this the last step of registration answers nothing at all when
     # the customer types instead of attaching.
     lang = await _reg_language(state)
-    await message.answer(
-        t("reg.ask_photo", lang), reply_markup=inline.skip_photo_keyboard(lang)
-    )
+    await replace_prompt(message, state, t("reg.ask_photo", lang), reply_markup=inline.skip_photo_keyboard(lang))
 
 
 # ---------------------------------------------------------------------------

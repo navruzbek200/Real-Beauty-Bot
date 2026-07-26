@@ -422,11 +422,6 @@ class BroadcastForm(forms.ModelForm):
 
     def clean(self):
         cleaned = super().clean()
-        audience = cleaned.get("audience")
-        if audience == Broadcast.Audience.BY_SKIN and not cleaned.get("skin_condition"):
-            self.add_error("skin_condition", "Teri turini tanlang.")
-        if audience == Broadcast.Audience.BY_PRODUCT and not cleaned.get("product"):
-            self.add_error("product", "Mahsulotni tanlang.")
         # Telegram limits: 4096 chars for a message, 1024 for a photo caption.
         # Catch it here — otherwise every single send fails at blast time.
         body = cleaned.get("body") or ""
@@ -472,10 +467,6 @@ class BroadcastAdmin(RBModelAdmin):
                 "qilib, keyin yuboring.",
             },
         ),
-        (
-            "Kimlarga",
-            {"fields": ["audience", "skin_condition", "product"]},
-        ),
         ("Holat", {"fields": ["status", "delivery_summary", "created_at"]}),
     )
 
@@ -487,7 +478,7 @@ class BroadcastAdmin(RBModelAdmin):
             Broadcast.Status.SENDING,
             Broadcast.Status.SENT,
         ):
-            fields += ["title", "body", "photo", "audience", "skin_condition", "product"]
+            fields += ["title", "body", "photo"]
         return fields
 
     @admin.display(description="Kimlarga")

@@ -80,7 +80,10 @@ _KNOW_SKIN_STATES = (SelfReg.face_condition, AdminAssistedReg.face_condition)
 
 
 @router.callback_query(
-    *_KNOW_SKIN_STATES, F.data == f"{inline.CB_KNOW_SKIN}{inline.SEP}yes"
+    SelfReg.face_condition, F.data == f"{inline.CB_KNOW_SKIN}{inline.SEP}yes"
+)
+@router.callback_query(
+    AdminAssistedReg.face_condition, F.data == f"{inline.CB_KNOW_SKIN}{inline.SEP}yes"
 )
 async def knows_skin_type(callback: CallbackQuery, state: FSMContext, lang: str) -> None:
     from bot.handlers.auth import face_choices
@@ -94,7 +97,10 @@ async def knows_skin_type(callback: CallbackQuery, state: FSMContext, lang: str)
 
 
 @router.callback_query(
-    *_KNOW_SKIN_STATES, F.data == f"{inline.CB_KNOW_SKIN}{inline.SEP}no"
+    SelfReg.face_condition, F.data == f"{inline.CB_KNOW_SKIN}{inline.SEP}no"
+)
+@router.callback_query(
+    AdminAssistedReg.face_condition, F.data == f"{inline.CB_KNOW_SKIN}{inline.SEP}no"
 )
 async def wants_the_quiz(callback: CallbackQuery, state: FSMContext, lang: str) -> None:
     await callback.answer()
