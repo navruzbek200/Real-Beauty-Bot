@@ -175,7 +175,8 @@
     const tg = window.Telegram && window.Telegram.WebApp;
     if (tg) { tg.ready(); tg.expand(); try { tg.setHeaderColor && tg.setHeaderColor('bg_color'); } catch (e) {} }
 
-    const LANG = ((tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.language_code) || 'uz').slice(0, 2);
+    const params = new URLSearchParams(window.location.search);
+    const LANG = (params.get('lang') || (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.language_code) || 'uz').slice(0, 2);
     const T = {
       uz: { kicker: 'Go‘zallik do‘koni', search: 'Qidirish…', all: 'Hammasi', top: '🔥 TOP', sale: '💸 Chegirma',
         empty: 'Mahsulot topilmadi', err: 'Yuklab bo‘lmadi. Qayta urinib ko‘ring.', ask: '💬 Savol berish',

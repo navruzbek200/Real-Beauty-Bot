@@ -32,11 +32,11 @@ def share_contact_keyboard(lang: str = DEFAULT_LANGUAGE) -> ReplyKeyboardMarkup:
     )
 
 
-def _webapp_url() -> str:
+def _webapp_url(lang: str = None) -> str:
     """The versioned Mini App URL, only if it's a real https one Telegram accepts."""
     from bot.utils.webapp import webapp_url
 
-    return webapp_url()
+    return webapp_url(lang)
 
 
 def _menu_button(key: str, lang: str) -> KeyboardButton:
@@ -47,7 +47,7 @@ def _menu_button(key: str, lang: str) -> KeyboardButton:
     (menu_catalog) answers it instead. One label, two backends, no dead button.
     """
     if key == "menu.catalog":
-        url = _webapp_url()
+        url = _webapp_url(lang)
         if url:
             return KeyboardButton(text=t(key, lang), web_app=WebAppInfo(url=url))
     return KeyboardButton(text=t(key, lang))

@@ -15,10 +15,13 @@ from django.conf import settings
 WEBAPP_VERSION = "5"
 
 
-def webapp_url() -> str:
+def webapp_url(lang: str = None) -> str:
     """The https Mini App URL with a cache-busting version, or "" if unset."""
     base = (getattr(settings, "WEBAPP_URL", "") or "").strip()
     if not base.startswith("https://"):
         return ""
     sep = "&" if "?" in base else "?"
-    return f"{base}{sep}v={WEBAPP_VERSION}"
+    url = f"{base}{sep}v={WEBAPP_VERSION}"
+    if lang:
+        url += f"&lang={lang}"
+    return url

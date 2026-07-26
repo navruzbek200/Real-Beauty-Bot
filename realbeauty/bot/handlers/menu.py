@@ -82,7 +82,7 @@ async def menu_catalog(message: Message, state: FSMContext, lang: str) -> None:
     await state.clear()
     if message.from_user is None:
         return
-    url = webapp_url()
+    url = webapp_url(lang)
     if url:
         await message.answer(
             t("webapp.intro", lang),
