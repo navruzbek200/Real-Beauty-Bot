@@ -91,6 +91,7 @@ class WebAppCatalogView(APIView):
 
     def get(self, request):
         from apps.bot_settings.models import GlobalSettings
+        from apps.orders.payments import payments_enabled
 
         lang = _clean_lang(request.query_params.get("lang"))
         products = (
@@ -116,6 +117,8 @@ class WebAppCatalogView(APIView):
                 # lesson in the chat) with this — sendData only works for
                 # reply-keyboard launches, deep links work from anywhere.
                 "bot_username": getattr(settings, "BOT_USERNAME", "") or "",
+                # Whether checkout may offer the card option at all.
+                "payments_enabled": payments_enabled(),
                 "links": links,
                 "products": items,
                 "count": len(items),
@@ -254,6 +257,19 @@ class WebAppOrderView(APIView):
             )
         comment = str(data.get("comment", "")).strip()[:1000]
 
+        # Card payment is only on offer once a provider token is configured;
+        # anything else (including a client that asks for it anyway) falls
+        # back to cash on delivery rather than promising a payment we can't
+        # actually take.
+        from apps.orders.payments import payments_enabled, send_invoice
+
+        wants_card = str(data.get("payment", "")) == Order.PaymentMethod.ONLINE
+        payment_method = (
+            Order.PaymentMethod.ONLINE
+            if wants_card and payments_enabled()
+            else Order.PaymentMethod.COD
+        )
+
         phone = TelegramUser.normalize_phone(str(data.get("phone", "")).strip())
         phone = phone or user.phone_number
         if not phone:
@@ -296,6 +312,7 @@ class WebAppOrderView(APIView):
                 delivery_method=delivery,
                 address=address,
                 comment=comment,
+                payment_method=payment_method,
                 total=sum(p.current_price * qty for p, qty in lines),
             )
             OrderItem.objects.bulk_create(
@@ -314,4 +331,19 @@ class WebAppOrderView(APIView):
         except Exception:  # noqa: BLE001 — the order is saved; sends are extra
             logger.exception("Order %s: notification crashed", order.pk)
 
-        return Response({"ok": True, "order_id": order.pk, "total": order.total})
+        invoiced = False
+        if payment_method == Order.PaymentMethod.ONLINE:
+            try:
+                invoiced = send_invoice(order)
+            except Exception:  # noqa: BLE001 — same: never lose a saved order
+                logger.exception("Order %s: invoice crashed", order.pk)
+
+        return Response(
+            {
+                "ok": True,
+                "order_id": order.pk,
+                "total": order.total,
+                "payment": payment_method,
+                "invoice_sent": invoiced,
+            }
+        )

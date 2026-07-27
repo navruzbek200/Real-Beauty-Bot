@@ -298,6 +298,7 @@ STRINGS: dict[str, str] = {
         "🛍 <b>{product}</b> haqida savolingizni yozing 👇\n"
         "Jamoamiz shu yerda javob beradi."
     ),
+    "pay.unavailable": "Bu buyurtma uchun to'lov endi mumkin emas. Jamoamizga yozing.",
     "learn.open": "🎓 Darslarni ochish",
     "learn.intro": (
         "🎓 <b>Video darslar</b>\n\n"

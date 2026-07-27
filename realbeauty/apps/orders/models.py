@@ -27,6 +27,15 @@ class Order(models.Model):
         YANDEX = "yandex", "🚕 Yandeks (Toshkent bo'ylab)"
         BTS = "bts", "📦 BTS (viloyatlarga)"
 
+    class PaymentMethod(models.TextChoices):
+        COD = "cod", "💵 Yetkazishda naqd"
+        ONLINE = "online", "💳 Karta orqali (online)"
+
+    class PaymentStatus(models.TextChoices):
+        UNPAID = "unpaid", "To'lanmagan"
+        PENDING = "pending", "To'lov kutilmoqda"
+        PAID = "paid", "✅ To'langan"
+
     user = models.ForeignKey(
         "users.TelegramUser",
         on_delete=models.PROTECT,
@@ -53,6 +62,30 @@ class Order(models.Model):
     # Denormalized sum of the lines, in so'm — the number every list screen
     # shows, kept here so listing orders never needs an aggregate query.
     total = models.PositiveBigIntegerField(default=0, verbose_name="Jami (so'm)")
+
+    # --- payment ------------------------------------------------------------
+    # Cash on delivery is the default and the only option until a Click or
+    # Payme provider token is configured; see apps/orders/payments.py.
+    payment_method = models.CharField(
+        max_length=16,
+        choices=PaymentMethod.choices,
+        default=PaymentMethod.COD,
+        verbose_name="To'lov turi",
+    )
+    payment_status = models.CharField(
+        max_length=16,
+        choices=PaymentStatus.choices,
+        default=PaymentStatus.UNPAID,
+        db_index=True,
+        verbose_name="To'lov holati",
+    )
+    paid_at = models.DateTimeField(null=True, blank=True, verbose_name="To'langan vaqt")
+    # Telegram's `successful_payment.provider_payment_charge_id` — the id to
+    # quote when reconciling with Click/Payme or issuing a refund.
+    provider_charge_id = models.CharField(
+        max_length=255, blank=True, editable=False, verbose_name="To'lov ID"
+    )
+
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
 

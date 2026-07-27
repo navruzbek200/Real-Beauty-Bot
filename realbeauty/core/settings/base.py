@@ -133,6 +133,12 @@ BOT_USERNAME = os.environ.get("BOT_USERNAME", "RealBeautyBot")
 # only allows web_app buttons with an https URL, so when this is unset or not
 # https the bot silently falls back to the in-chat message browser.
 WEBAPP_URL = os.environ.get("WEBAPP_URL", "")
+
+# Telegram payment provider token, from BotFather → Payments → Click/Payme.
+# Empty (the default) means card payment is switched off everywhere: the Mini
+# App only offers cash on delivery and no invoice is ever sent. Paste the test
+# token first (it contains ":TEST:"), then the live one.
+PAYMENT_PROVIDER_TOKEN = os.environ.get("PAYMENT_PROVIDER_TOKEN", "")
 REDIS_URL = os.environ.get("REDIS_URL", "redis://redis:6379/0")
 
 # Shared secret the Flutter app sends in the X-Api-Key header when it posts a

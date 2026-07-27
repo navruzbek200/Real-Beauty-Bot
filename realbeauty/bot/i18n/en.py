@@ -289,6 +289,7 @@ STRINGS: dict[str, str] = {
         "🛍 Write your question about <b>{product}</b> 👇\n"
         "Our team will reply right here."
     ),
+    "pay.unavailable": "This order can no longer be paid for. Please message us.",
     "learn.open": "🎓 Open the lessons",
     "learn.intro": (
         "🎓 <b>Video lessons</b>\n\n"

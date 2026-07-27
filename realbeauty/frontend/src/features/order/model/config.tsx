@@ -47,7 +47,23 @@ export const orderColumns: ResourceColumn<Order>[] = [
       </div>
     ),
   },
-  { key: 'total', header: 'Jami', sortField: 'total', render: (o) => <span className="font-medium">{formatSom(o.total)}</span> },
+  {
+    key: 'total',
+    header: 'Jami',
+    sortField: 'total',
+    render: (o) => (
+      <div>
+        <p className="font-medium">{formatSom(o.total)}</p>
+        <p className="mt-0.5 text-xs text-slate-400">
+          {o.payment_status === 'paid'
+            ? '💳 To\'langan'
+            : o.payment_method === 'online'
+              ? '💳 To\'lov kutilmoqda'
+              : '💵 Yetkazishda naqd'}
+        </p>
+      </div>
+    ),
+  },
   {
     key: 'delivery',
     header: 'Yetkazish',
