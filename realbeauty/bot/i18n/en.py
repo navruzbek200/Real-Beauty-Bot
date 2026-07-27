@@ -334,15 +334,12 @@ STRINGS: dict[str, str] = {
     # ----------------------------------------------------------------- help
     "help.text": (
         "ℹ️ <b>Real Beauty bot</b>\n\n"
-        "• 🧪 Ingredients we study — what's in your products, plus video "
-        "lessons\n"
-        "• 🛍 Products — the full shop catalogue\n"
-        "• 🔥 Top products this month — this month's best picks\n"
-        "• ⭐️ Rate a product — leave stars and a review\n"
-        "• ✍️ Question / Request — live chat with our team\n"
+        "• 🛍 Products — the shop app: catalogue, 🔥 TOP picks and 🎓 video "
+        "lessons (the app's «Lessons» tab)\n"
         "• 🎁 Discounts — current promotions and promo codes\n"
         "• 💎 My bonuses — your points, tier and rewards\n"
-        "• 👤 Profile — your details and language setting\n\n"
+        "• 👤 Profile — your details, skin test and language setting\n"
+        "• ✍️ Question / Request — live chat with our team\n\n"
         "Send /menu to open the menu."
     ),
     # --------------------------------------------------------------- seller

@@ -344,16 +344,12 @@ STRINGS: dict[str, str] = {
     # ----------------------------------------------------------------- help
     "help.text": (
         "ℹ️ <b>Real Beauty bot</b>\n\n"
-        "• 🧴 Teringizni o'rganing 🚀 — siz olgan mahsulotlar tarkibi va "
-        "video darslar\n"
-        "• 🛍 Mahsulotlar ✨ — do'konimizdagi barcha mahsulotlar katalogi\n"
-        "• 🔥 Bu oydagi top mahsulotlar — shu oyning eng zo'r tanlovlari\n"
-        "• ⭐️ Mahsulotga baho — olgan mahsulotingizga yulduz va fikr "
-        "qoldirasiz\n"
-        "• 💬 Yordam / Murojaat — jamoamiz bilan jonli yozishma\n"
+        "• 🛍 Mahsulotlar ✨ — do'kon ilovasi: katalog, 🔥 TOP tanlovlar va "
+        "🎓 video darslar (ilova ichidagi «Darslar» bo'limi)\n"
         "• 💣 Qaynoq chegirmalar 💥 — joriy aksiyalar va promokodlar\n"
         "• 💎 Bonuslarim — ballaringiz, darajangiz va sovg'alar\n"
-        "• 👤 Profil — ma'lumotlaringiz va til sozlamasi\n\n"
+        "• 👤 Profil — ma'lumotlaringiz, teri testi va til sozlamasi\n"
+        "• 💬 Yordam / Murojaat — jamoamiz bilan jonli yozishma\n\n"
         "Menyuni ochish uchun /menu buyrug'ini yuboring."
     ),
     # --------------------------------------------------------------- seller

@@ -99,12 +99,13 @@ class MenuMatchingTests(SimpleTestCase):
 
 class MainMenuKeyboardTests(SimpleTestCase):
     def test_renders_in_each_language(self):
-        # A tidy 2×3 grid: catalogue, ingredients, bonuses, discounts, support,
-        # profile. Top products live in the Mini App's TOP filter and retaking
-        # the quiz lives in Profil, so those are no longer top-level buttons.
+        # Five buttons: catalogue, discounts, bonuses, profile, support.
+        # Lessons live in the Mini App's «Darslar» tab, top products in its
+        # TOP filter, retaking the quiz in Profil — none of those needs a
+        # top-level button (their old labels still route via MenuText).
         expected = [
-            "menu.catalog", "menu.ingredients", "menu.bonus",
-            "menu.discounts", "menu.support", "menu.profile",
+            "menu.catalog", "menu.discounts", "menu.bonus",
+            "menu.profile", "menu.support",
         ]
         for code in i18n.LANGUAGES:
             with self.subTest(language=code):
@@ -113,19 +114,20 @@ class MainMenuKeyboardTests(SimpleTestCase):
                     for row in reply.main_menu_keyboard(code).keyboard
                     for button in row
                 ]
-                self.assertEqual(len(labels), 6)
+                self.assertEqual(len(labels), 5)
                 for key in expected:
                     self.assertIn(i18n.t(key, code), labels)
                 self.assertNotIn(i18n.t("menu.top", code), labels)
+                self.assertNotIn(i18n.t("menu.ingredients", code), labels)
 
-    def test_ingredients_button_replaced_the_tutorials_label(self):
-        labels = [
-            button.text
-            for row in reply.main_menu_keyboard("uz").keyboard
-            for button in row
-        ]
-        self.assertIn(i18n.t("menu.ingredients", "uz"), labels)
-        self.assertNotIn("📚 Qo'llanmalar", labels)
+    def test_old_lesson_labels_still_route_to_a_handler(self):
+        # The button left the keyboard, but keyboards already on customers'
+        # screens keep the old label forever — MenuText must still match it.
+        from bot.filters.menu import MenuText
+
+        menu_filter = MenuText("menu.ingredients", "menu.legacy_tutorials")
+        for label in (i18n.t("menu.ingredients", "uz"), "📚 Qo'llanmalar"):
+            self.assertIn(label, menu_filter.labels)
 
 
 class PickTests(SimpleTestCase):
