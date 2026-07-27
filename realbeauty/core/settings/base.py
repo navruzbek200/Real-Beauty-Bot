@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     "apps.analytics",
     "apps.support",
     "apps.loyalty",
+    "apps.orders",
     "apps.api",
 ]
 

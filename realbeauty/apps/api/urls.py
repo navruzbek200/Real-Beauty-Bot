@@ -8,7 +8,12 @@ from apps.api.views.analytics import SkinQuizResultViewSet
 from apps.api.views.auth import LoginView, MeView, RefreshView
 from apps.api.views.bot_settings import DiscountViewSet, GlobalSettingsView
 from apps.api.views.loyalty import LoyaltySettingsView, RewardViewSet
-from apps.api.views.webapp import WebAppCatalogView, WebAppLessonsView
+from apps.api.views.orders import OrderViewSet
+from apps.api.views.webapp import (
+    WebAppCatalogView,
+    WebAppLessonsView,
+    WebAppOrderView,
+)
 from apps.api.views.campaigns import (
     AutoMessageViewSet,
     BroadcastViewSet,
@@ -41,6 +46,7 @@ router.register("skin-quiz-results", SkinQuizResultViewSet, basename="skin-quiz-
 router.register("support-threads", SupportThreadViewSet, basename="support-thread")
 router.register("support-messages", SupportMessageViewSet, basename="support-message")
 router.register("support-admins", SupportAdminViewSet, basename="support-admin")
+router.register("orders", OrderViewSet, basename="order")
 
 urlpatterns = [
     path("auth/login/", LoginView.as_view(), name="api_login"),
@@ -60,6 +66,7 @@ urlpatterns = [
     ),
     path("webapp/catalog/", WebAppCatalogView.as_view(), name="api_webapp_catalog"),
     path("webapp/lessons/", WebAppLessonsView.as_view(), name="api_webapp_lessons"),
+    path("webapp/orders/", WebAppOrderView.as_view(), name="api_webapp_orders"),
     path("schema/", SpectacularAPIView.as_view(), name="api_schema"),
     path("", include(router.urls)),
 ]

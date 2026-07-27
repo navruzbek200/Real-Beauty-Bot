@@ -18,15 +18,21 @@ from __future__ import annotations
 import hashlib
 import hmac
 import json
+import logging
 from urllib.parse import parse_qsl
 
 from django.conf import settings
+from django.core.cache import cache
+from django.db import transaction
+from rest_framework import status as http_status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.products.models import Product
 from core.i18n import pick
+
+logger = logging.getLogger(__name__)
 
 _LANGS = {"uz", "ru", "en"}
 
@@ -184,3 +190,128 @@ class WebAppLessonsView(APIView):
                 "count": len(items),
             }
         )
+
+
+class WebAppOrderView(APIView):
+    """
+    The Mini App's checkout: creates an order for a *verified* customer.
+
+    The only authentication a Mini App has is its initData HMAC, so a valid
+    signature is mandatory here — unlike the read-only endpoints above there
+    is no anonymous fallback. Prices always come from the database; the client
+    only says which product ids and quantities it wants.
+    """
+
+    permission_classes = [AllowAny]
+    authentication_classes: list = []
+
+    MAX_LINES = 30
+    MAX_QTY = 20
+    RATE_LIMIT_MAX = 5  # orders per window per customer
+    RATE_LIMIT_WINDOW_S = 300
+
+    def post(self, request):
+        from apps.orders.models import Order, OrderItem
+        from apps.orders.notifications import notify_new_order
+        from apps.users.models import TelegramUser
+
+        data = request.data if isinstance(request.data, dict) else {}
+        telegram_id = verified_telegram_id(str(data.get("init_data", "")))
+        if telegram_id is None:
+            return Response(
+                {"detail": "auth"}, status=http_status.HTTP_403_FORBIDDEN
+            )
+        user = TelegramUser.objects.filter(
+            telegram_id=telegram_id,
+            is_active=True,
+            registration_status=TelegramUser.RegistrationStatus.COMPLETED,
+        ).first()
+        if user is None:
+            return Response(
+                {"detail": "not_registered"}, status=http_status.HTTP_403_FORBIDDEN
+            )
+
+        key = f"webapp_order_rl:{telegram_id}"
+        if not cache.add(key, 1, self.RATE_LIMIT_WINDOW_S):
+            try:
+                if cache.incr(key) > self.RATE_LIMIT_MAX:
+                    return Response(
+                        {"detail": "rate_limited"},
+                        status=http_status.HTTP_429_TOO_MANY_REQUESTS,
+                    )
+            except ValueError:
+                cache.set(key, 1, self.RATE_LIMIT_WINDOW_S)
+
+        delivery = str(data.get("delivery", ""))
+        if delivery not in Order.Delivery.values:
+            return Response(
+                {"detail": "delivery"}, status=http_status.HTTP_400_BAD_REQUEST
+            )
+        address = str(data.get("address", "")).strip()[:1000]
+        if len(address) < 5:
+            return Response(
+                {"detail": "address"}, status=http_status.HTTP_400_BAD_REQUEST
+            )
+        comment = str(data.get("comment", "")).strip()[:1000]
+
+        phone = TelegramUser.normalize_phone(str(data.get("phone", "")).strip())
+        phone = phone or user.phone_number
+        if not phone:
+            return Response(
+                {"detail": "phone"}, status=http_status.HTTP_400_BAD_REQUEST
+            )
+
+        raw_items = data.get("items")
+        if not isinstance(raw_items, list) or not raw_items:
+            return Response(
+                {"detail": "items"}, status=http_status.HTTP_400_BAD_REQUEST
+            )
+        wanted: dict[int, int] = {}
+        for entry in raw_items[: self.MAX_LINES]:
+            try:
+                product_id = int(entry.get("id"))
+                quantity = int(entry.get("qty"))
+            except (AttributeError, TypeError, ValueError):
+                continue
+            if quantity < 1:
+                continue
+            wanted[product_id] = min(quantity, self.MAX_QTY)
+        products = {
+            p.pk: p
+            for p in Product.objects.filter(pk__in=wanted, is_active=True)
+        }
+        lines = [
+            (products[pid], qty) for pid, qty in wanted.items() if pid in products
+        ]
+        if not lines:
+            return Response(
+                {"detail": "items"}, status=http_status.HTTP_400_BAD_REQUEST
+            )
+
+        with transaction.atomic():
+            order = Order.objects.create(
+                user=user,
+                customer_name=user.full_name or str(telegram_id),
+                phone_number=phone,
+                delivery_method=delivery,
+                address=address,
+                comment=comment,
+                total=sum(p.current_price * qty for p, qty in lines),
+            )
+            OrderItem.objects.bulk_create(
+                OrderItem(
+                    order=order,
+                    product=product,
+                    product_name=product.name,
+                    price=product.current_price,
+                    quantity=qty,
+                )
+                for product, qty in lines
+            )
+
+        try:
+            notify_new_order(order)
+        except Exception:  # noqa: BLE001 — the order is saved; sends are extra
+            logger.exception("Order %s: notification crashed", order.pk)
+
+        return Response({"ok": True, "order_id": order.pk, "total": order.total})

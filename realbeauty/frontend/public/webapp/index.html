@@ -175,6 +175,53 @@
     .cta button:active { transform: scale(.98); }
     .cta .hint-line { margin: 9px 2px 0; font-size: 12px; color: var(--hint); text-align: center; }
 
+    /* ---------- cart ---------- */
+    .cartbar { position: fixed; left: 12px; right: 12px; bottom: calc(74px + env(safe-area-inset-bottom));
+      z-index: 16; display: none; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 16px;
+      background: linear-gradient(135deg, var(--rose), var(--rose-deep)); color: #fff; cursor: pointer;
+      box-shadow: 0 8px 24px color-mix(in srgb, var(--rose) 45%, transparent); animation: rise .3s both; }
+    .cartbar.show { display: flex; }
+    .cartbar .cb-count { background: rgba(255,255,255,.22); border-radius: 999px; padding: 3px 10px;
+      font-size: 13px; font-weight: 800; }
+    .cartbar .cb-total { flex: 1; font-size: 15px; font-weight: 800; }
+    .cartbar .cb-go { font-size: 13.5px; font-weight: 700; opacity: .95; }
+    .add-cart { width: 100%; border: none; border-radius: 14px; padding: 15px; font-size: 16px; font-weight: 800;
+      background: linear-gradient(135deg, var(--rose), var(--rose-deep)); color: #fff; cursor: pointer;
+      box-shadow: 0 6px 20px color-mix(in srgb, var(--rose) 38%, transparent); }
+    .add-cart:active { transform: scale(.98); }
+    .ask-secondary { width: 100%; margin-top: 10px; border-radius: 14px; padding: 13px; font-size: 14.5px;
+      font-weight: 700; background: color-mix(in srgb, var(--rose) 12%, transparent); color: var(--rose-2);
+      border: 1px solid color-mix(in srgb, var(--rose) 26%, transparent); cursor: pointer; }
+    .co-body { padding: 14px 18px 6px; }
+    .co-body h2 { margin: 0 0 12px; font-size: 20px; font-weight: 700; }
+    .co-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+    .co-item .n { flex: 1; min-width: 0; font-size: 14px; font-weight: 600; line-height: 1.3; }
+    .co-item .p { font-size: 12.5px; color: var(--hint); margin-top: 2px; }
+    .stepper { display: flex; align-items: center; gap: 2px; }
+    .stepper button { width: 30px; height: 30px; border: none; border-radius: 9px; font-size: 17px; font-weight: 800;
+      background: color-mix(in srgb, var(--rose) 14%, transparent); color: var(--rose-2); cursor: pointer; }
+    .stepper span { min-width: 26px; text-align: center; font-size: 14.5px; font-weight: 700; }
+    .co-total { display: flex; justify-content: space-between; padding: 13px 0 4px; font-size: 16px; font-weight: 800; }
+    .co-label { margin: 14px 0 7px; font-size: 13px; font-weight: 700; color: var(--hint);
+      text-transform: uppercase; letter-spacing: .06em; }
+    .dlv { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+    .dlv button { border-radius: 14px; padding: 13px 10px; cursor: pointer; text-align: center;
+      background: var(--card); border: 1.5px solid var(--line); color: var(--text); font: inherit; }
+    .dlv button .d-ic { font-size: 22px; }
+    .dlv button .d-t { display: block; margin-top: 4px; font-size: 14px; font-weight: 750; }
+    .dlv button .d-s { display: block; margin-top: 2px; font-size: 11.5px; color: var(--hint); }
+    .dlv button.on { border-color: var(--rose); background: color-mix(in srgb, var(--rose) 13%, transparent); }
+    .dlv button.on .d-t { color: var(--rose-2); }
+    .co-input { width: 100%; border: 1.5px solid var(--line); border-radius: 13px; background: var(--card);
+      color: var(--text); padding: 12px 13px; font: inherit; font-size: 14.5px; outline: none; resize: none; }
+    .co-input:focus { border-color: var(--rose); }
+    .co-err { margin: 10px 0 0; font-size: 13px; color: #ff7b8a; font-weight: 600; display: none; }
+    .co-err.show { display: block; }
+    .ok-wrap { text-align: center; padding: 44px 24px 20px; }
+    .ok-wrap .ok-ic { font-size: 54px; }
+    .ok-wrap h2 { margin: 12px 0 6px; font-size: 21px; font-weight: 750; }
+    .ok-wrap p { margin: 0 auto; max-width: 30ch; font-size: 14.5px; color: var(--hint); line-height: 1.5; }
+
     /* ---------- bottom tab bar ---------- */
     .tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 15; display: flex;
       padding: 8px 12px calc(8px + env(safe-area-inset-bottom)); gap: 6px;
@@ -231,6 +278,12 @@
     <div id="sheet-content"></div>
   </div>
 
+  <div class="cartbar" id="cartbar">
+    <span class="cb-count" id="cb-count">0</span>
+    <span class="cb-total" id="cb-total"></span>
+    <span class="cb-go" id="cb-go">Rasmiylashtirish ›</span>
+  </div>
+
   <nav class="tabbar glass" id="tabbar">
     <button class="tab active" data-tab="shop">
       <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 7V6a6 6 0 0 1 12 0v1"/><path d="M4 7h16l-1.2 12.1a2 2 0 0 1-2 1.9H7.2a2 2 0 0 1-2-1.9L4 7Z"/></svg>
@@ -261,7 +314,18 @@
         lessonsTitle: '🎓 Video darslar', lessonsMine: 'Mahsulotlaringiz bo‘yicha qo‘llanmalar', lessonsAll: 'Mahsulotlar bo‘yicha video qo‘llanmalar',
         lessonsEmpty: 'Hozircha video darslar yo‘q.\nTez orada qo‘shiladi!', lessonCount: (n) => n + ' ta dars',
         lessonNote: 'Darsni tanlasangiz, video bot chatida ochiladi 📲', soon: 'Tez orada',
-        contactSub: 'Savolingiz bormi? Jamoamiz doim aloqada.' },
+        contactSub: 'Savolingiz bormi? Jamoamiz doim aloqada.',
+        addCart: '🛒 Savatga qo‘shish', added: 'Savatga qo‘shildi ✓', checkout: 'Rasmiylashtirish ›',
+        coTitle: '🛒 Savatcha', coEmpty: 'Savatcha bo‘sh', coTotal: 'Jami', coDelivery: 'Yetkazib berish',
+        dlvYandexT: 'Yandeks', dlvYandexS: 'Toshkent bo‘ylab', dlvBtsT: 'BTS', dlvBtsS: 'Viloyatlarga pochta',
+        coAddress: 'Manzil', adrYandex: 'Ko‘cha, uy, mo‘ljal…', adrBts: 'Viloyat, shahar va BTS filiali…',
+        coPhone: 'Telefon', phHint: 'Bo‘sh qoldirsangiz profilingizdagi raqam ishlatiladi',
+        coComment: 'Izoh (ixtiyoriy)', cmPh: 'Masalan: 14:00 dan keyin qo‘ng‘iroq qiling',
+        coSubmit: '✅ Buyurtma berish', coSending: 'Yuborilmoqda…',
+        needDelivery: 'Yetkazish turini tanlang', needAddress: 'Manzilni to‘liqroq yozing',
+        errOrder: 'Buyurtma yuborilmadi. Qayta urinib ko‘ring.', errAuth: 'Buyurtma uchun ilovani bot ichidan oching',
+        okTitle: 'Buyurtma qabul qilindi!', okDesc: 'Operatorimiz tez orada qo‘ng‘iroq qilib tasdiqlaydi. Tasdiqnoma bot chatiga yuborildi.',
+        okClose: 'Yopish' },
       ru: { kicker: 'Магазин красоты', search: 'Поиск…', all: 'Все', top: '🔥 ТОП', sale: '💸 Скидка',
         empty: 'Товары не найдены', err: 'Не удалось загрузить. Попробуйте ещё раз.', ask: '💬 Задать вопрос',
         askHint: 'Вопрос продолжится в чате с ботом', badgeTop: 'ТОП', som: 'сум', details: 'Подробнее',
@@ -270,7 +334,18 @@
         lessonsTitle: '🎓 Видеоуроки', lessonsMine: 'Инструкции по вашим товарам', lessonsAll: 'Видеоинструкции по товарам',
         lessonsEmpty: 'Видеоуроков пока нет.\nСкоро добавим!', lessonCount: (n) => n + ' урок(ов)',
         lessonNote: 'Выберите урок — видео откроется в чате с ботом 📲', soon: 'Скоро',
-        contactSub: 'Есть вопрос? Наша команда всегда на связи.' },
+        contactSub: 'Есть вопрос? Наша команда всегда на связи.',
+        addCart: '🛒 В корзину', added: 'Добавлено ✓', checkout: 'Оформить ›',
+        coTitle: '🛒 Корзина', coEmpty: 'Корзина пуста', coTotal: 'Итого', coDelivery: 'Доставка',
+        dlvYandexT: 'Яндекс', dlvYandexS: 'По Ташкенту', dlvBtsT: 'BTS', dlvBtsS: 'Почта в регионы',
+        coAddress: 'Адрес', adrYandex: 'Улица, дом, ориентир…', adrBts: 'Область, город и филиал BTS…',
+        coPhone: 'Телефон', phHint: 'Если пусто — используем номер из профиля',
+        coComment: 'Комментарий (необязательно)', cmPh: 'Например: звонить после 14:00',
+        coSubmit: '✅ Оформить заказ', coSending: 'Отправляем…',
+        needDelivery: 'Выберите способ доставки', needAddress: 'Напишите адрес подробнее',
+        errOrder: 'Заказ не отправлен. Попробуйте ещё раз.', errAuth: 'Откройте приложение из бота, чтобы заказать',
+        okTitle: 'Заказ принят!', okDesc: 'Наш оператор скоро позвонит для подтверждения. Подтверждение отправлено в чат с ботом.',
+        okClose: 'Закрыть' },
       en: { kicker: 'Beauty shop', search: 'Search…', all: 'All', top: '🔥 TOP', sale: '💸 Sale',
         empty: 'No products found', err: 'Could not load. Try again.', ask: '💬 Ask a question',
         askHint: 'Your question continues in the bot chat', badgeTop: 'TOP', som: 'UZS', details: 'Details',
@@ -279,7 +354,18 @@
         lessonsTitle: '🎓 Video lessons', lessonsMine: 'Guides for your products', lessonsAll: 'Video guides for our products',
         lessonsEmpty: 'No video lessons yet.\nComing soon!', lessonCount: (n) => n + ' lesson(s)',
         lessonNote: 'Pick a lesson — the video opens in the bot chat 📲', soon: 'Soon',
-        contactSub: 'Got a question? Our team is always in touch.' },
+        contactSub: 'Got a question? Our team is always in touch.',
+        addCart: '🛒 Add to cart', added: 'Added ✓', checkout: 'Checkout ›',
+        coTitle: '🛒 Cart', coEmpty: 'Your cart is empty', coTotal: 'Total', coDelivery: 'Delivery',
+        dlvYandexT: 'Yandex', dlvYandexS: 'Within Tashkent', dlvBtsT: 'BTS', dlvBtsS: 'Post to regions',
+        coAddress: 'Address', adrYandex: 'Street, building, landmark…', adrBts: 'Region, city and BTS branch…',
+        coPhone: 'Phone', phHint: 'Leave empty to use your profile number',
+        coComment: 'Comment (optional)', cmPh: 'E.g.: call after 2 pm',
+        coSubmit: '✅ Place the order', coSending: 'Sending…',
+        needDelivery: 'Choose a delivery method', needAddress: 'Please write a fuller address',
+        errOrder: 'The order was not sent. Try again.', errAuth: 'Open the app from the bot to order',
+        okTitle: 'Order received!', okDesc: 'Our operator will call you shortly to confirm. A confirmation was sent to the bot chat.',
+        okClose: 'Close' },
     };
     const L = T[LANG] || T.uz;
     const set = (id, txt) => { document.getElementById(id).textContent = txt; };
@@ -387,11 +473,18 @@
           ${p.description ? `<div class="desc">${esc(p.description)}</div>` : ''}
         </div>
         <div class="cta">
-          <button id="ask">${L.ask}</button>
+          <button class="add-cart" id="add-cart">${L.addCart}</button>
+          <button class="ask-secondary" id="ask">${L.ask}</button>
           <p class="hint-line">${L.askHint}</p>
         </div>`;
       document.getElementById('backdrop').classList.add('open');
       document.getElementById('sheet').classList.add('open');
+      document.getElementById('add-cart').addEventListener('click', (e) => {
+        haptic('medium');
+        cartAdd(p.id);
+        e.target.textContent = L.added;
+        setTimeout(closeSheet, 450);
+      });
       document.getElementById('ask').addEventListener('click', () => {
         haptic('medium');
         actInChat({ action: 'ask', id: p.id, name: p.name }, 'ask_' + p.id);
@@ -402,6 +495,137 @@
       document.getElementById('sheet').classList.remove('open');
     }
     document.getElementById('backdrop').addEventListener('click', closeSheet);
+
+    // ------------------------------------------------------------------ cart
+    let CART = {};
+    try { CART = JSON.parse(localStorage.getItem('rb_cart') || '{}') || {}; } catch (e) { CART = {}; }
+    let DELIVERY = '';
+    const cartSave = () => { try { localStorage.setItem('rb_cart', JSON.stringify(CART)); } catch (e) {} };
+    const cartCount = () => Object.values(CART).reduce((a, b) => a + b, 0);
+    function cartTotal() {
+      return Object.entries(CART).reduce((sum, [id, qty]) => {
+        const p = ALL.find(x => x.id === Number(id));
+        return sum + (p && p.price ? p.price * qty : 0);
+      }, 0);
+    }
+    function cartAdd(id) { CART[id] = Math.min((CART[id] || 0) + 1, 20); cartSave(); renderCartBar(); }
+    function cartSet(id, qty) {
+      if (qty <= 0) delete CART[id]; else CART[id] = Math.min(qty, 20);
+      cartSave(); renderCartBar();
+    }
+    function renderCartBar() {
+      const n = cartCount();
+      document.getElementById('cartbar').classList.toggle('show', n > 0);
+      if (n > 0) {
+        document.getElementById('cb-count').textContent = n;
+        document.getElementById('cb-total').textContent = money(cartTotal());
+        document.getElementById('cb-go').textContent = L.checkout;
+      }
+    }
+    document.getElementById('cartbar').addEventListener('click', () => { haptic('light'); openCheckout(); });
+
+    function coItemRow(p, qty) {
+      return `<div class="co-item" data-id="${p.id}">
+        <div style="flex:1;min-width:0"><div class="n">${esc(p.name)}</div>
+          <div class="p">${money(p.price || 0)}</div></div>
+        <div class="stepper">
+          <button type="button" data-d="-1">−</button><span>${qty}</span><button type="button" data-d="1">+</button>
+        </div>
+      </div>`;
+    }
+    function openCheckout() {
+      const entries = Object.entries(CART)
+        .map(([id, qty]) => [ALL.find(x => x.id === Number(id)), qty])
+        .filter(([p]) => p);
+      if (!entries.length) { renderCartBar(); return; }
+      document.getElementById('sheet-content').innerHTML = `
+        <div class="co-body">
+          <h2>${L.coTitle}</h2>
+          <div id="co-items">${entries.map(([p, q]) => coItemRow(p, q)).join('')}</div>
+          <div class="co-total"><span>${L.coTotal}</span><span id="co-sum">${money(cartTotal())}</span></div>
+          <div class="co-label">${L.coDelivery}</div>
+          <div class="dlv">
+            <button type="button" data-dlv="yandex"><span class="d-ic">🚕</span><span class="d-t">${L.dlvYandexT}</span><span class="d-s">${L.dlvYandexS}</span></button>
+            <button type="button" data-dlv="bts"><span class="d-ic">📦</span><span class="d-t">${L.dlvBtsT}</span><span class="d-s">${L.dlvBtsS}</span></button>
+          </div>
+          <div class="co-label">${L.coAddress}</div>
+          <textarea class="co-input" id="co-address" rows="2" placeholder="${L.adrYandex}"></textarea>
+          <div class="co-label">${L.coPhone}</div>
+          <input class="co-input" id="co-phone" type="tel" placeholder="+998 90 123 45 67" />
+          <p class="hint-line" style="text-align:left;margin:6px 2px 0">${L.phHint}</p>
+          <div class="co-label">${L.coComment}</div>
+          <input class="co-input" id="co-comment" type="text" placeholder="${L.cmPh}" />
+          <p class="co-err" id="co-err"></p>
+        </div>
+        <div class="cta"><button class="add-cart" id="co-submit">${L.coSubmit}</button></div>`;
+      document.getElementById('backdrop').classList.add('open');
+      document.getElementById('sheet').classList.add('open');
+
+      document.querySelectorAll('#co-items .stepper button').forEach(el =>
+        el.addEventListener('click', () => {
+          haptic('light');
+          const row = el.closest('.co-item'), id = Number(row.dataset.id);
+          cartSet(id, (CART[id] || 0) + Number(el.dataset.d));
+          if (!CART[id]) row.remove(); else row.querySelector('.stepper span').textContent = CART[id];
+          document.getElementById('co-sum').textContent = money(cartTotal());
+          if (!cartCount()) closeSheet();
+        }));
+      document.querySelectorAll('.dlv button').forEach(el =>
+        el.addEventListener('click', () => {
+          haptic('light');
+          DELIVERY = el.dataset.dlv;
+          document.querySelectorAll('.dlv button').forEach(b => b.classList.toggle('on', b === el));
+          document.getElementById('co-address').placeholder = DELIVERY === 'bts' ? L.adrBts : L.adrYandex;
+        }));
+      document.getElementById('co-submit').addEventListener('click', submitOrder);
+    }
+
+    function coError(text) {
+      const el = document.getElementById('co-err');
+      el.textContent = text; el.classList.add('show');
+      try { tg && tg.HapticFeedback && tg.HapticFeedback.notificationOccurred('error'); } catch (e) {}
+    }
+    function submitOrder() {
+      const address = document.getElementById('co-address').value.trim();
+      if (!DELIVERY) { coError(L.needDelivery); return; }
+      if (address.length < 5) { coError(L.needAddress); return; }
+      const initData = (tg && tg.initData) ? tg.initData : '';
+      if (!initData) { coError(L.errAuth); return; }
+      const btn = document.getElementById('co-submit');
+      btn.disabled = true; btn.textContent = L.coSending;
+      fetch('/api/v1/webapp/orders/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          init_data: initData,
+          delivery: DELIVERY,
+          address: address,
+          phone: document.getElementById('co-phone').value.trim(),
+          comment: document.getElementById('co-comment').value.trim(),
+          items: Object.entries(CART).map(([id, qty]) => ({ id: Number(id), qty })),
+        }),
+      })
+        .then(r => { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+        .then(() => {
+          CART = {}; cartSave(); renderCartBar();
+          try { tg && tg.HapticFeedback && tg.HapticFeedback.notificationOccurred('success'); } catch (e) {}
+          document.getElementById('sheet-content').innerHTML = `
+            <div class="ok-wrap">
+              <div class="ok-ic">🎉</div>
+              <h2>${L.okTitle}</h2>
+              <p>${L.okDesc}</p>
+            </div>
+            <div class="cta"><button class="add-cart" id="ok-close">${L.okClose}</button></div>`;
+          document.getElementById('ok-close').addEventListener('click', () => {
+            closeSheet();
+            try { tg.close(); } catch (e) {}
+          });
+        })
+        .catch(() => {
+          btn.disabled = false; btn.textContent = L.coSubmit;
+          coError(L.errOrder);
+        });
+    }
     document.getElementById('search').addEventListener('input', (e) => { QUERY = e.target.value.trim().toLowerCase(); renderGrid(); });
 
     // ---------------------------------------------------------------- lessons
@@ -489,11 +713,13 @@
         }
         ALL.length ? renderGrid() : (document.getElementById('content').innerHTML = `<div class="state">${L.empty}</div>`);
         renderLinks(data.links || []);
+        renderCartBar(); // totals need prices, which just arrived
       })
       .catch(() => { document.getElementById('content').innerHTML = `<div class="state">${L.err}</div>`; });
 
     // Deep entry: ?tab=lessons opens the Darslar tab straight away.
     showTab(params.get('tab') || 'shop');
+    renderCartBar();
   </script>
 </body>
 </html>

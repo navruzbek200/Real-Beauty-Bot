@@ -6,6 +6,7 @@ import { CustomersPage } from '@/pages/customers'
 import { DashboardPage } from '@/pages/dashboard'
 import { LoginPage } from '@/pages/login'
 import { MessageTemplatesPage } from '@/pages/message-templates'
+import { OrdersPage } from '@/pages/orders'
 import { ProductsPage } from '@/pages/products'
 import { SettingsPage } from '@/pages/settings'
 import { SkinQuizResultsPage } from '@/pages/skin-quiz-results'
@@ -24,6 +25,10 @@ export function AppRoutes() {
       <Route
         path="/customers"
         element={<ProtectedRoute permission="users.view_telegramuser"><CustomersPage /></ProtectedRoute>}
+      />
+      <Route
+        path="/orders"
+        element={<ProtectedRoute permission="orders.view_order"><OrdersPage /></ProtectedRoute>}
       />
       <Route
         path="/support-threads"

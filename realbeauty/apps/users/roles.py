@@ -48,6 +48,10 @@ SELLER_PERMISSIONS: list[tuple[str, str]] = [
     ("support", "change_supportthread"),
     ("support", "view_supportmessage"),
     ("support", "add_supportmessage"),
+    # Orders are the counter's daily bread: the seller confirms, ships and
+    # closes them. Creation stays with the customer (Mini App only).
+    ("orders", "view_order"),
+    ("orders", "change_order"),
 ]
 
 
