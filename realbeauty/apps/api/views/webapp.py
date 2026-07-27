@@ -257,18 +257,9 @@ class WebAppOrderView(APIView):
             )
         comment = str(data.get("comment", "")).strip()[:1000]
 
-        # Card payment is only on offer once a provider token is configured;
-        # anything else (including a client that asks for it anyway) falls
-        # back to cash on delivery rather than promising a payment we can't
-        # actually take.
-        from apps.orders.payments import payments_enabled, send_invoice
+        from apps.orders.payments import can_invoice, send_invoice
 
         wants_card = str(data.get("payment", "")) == Order.PaymentMethod.ONLINE
-        payment_method = (
-            Order.PaymentMethod.ONLINE
-            if wants_card and payments_enabled()
-            else Order.PaymentMethod.COD
-        )
 
         phone = TelegramUser.normalize_phone(str(data.get("phone", "")).strip())
         phone = phone or user.phone_number
@@ -304,6 +295,16 @@ class WebAppOrderView(APIView):
                 {"detail": "items"}, status=http_status.HTTP_400_BAD_REQUEST
             )
 
+        total = sum(p.current_price * qty for p, qty in lines)
+        # Card only when a provider is configured *and* Telegram will accept
+        # the amount; otherwise this quietly books cash on delivery rather
+        # than recording an "online" order no invoice will ever arrive for.
+        payment_method = (
+            Order.PaymentMethod.ONLINE
+            if wants_card and can_invoice(total)
+            else Order.PaymentMethod.COD
+        )
+
         with transaction.atomic():
             order = Order.objects.create(
                 user=user,
@@ -313,7 +314,7 @@ class WebAppOrderView(APIView):
                 address=address,
                 comment=comment,
                 payment_method=payment_method,
-                total=sum(p.current_price * qty for p, qty in lines),
+                total=total,
             )
             OrderItem.objects.bulk_create(
                 OrderItem(

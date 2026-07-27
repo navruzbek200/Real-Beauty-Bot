@@ -16,6 +16,9 @@ from django.test import TestCase, override_settings
 from apps.orders.models import Order
 from apps.orders.payments import (
     CURRENCY_MULTIPLIER,
+    MAX_INVOICE_SOM,
+    MIN_INVOICE_SOM,
+    can_invoice,
     mark_paid,
     order_id_from_payload,
     payments_enabled,
@@ -50,6 +53,28 @@ class SwitchTests(TestCase):
     @override_settings(PAYMENT_PROVIDER_TOKEN=PROVIDER)
     def test_on_with_a_token(self):
         self.assertTrue(payments_enabled())
+
+
+@override_settings(PAYMENT_PROVIDER_TOKEN=PROVIDER)
+class InvoiceableAmountTests(TestCase):
+    """Telegram refuses UZS invoices outside the band it publishes."""
+
+    def test_an_ordinary_basket_is_invoiceable(self):
+        self.assertTrue(can_invoice(250_000))
+
+    def test_an_unpriced_basket_is_not(self):
+        # Every product added without a price yet totals zero.
+        self.assertFalse(can_invoice(0))
+
+    def test_the_band_edges_hold(self):
+        self.assertTrue(can_invoice(MIN_INVOICE_SOM))
+        self.assertTrue(can_invoice(MAX_INVOICE_SOM))
+        self.assertFalse(can_invoice(MIN_INVOICE_SOM - 1))
+        self.assertFalse(can_invoice(MAX_INVOICE_SOM + 1))
+
+    @override_settings(PAYMENT_PROVIDER_TOKEN="")
+    def test_a_fine_amount_is_still_refused_without_a_provider(self):
+        self.assertFalse(can_invoice(250_000))
 
 
 class OrderPaymentTestCase(TestCase):
@@ -184,6 +209,23 @@ class CheckoutPaymentChoiceTests(OrderPaymentTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["payment"], "cod")
         self.assertEqual(self._invoice_calls(), [])
+
+    @override_settings(PAYMENT_PROVIDER_TOKEN=PROVIDER)
+    def test_a_basket_below_telegrams_minimum_books_cash_instead(self):
+        # A product the shop hasn't priced yet: asking for a card would build
+        # an invoice Telegram refuses, leaving the customer with nothing.
+        self.product.current_price = 0
+        self.product.save()
+
+        response = self._checkout("online")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["payment"], "cod")
+        self.assertFalse(response.json()["invoice_sent"])
+        self.assertEqual(self._invoice_calls(), [])
+        order = Order.objects.get(pk=response.json()["order_id"])
+        self.assertEqual(order.payment_method, Order.PaymentMethod.COD)
+        self.assertEqual(order.payment_status, Order.PaymentStatus.UNPAID)
 
 
 class CatalogFlagTests(TestCase):

@@ -32,6 +32,15 @@ logger = logging.getLogger(__name__)
 CURRENCY = "UZS"
 CURRENCY_MULTIPLIER = 100
 
+# Telegram refuses an invoice outside the band it publishes for the currency
+# (UZS: min_amount 1298089, max_amount 12980894361, both in the smallest unit).
+# Kept in so'm here, rounded inwards so we never hand Telegram an edge value.
+# A cart of not-yet-priced products totals 0, which is exactly the case this
+# guard catches: the customer is quietly given cash on delivery instead of a
+# card option that would fail with nothing to explain it.
+MIN_INVOICE_SOM = 13_000
+MAX_INVOICE_SOM = 129_800_000
+
 # Ties a Telegram invoice back to the row it was raised for.
 PAYLOAD_PREFIX = "order:"
 
@@ -45,6 +54,16 @@ _INVOICE_TEXT = {
 def payments_enabled() -> bool:
     """True when a provider token is configured, i.e. cards can be charged."""
     return bool((getattr(settings, "PAYMENT_PROVIDER_TOKEN", "") or "").strip())
+
+
+def can_invoice(total_som: int) -> bool:
+    """Whether this basket may be paid by card at all.
+
+    Both conditions have to hold: a provider is configured, and the amount is
+    inside the band Telegram accepts for UZS. Checked before the order is
+    written so the row records the payment method that will really be used.
+    """
+    return payments_enabled() and MIN_INVOICE_SOM <= total_som <= MAX_INVOICE_SOM
 
 
 def order_id_from_payload(payload: str) -> int | None:
@@ -64,8 +83,13 @@ def send_invoice(order: Order) -> bool:
     Returns whether Telegram accepted it. A False here is not fatal: the order
     is already saved, and the operator can still take payment on delivery.
     """
-    if not payments_enabled():
-        logger.info("Order %s: no provider token, invoice skipped", order.pk)
+    if not can_invoice(order.total):
+        logger.info(
+            "Order %s: not invoiceable (total %s, provider configured: %s)",
+            order.pk,
+            order.total,
+            payments_enabled(),
+        )
         return False
 
     lang = order.user.language if order.user.language in _INVOICE_TEXT else "uz"

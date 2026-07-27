@@ -522,6 +522,13 @@
       if (qty <= 0) delete CART[id]; else CART[id] = Math.min(qty, 20);
       cartSave(); renderCartBar();
     }
+    // Telegram rejects a UZS invoice outside this band, so a basket of
+    // not-yet-priced products (total 0) must not be offered the card option.
+    const MIN_CARD_SOM = 13000, MAX_CARD_SOM = 129800000;
+    function canPayByCard() {
+      const t = cartTotal();
+      return PAYMENTS_ON && t >= MIN_CARD_SOM && t <= MAX_CARD_SOM;
+    }
     function renderCartBar() {
       const n = cartCount();
       document.getElementById('cartbar').classList.toggle('show', n > 0);
@@ -547,6 +554,7 @@
         .map(([id, qty]) => [ALL.find(x => x.id === Number(id)), qty])
         .filter(([p]) => p);
       if (!entries.length) { renderCartBar(); return; }
+      if (!canPayByCard()) PAYMENT = 'cod';  // the card block isn't rendered
       document.getElementById('sheet-content').innerHTML = `
         <div class="co-body">
           <h2>${L.coTitle}</h2>
@@ -557,7 +565,7 @@
             <button type="button" data-dlv="yandex"><span class="d-ic">🚕</span><span class="d-t">${L.dlvYandexT}</span><span class="d-s">${L.dlvYandexS}</span></button>
             <button type="button" data-dlv="bts"><span class="d-ic">📦</span><span class="d-t">${L.dlvBtsT}</span><span class="d-s">${L.dlvBtsS}</span></button>
           </div>
-          ${PAYMENTS_ON ? `<div class="co-label">${L.coPayment}</div>
+          ${canPayByCard() ? `<div class="co-label">${L.coPayment}</div>
           <div class="dlv" id="pay-pick">
             <button type="button" class="on" data-pay="cod"><span class="d-ic">💵</span><span class="d-t">${L.payCodT}</span><span class="d-s">${L.payCodS}</span></button>
             <button type="button" data-pay="online"><span class="d-ic">💳</span><span class="d-t">${L.payCardT}</span><span class="d-s">${L.payCardS}</span></button>
