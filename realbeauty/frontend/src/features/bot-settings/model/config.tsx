@@ -51,6 +51,34 @@ export const discountColumns: ResourceColumn<Discount>[] = [
   },
 ]
 
+export const deliveryFeeFormSchema = z.object({
+  delivery_fee_yandex: z.coerce.number().int().min(0),
+  delivery_fee_bts: z.coerce.number().int().min(0),
+})
+export type DeliveryFeeFormValues = z.infer<typeof deliveryFeeFormSchema>
+export const deliveryFeeFormConfig: ResourceFormConfig<DeliveryFeeFormValues> = {
+  schema: deliveryFeeFormSchema,
+  fields: [
+    {
+      name: 'delivery_fee_yandex',
+      label: '🚕 Yandeks yetkazish haqi (so\'m)',
+      type: 'number',
+      help: 'Toshkent bo\'ylab. Mijoz savatchasiga alohida qator bo\'lib qo\'shiladi. Masalan: 25000.',
+    },
+    {
+      name: 'delivery_fee_bts',
+      label: '📦 BTS yetkazish haqi (so\'m)',
+      type: 'number',
+      help: 'Viloyatlarga pochta. Masalan: 35000.',
+    },
+  ],
+  defaultValues: { delivery_fee_yandex: 25000, delivery_fee_bts: 35000 },
+  toFormValues: (item) => ({
+    delivery_fee_yandex: (item.delivery_fee_yandex as number) ?? 25000,
+    delivery_fee_bts: (item.delivery_fee_bts as number) ?? 35000,
+  }),
+}
+
 export const globalSettingsFormSchema = z.object({
   birthday_discount_percent: z.coerce.number().int().min(0).max(100),
 })

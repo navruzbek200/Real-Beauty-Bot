@@ -201,7 +201,14 @@
     .stepper button { width: 30px; height: 30px; border: none; border-radius: 9px; font-size: 17px; font-weight: 800;
       background: color-mix(in srgb, var(--rose) 14%, transparent); color: var(--rose-2); cursor: pointer; }
     .stepper span { min-width: 26px; text-align: center; font-size: 14.5px; font-weight: 700; }
-    .co-total { display: flex; justify-content: space-between; padding: 13px 0 4px; font-size: 16px; font-weight: 800; }
+    .co-sub { display: flex; justify-content: space-between; padding: 8px 0 0; font-size: 13.5px; color: var(--hint); }
+    .co-total { display: flex; justify-content: space-between; padding: 9px 0 4px; margin-top: 8px;
+      border-top: 1px solid var(--line); font-size: 16px; font-weight: 800; }
+    .pay-note { margin: 14px 0 0; padding: 11px 13px; border-radius: 12px; font-size: 12.5px; line-height: 1.45;
+      background: color-mix(in srgb, var(--rose) 11%, transparent);
+      border: 1px solid color-mix(in srgb, var(--rose) 24%, transparent); color: var(--text); }
+    .dlv button .d-f { display: block; margin-top: 3px; font-size: 11.5px; font-weight: 700; color: var(--rose-2); }
+    .soon-price { font-size: 12.5px; font-weight: 600; color: var(--hint); }
     .co-label { margin: 14px 0 7px; font-size: 13px; font-weight: 700; color: var(--hint);
       text-transform: uppercase; letter-spacing: .06em; }
     .dlv { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
@@ -322,9 +329,12 @@
         coPhone: 'Telefon', phHint: 'Bo‘sh qoldirsangiz profilingizdagi raqam ishlatiladi',
         coComment: 'Izoh (ixtiyoriy)', cmPh: 'Masalan: 14:00 dan keyin qo‘ng‘iroq qiling',
         coSubmit: '✅ Buyurtma berish', coSending: 'Yuborilmoqda…',
-        coPayment: 'To‘lov', payCodT: 'Naqd', payCodS: 'Yetkazishda to‘lash',
-        payCardT: 'Karta', payCardS: 'Hozir online to‘lash',
+        coSubtotal: 'Mahsulotlar', coDeliveryFee: 'Yetkazish',
+        payNote: '💳 To‘lov karta orqali — buyurtmadan so‘ng botga to‘lov cheki keladi',
+        soon: 'Narx tez orada', askPrice: '💬 Narxni so‘rash',
         okPayTitle: 'To‘lovga o‘ting', okPayDesc: 'Buyurtma qabul qilindi. To‘lov cheki bot chatiga yuborildi — «To‘lash» tugmasini bosing 💳',
+        errAmount: 'Buyurtma summasi juda kichik. Yana mahsulot qo‘shing.',
+        errUnpriced: 'Savatda narxi belgilanmagan mahsulot bor. Uni olib tashlang.',
         needDelivery: 'Yetkazish turini tanlang', needAddress: 'Manzilni to‘liqroq yozing',
         errOrder: 'Buyurtma yuborilmadi. Qayta urinib ko‘ring.', errAuth: 'Buyurtma uchun ilovani bot ichidan oching',
         okTitle: 'Buyurtma qabul qilindi!', okDesc: 'Operatorimiz tez orada qo‘ng‘iroq qilib tasdiqlaydi. Tasdiqnoma bot chatiga yuborildi.',
@@ -345,9 +355,12 @@
         coPhone: 'Телефон', phHint: 'Если пусто — используем номер из профиля',
         coComment: 'Комментарий (необязательно)', cmPh: 'Например: звонить после 14:00',
         coSubmit: '✅ Оформить заказ', coSending: 'Отправляем…',
-        coPayment: 'Оплата', payCodT: 'Наличные', payCodS: 'При доставке',
-        payCardT: 'Карта', payCardS: 'Оплатить сейчас',
+        coSubtotal: 'Товары', coDeliveryFee: 'Доставка',
+        payNote: '💳 Оплата картой — счёт придёт в чат с ботом после заказа',
+        soon: 'Цена скоро', askPrice: '💬 Узнать цену',
         okPayTitle: 'Перейдите к оплате', okPayDesc: 'Заказ принят. Счёт отправлен в чат с ботом — нажмите «Оплатить» 💳',
+        errAmount: 'Сумма заказа слишком мала. Добавьте ещё товар.',
+        errUnpriced: 'В корзине товар без цены. Удалите его.',
         needDelivery: 'Выберите способ доставки', needAddress: 'Напишите адрес подробнее',
         errOrder: 'Заказ не отправлен. Попробуйте ещё раз.', errAuth: 'Откройте приложение из бота, чтобы заказать',
         okTitle: 'Заказ принят!', okDesc: 'Наш оператор скоро позвонит для подтверждения. Подтверждение отправлено в чат с ботом.',
@@ -368,9 +381,12 @@
         coPhone: 'Phone', phHint: 'Leave empty to use your profile number',
         coComment: 'Comment (optional)', cmPh: 'E.g.: call after 2 pm',
         coSubmit: '✅ Place the order', coSending: 'Sending…',
-        coPayment: 'Payment', payCodT: 'Cash', payCodS: 'On delivery',
-        payCardT: 'Card', payCardS: 'Pay online now',
+        coSubtotal: 'Products', coDeliveryFee: 'Delivery',
+        payNote: '💳 Payment is by card — the invoice arrives in the bot chat after you order',
+        soon: 'Price coming soon', askPrice: '💬 Ask the price',
         okPayTitle: 'Continue to payment', okPayDesc: 'Order received. The invoice was sent to the bot chat — tap «Pay» 💳',
+        errAmount: 'The order total is too small. Please add another product.',
+        errUnpriced: 'Your cart holds a product with no price. Please remove it.',
         needDelivery: 'Choose a delivery method', needAddress: 'Please write a fuller address',
         errOrder: 'The order was not sent. Try again.', errAuth: 'Open the app from the bot to order',
         okTitle: 'Order received!', okDesc: 'Our operator will call you shortly to confirm. A confirmation was sent to the bot chat.',
@@ -452,7 +468,7 @@
         <div class="thumb-wrap">${thumb}${badges.length ? `<div class="badges">${badges.join('')}</div>` : ''}</div>
         <div class="card-body">
           <div class="name">${esc(p.name)}</div>
-          <div class="price-row">${p.price ? `<span class="price">${money(p.price)}</span>` : ''}${old}</div>
+          <div class="price-row">${p.price ? `<span class="price">${money(p.price)}</span>${old}` : `<span class="soon-price">${L.soon}</span>`}</div>
           <button class="buy" type="button">${L.details}</button>
         </div>
       </div>`;
@@ -482,13 +498,14 @@
           ${p.description ? `<div class="desc">${esc(p.description)}</div>` : ''}
         </div>
         <div class="cta">
-          <button class="add-cart" id="add-cart">${L.addCart}</button>
-          <button class="ask-secondary" id="ask">${L.ask}</button>
+          ${p.price ? `<button class="add-cart" id="add-cart">${L.addCart}</button>` : ''}
+          <button class="ask-secondary" id="ask">${p.price ? L.ask : L.askPrice}</button>
           <p class="hint-line">${L.askHint}</p>
         </div>`;
       document.getElementById('backdrop').classList.add('open');
       document.getElementById('sheet').classList.add('open');
-      document.getElementById('add-cart').addEventListener('click', (e) => {
+      const addBtn = document.getElementById('add-cart');
+      if (addBtn) addBtn.addEventListener('click', (e) => {
         haptic('medium');
         cartAdd(p.id);
         e.target.textContent = L.added;
@@ -508,7 +525,7 @@
     // ------------------------------------------------------------------ cart
     let CART = {};
     try { CART = JSON.parse(localStorage.getItem('rb_cart') || '{}') || {}; } catch (e) { CART = {}; }
-    let DELIVERY = '', PAYMENT = 'cod', PAYMENTS_ON = false;
+    let DELIVERY = '', PAYMENTS_ON = false, FEES = { yandex: 0, bts: 0 };
     const cartSave = () => { try { localStorage.setItem('rb_cart', JSON.stringify(CART)); } catch (e) {} };
     const cartCount = () => Object.values(CART).reduce((a, b) => a + b, 0);
     function cartTotal() {
@@ -522,12 +539,12 @@
       if (qty <= 0) delete CART[id]; else CART[id] = Math.min(qty, 20);
       cartSave(); renderCartBar();
     }
-    // Telegram rejects a UZS invoice outside this band, so a basket of
-    // not-yet-priced products (total 0) must not be offered the card option.
+    // Telegram rejects a UZS invoice outside this band, and every order is
+    // paid by card — so a total outside it can't be ordered at all. Checked
+    // here to fail before the round trip; the server checks it again.
     const MIN_CARD_SOM = 13000, MAX_CARD_SOM = 129800000;
-    function canPayByCard() {
-      const t = cartTotal();
-      return PAYMENTS_ON && t >= MIN_CARD_SOM && t <= MAX_CARD_SOM;
+    function amountOk(total) {
+      return !PAYMENTS_ON || (total >= MIN_CARD_SOM && total <= MAX_CARD_SOM);
     }
     function renderCartBar() {
       const n = cartCount();
@@ -554,22 +571,19 @@
         .map(([id, qty]) => [ALL.find(x => x.id === Number(id)), qty])
         .filter(([p]) => p);
       if (!entries.length) { renderCartBar(); return; }
-      if (!canPayByCard()) PAYMENT = 'cod';  // the card block isn't rendered
       document.getElementById('sheet-content').innerHTML = `
         <div class="co-body">
           <h2>${L.coTitle}</h2>
           <div id="co-items">${entries.map(([p, q]) => coItemRow(p, q)).join('')}</div>
+          <div class="co-sub"><span>${L.coSubtotal}</span><span id="co-goods">${money(cartTotal())}</span></div>
+          <div class="co-sub" id="co-dlv-row" hidden><span>${L.coDeliveryFee}</span><span id="co-dlv">—</span></div>
           <div class="co-total"><span>${L.coTotal}</span><span id="co-sum">${money(cartTotal())}</span></div>
           <div class="co-label">${L.coDelivery}</div>
           <div class="dlv">
-            <button type="button" data-dlv="yandex"><span class="d-ic">🚕</span><span class="d-t">${L.dlvYandexT}</span><span class="d-s">${L.dlvYandexS}</span></button>
-            <button type="button" data-dlv="bts"><span class="d-ic">📦</span><span class="d-t">${L.dlvBtsT}</span><span class="d-s">${L.dlvBtsS}</span></button>
+            <button type="button" data-dlv="yandex"><span class="d-ic">🚕</span><span class="d-t">${L.dlvYandexT}</span><span class="d-s">${L.dlvYandexS}</span><span class="d-f">+${money(FEES.yandex)}</span></button>
+            <button type="button" data-dlv="bts"><span class="d-ic">📦</span><span class="d-t">${L.dlvBtsT}</span><span class="d-s">${L.dlvBtsS}</span><span class="d-f">+${money(FEES.bts)}</span></button>
           </div>
-          ${canPayByCard() ? `<div class="co-label">${L.coPayment}</div>
-          <div class="dlv" id="pay-pick">
-            <button type="button" class="on" data-pay="cod"><span class="d-ic">💵</span><span class="d-t">${L.payCodT}</span><span class="d-s">${L.payCodS}</span></button>
-            <button type="button" data-pay="online"><span class="d-ic">💳</span><span class="d-t">${L.payCardT}</span><span class="d-s">${L.payCardS}</span></button>
-          </div>` : ''}
+          <p class="pay-note">${L.payNote}</p>
           <div class="co-label">${L.coAddress}</div>
           <textarea class="co-input" id="co-address" rows="2" placeholder="${L.adrYandex}"></textarea>
           <div class="co-label">${L.coPhone}</div>
@@ -580,6 +594,10 @@
           <p class="co-err" id="co-err"></p>
         </div>
         <div class="cta"><button class="add-cart" id="co-submit">${L.coSubmit}</button></div>`;
+      // No Telegram signature means the app was opened outside the bot (a
+      // plain browser tab). Say so now rather than after the whole form is
+      // filled in — the order can't be placed either way.
+      if (!(tg && tg.initData)) coError(L.errAuth);
       document.getElementById('backdrop').classList.add('open');
       document.getElementById('sheet').classList.add('open');
 
@@ -589,7 +607,7 @@
           const row = el.closest('.co-item'), id = Number(row.dataset.id);
           cartSet(id, (CART[id] || 0) + Number(el.dataset.d));
           if (!CART[id]) row.remove(); else row.querySelector('.stepper span').textContent = CART[id];
-          document.getElementById('co-sum').textContent = money(cartTotal());
+          refreshTotals();
           if (!cartCount()) closeSheet();
         }));
       document.querySelectorAll('.dlv button[data-dlv]').forEach(el =>
@@ -598,14 +616,23 @@
           DELIVERY = el.dataset.dlv;
           document.querySelectorAll('.dlv button[data-dlv]').forEach(b => b.classList.toggle('on', b === el));
           document.getElementById('co-address').placeholder = DELIVERY === 'bts' ? L.adrBts : L.adrYandex;
-        }));
-      document.querySelectorAll('#pay-pick button').forEach(el =>
-        el.addEventListener('click', () => {
-          haptic('light');
-          PAYMENT = el.dataset.pay;
-          document.querySelectorAll('#pay-pick button').forEach(b => b.classList.toggle('on', b === el));
+          refreshTotals();
         }));
       document.getElementById('co-submit').addEventListener('click', submitOrder);
+    }
+
+    // The delivery fee only becomes known once a carrier is picked, so the
+    // fee row and the grand total are re-rendered rather than baked in.
+    function deliveryFee() { return DELIVERY ? (FEES[DELIVERY] || 0) : 0; }
+    function refreshTotals() {
+      const goods = cartTotal(), fee = deliveryFee();
+      const goodsEl = document.getElementById('co-goods');
+      if (!goodsEl) return;
+      goodsEl.textContent = money(goods);
+      const row = document.getElementById('co-dlv-row');
+      row.hidden = !DELIVERY;
+      if (DELIVERY) document.getElementById('co-dlv').textContent = money(fee);
+      document.getElementById('co-sum').textContent = money(goods + fee);
     }
 
     function coError(text) {
@@ -617,6 +644,7 @@
       const address = document.getElementById('co-address').value.trim();
       if (!DELIVERY) { coError(L.needDelivery); return; }
       if (address.length < 5) { coError(L.needAddress); return; }
+      if (!amountOk(cartTotal() + deliveryFee())) { coError(L.errAmount); return; }
       const initData = (tg && tg.initData) ? tg.initData : '';
       if (!initData) { coError(L.errAuth); return; }
       const btn = document.getElementById('co-submit');
@@ -627,14 +655,16 @@
         body: JSON.stringify({
           init_data: initData,
           delivery: DELIVERY,
-          payment: PAYMENT,
           address: address,
           phone: document.getElementById('co-phone').value.trim(),
           comment: document.getElementById('co-comment').value.trim(),
           items: Object.entries(CART).map(([id, qty]) => ({ id: Number(id), qty })),
         }),
       })
-        .then(r => { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+        .then(r => r.json().then(body => {
+          if (!r.ok) throw Object.assign(new Error('http ' + r.status), { body });
+          return body;
+        }))
         .then((res) => {
           CART = {}; cartSave(); renderCartBar();
           try { tg && tg.HapticFeedback && tg.HapticFeedback.notificationOccurred('success'); } catch (e) {}
@@ -653,9 +683,13 @@
             try { tg.close(); } catch (e) {}
           });
         })
-        .catch(() => {
+        .catch((err) => {
           btn.disabled = false; btn.textContent = L.coSubmit;
-          coError(L.errOrder);
+          const detail = err && err.body && err.body.detail;
+          coError(detail === 'amount' ? L.errAmount
+            : detail === 'unpriced' ? L.errUnpriced
+            : detail === 'auth' || detail === 'not_registered' ? L.errAuth
+            : L.errOrder);
         });
     }
     document.getElementById('search').addEventListener('input', (e) => { QUERY = e.target.value.trim().toLowerCase(); renderGrid(); });
@@ -737,6 +771,7 @@
         ALL = data.products || [];
         if (data.bot_username) BOT_USERNAME = data.bot_username;
         PAYMENTS_ON = !!data.payments_enabled;
+        if (data.delivery_fees) FEES = data.delivery_fees;
         if (data.shop && data.shop.name) {
           const parts = data.shop.name.trim().split(/\s+/);
           document.getElementById('shop-name').innerHTML = parts.length > 1

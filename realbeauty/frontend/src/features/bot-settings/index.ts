@@ -1,4 +1,6 @@
 export {
+  deliveryFeeFormConfig,
+  deliveryFeeFormSchema,
   discountColumns,
   discountFormConfig,
   discountFormSchema,
@@ -6,6 +8,7 @@ export {
   globalSettingsFormSchema,
   shopSettingsFormConfig,
   shopSettingsFormSchema,
+  type DeliveryFeeFormValues,
   type DiscountFormValues,
   type GlobalSettingsFormValues,
   type ShopSettingsFormValues,

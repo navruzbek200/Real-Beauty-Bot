@@ -10,6 +10,7 @@ import { loyaltySettingsApi, rewardApi, type Reward } from '@/entities/loyalty'
 import { staffApi, type Staff } from '@/entities/staff'
 import { supportAdminApi, supportSettingsApi, type SupportAdmin } from '@/entities/support'
 import {
+  deliveryFeeFormConfig,
   discountColumns,
   discountFormConfig,
   globalSettingsFormConfig,
@@ -32,6 +33,7 @@ import {
 
 const TABS: TabItem[] = [
   { key: 'discounts', label: 'Chegirmalar' },
+  { key: 'delivery', label: 'Yetkazish' },
   { key: 'bonus', label: 'Bonus dasturi' },
   { key: 'shop', label: "Do'kon (ilova)" },
   { key: 'telegram', label: 'Telegram guruh' },
@@ -65,6 +67,7 @@ export function SettingsPage() {
       />
 
       {active === 'discounts' && <DiscountsTab />}
+      {active === 'delivery' && <DeliveryTab />}
       {active === 'bonus' && <BonusTab />}
       {active === 'shop' && <ShopTab />}
       {active === 'telegram' && <TelegramTab />}
@@ -116,6 +119,35 @@ function DiscountsTab() {
           toUpdatePayload={toDiscountPayload}
         />
       </section>
+    </div>
+  )
+}
+
+function DeliveryTab() {
+  return (
+    <div className="space-y-3">
+      <div>
+        <h2 className="text-base font-semibold text-slate-800 dark:text-slate-200">
+          Yetkazib berish haqi
+        </h2>
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          Mijoz savatchasiga alohida qator bo'lib qo'shiladi va umumiy summaga kiradi.
+          O'zgartirsangiz — yangi buyurtmalardan boshlab amal qiladi, eskilari o'z
+          narxi bilan qoladi.
+        </p>
+      </div>
+      <Alert tone="info">
+        Yandeks kuryer mijozdan pul yig'maydi, shuning uchun barcha buyurtmalar{' '}
+        <b>oldindan karta orqali</b> to'lanadi. Yandeksga siz to'laysiz — shu haq
+        mijozdan qaytib keladi.
+      </Alert>
+      <SettingsFormPage
+        title=""
+        queryKey={['global-settings']}
+        api={globalSettingsApi}
+        config={deliveryFeeFormConfig}
+        canEdit
+      />
     </div>
   )
 }

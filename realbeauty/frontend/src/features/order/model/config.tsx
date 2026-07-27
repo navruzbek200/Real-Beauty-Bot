@@ -54,12 +54,23 @@ export const orderColumns: ResourceColumn<Order>[] = [
     render: (o) => (
       <div>
         <p className="font-medium">{formatSom(o.total)}</p>
-        <p className="mt-0.5 text-xs text-slate-400">
+        {o.delivery_fee > 0 && (
+          <p className="text-xs text-slate-400">
+            shundan yetkazish {formatSom(o.delivery_fee)}
+          </p>
+        )}
+        <p
+          className={`mt-0.5 text-xs font-medium ${
+            o.payment_status === 'paid'
+              ? 'text-emerald-600 dark:text-emerald-400'
+              : 'text-amber-600 dark:text-amber-400'
+          }`}
+        >
           {o.payment_status === 'paid'
-            ? '💳 To\'langan'
+            ? "💳 To'langan"
             : o.payment_method === 'online'
-              ? '💳 To\'lov kutilmoqda'
-              : '💵 Yetkazishda naqd'}
+              ? "💳 To'lov kutilmoqda"
+              : "⚠️ To'lov kelishilmagan"}
         </p>
       </div>
     ),
@@ -68,11 +79,25 @@ export const orderColumns: ResourceColumn<Order>[] = [
     key: 'delivery',
     header: 'Yetkazish',
     render: (o) => (
-      <div className="max-w-48">
+      <div className="max-w-56">
         <Badge tone={o.delivery_method === 'yandex' ? 'warning' : 'info'}>
           {o.delivery_method === 'yandex' ? '🚕 Yandeks' : '📦 BTS'}
         </Badge>
         <p className="mt-1 truncate text-xs text-slate-400" title={o.address}>{o.address}</p>
+        {o.latitude != null ? (
+          <a
+            href={`https://yandex.uz/maps/?pt=${o.longitude},${o.latitude}&z=17&l=map`}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-1 inline-block text-xs font-medium text-brand-600 hover:underline dark:text-brand-400"
+          >
+            📍 Xaritada ochish
+          </a>
+        ) : o.delivery_method === 'yandex' ? (
+          <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
+            📍 Lokatsiya kutilmoqda
+          </p>
+        ) : null}
       </div>
     ),
   },

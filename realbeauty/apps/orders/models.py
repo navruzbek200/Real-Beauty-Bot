@@ -52,6 +52,11 @@ class Order(models.Model):
         help_text="Yandeks: ko'cha va uy. BTS: viloyat, shahar va filial.",
     )
     comment = models.TextField(blank=True, verbose_name="Izoh")
+    # Sent by the customer as a Telegram location pin after a Yandex order —
+    # a courier needs a point on the map, not a sentence. Blank until they
+    # tap the button (or forever, if they never do).
+    latitude = models.FloatField(null=True, blank=True, verbose_name="Kenglik")
+    longitude = models.FloatField(null=True, blank=True, verbose_name="Uzunlik")
     status = models.CharField(
         max_length=16,
         choices=Status.choices,
@@ -59,8 +64,14 @@ class Order(models.Model):
         db_index=True,
         verbose_name="Holat",
     )
-    # Denormalized sum of the lines, in so'm — the number every list screen
-    # shows, kept here so listing orders never needs an aggregate query.
+    # Snapshotted from GlobalSettings at checkout: the shop re-tunes its fees,
+    # and an order must forever read the way it was placed.
+    delivery_fee = models.PositiveBigIntegerField(
+        default=0, verbose_name="Yetkazish haqi (so'm)"
+    )
+    # Denormalized sum of the lines *plus* the delivery fee — the number every
+    # list screen shows and the amount actually charged, kept here so listing
+    # orders never needs an aggregate query.
     total = models.PositiveBigIntegerField(default=0, verbose_name="Jami (so'm)")
 
     # --- payment ------------------------------------------------------------

@@ -21,6 +21,9 @@ export interface Order {
   delivery_label: string
   address: string
   comment: string
+  latitude: number | null
+  longitude: number | null
+  delivery_fee: number
   status: OrderStatus
   status_label: string
   payment_method: OrderPaymentMethod

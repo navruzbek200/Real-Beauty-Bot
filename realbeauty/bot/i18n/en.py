@@ -290,6 +290,13 @@ STRINGS: dict[str, str] = {
         "Our team will reply right here."
     ),
     "pay.unavailable": "This order can no longer be paid for. Please message us.",
+    "order.location_saved": (
+        "✅ Thank you! The location is saved to order <b>#{id}</b>.\n"
+        "The courier will come to exactly that spot 🚕"
+    ),
+    "order.location_unexpected": (
+        "No order is waiting for a location right now. Use the menu 👇"
+    ),
     "learn.open": "🎓 Open the lessons",
     "learn.intro": (
         "🎓 <b>Video lessons</b>\n\n"

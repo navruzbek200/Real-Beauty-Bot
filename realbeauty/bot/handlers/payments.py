@@ -63,6 +63,8 @@ def _payable_order(payload: str, telegram_id: int):
 @sync_to_async
 def _settle(payload: str, charge_id: str):
     """Mark the order paid and build the group + customer notifications."""
+    from apps.orders.models import Order
+    from apps.orders.notifications import request_location
     from apps.orders.payments import mark_paid, order_id_from_payload
 
     order_id = order_id_from_payload(payload)
@@ -71,6 +73,12 @@ def _settle(payload: str, charge_id: str):
     order = mark_paid(order_id, charge_id)
     if order is None:
         return None  # already settled — a redelivered update
+
+    # Now that the courier will actually be dispatched, it's worth asking
+    # where to. Skipped if they already dropped a pin.
+    if order.delivery_method == Order.Delivery.YANDEX and order.latitude is None:
+        request_location(order)
+
     return {
         "id": order.pk,
         "total": f"{order.total:,}".replace(",", " "),

@@ -299,6 +299,13 @@ STRINGS: dict[str, str] = {
         "Jamoamiz shu yerda javob beradi."
     ),
     "pay.unavailable": "Bu buyurtma uchun to'lov endi mumkin emas. Jamoamizga yozing.",
+    "order.location_saved": (
+        "✅ Rahmat! Joylashuv <b>#{id}</b>-buyurtmaga saqlandi.\n"
+        "Kuryer aynan shu manzilga boradi 🚕"
+    ),
+    "order.location_unexpected": (
+        "Hozircha joylashuv kutayotgan buyurtma yo'q. Menyudan foydalaning 👇"
+    ),
     "learn.open": "🎓 Darslarni ochish",
     "learn.intro": (
         "🎓 <b>Video darslar</b>\n\n"

@@ -119,6 +119,10 @@ class WebAppCatalogView(APIView):
                 "bot_username": getattr(settings, "BOT_USERNAME", "") or "",
                 # Whether checkout may offer the card option at all.
                 "payments_enabled": payments_enabled(),
+                "delivery_fees": {
+                    "yandex": conf.delivery_fee_yandex,
+                    "bts": conf.delivery_fee_bts,
+                },
                 "links": links,
                 "products": items,
                 "count": len(items),
@@ -215,7 +219,7 @@ class WebAppOrderView(APIView):
 
     def post(self, request):
         from apps.orders.models import Order, OrderItem
-        from apps.orders.notifications import notify_new_order
+        from apps.orders.notifications import notify_new_order, request_location
         from apps.users.models import TelegramUser
 
         data = request.data if isinstance(request.data, dict) else {}
@@ -257,9 +261,14 @@ class WebAppOrderView(APIView):
             )
         comment = str(data.get("comment", "")).strip()[:1000]
 
-        from apps.orders.payments import can_invoice, send_invoice
-
-        wants_card = str(data.get("payment", "")) == Order.PaymentMethod.ONLINE
+        from apps.bot_settings.models import GlobalSettings
+        from apps.orders.payments import (
+            MAX_INVOICE_SOM,
+            MIN_INVOICE_SOM,
+            can_invoice,
+            payments_enabled,
+            send_invoice,
+        )
 
         phone = TelegramUser.normalize_phone(str(data.get("phone", "")).strip())
         phone = phone or user.phone_number
@@ -294,14 +303,39 @@ class WebAppOrderView(APIView):
             return Response(
                 {"detail": "items"}, status=http_status.HTTP_400_BAD_REQUEST
             )
+        # A product the shop hasn't priced yet cannot be sold: letting it
+        # through would bill the customer for delivery alone.
+        if any(product.current_price <= 0 for product, _ in lines):
+            return Response(
+                {"detail": "unpriced"}, status=http_status.HTTP_400_BAD_REQUEST
+            )
 
-        total = sum(p.current_price * qty for p, qty in lines)
-        # Card only when a provider is configured *and* Telegram will accept
-        # the amount; otherwise this quietly books cash on delivery rather
-        # than recording an "online" order no invoice will ever arrive for.
+        conf = GlobalSettings.get()
+        delivery_fee = (
+            conf.delivery_fee_yandex
+            if delivery == Order.Delivery.YANDEX
+            else conf.delivery_fee_bts
+        )
+        total = sum(p.current_price * qty for p, qty in lines) + delivery_fee
+
+        # Neither carrier collects money — a Yandex courier only carries, and
+        # the shop has no BTS cash-collection contract — so the customer pays
+        # up front by card. The cash fallback exists for one case only: the
+        # provider token being missing or broken, where a shop that can take
+        # no orders at all would be worse than an operator ringing to arrange
+        # payment. An amount Telegram won't invoice is refused outright.
+        if payments_enabled() and not can_invoice(total):
+            return Response(
+                {
+                    "detail": "amount",
+                    "min": MIN_INVOICE_SOM,
+                    "max": MAX_INVOICE_SOM,
+                },
+                status=http_status.HTTP_400_BAD_REQUEST,
+            )
         payment_method = (
             Order.PaymentMethod.ONLINE
-            if wants_card and can_invoice(total)
+            if payments_enabled()
             else Order.PaymentMethod.COD
         )
 
@@ -314,6 +348,7 @@ class WebAppOrderView(APIView):
                 address=address,
                 comment=comment,
                 payment_method=payment_method,
+                delivery_fee=delivery_fee,
                 total=total,
             )
             OrderItem.objects.bulk_create(
@@ -339,11 +374,26 @@ class WebAppOrderView(APIView):
             except Exception:  # noqa: BLE001 — same: never lose a saved order
                 logger.exception("Order %s: invoice crashed", order.pk)
 
+        # A Yandex courier needs a point on the map — but asking for it now
+        # would be a third message on top of the confirmation and the invoice,
+        # for a courier nobody dispatches until the money arrives. So the ask
+        # normally follows the payment (see bot/handlers/payments.py); it only
+        # happens here when there is no invoice coming at all.
+        if (
+            order.delivery_method == Order.Delivery.YANDEX
+            and payment_method == Order.PaymentMethod.COD
+        ):
+            try:
+                request_location(order)
+            except Exception:  # noqa: BLE001
+                logger.exception("Order %s: location request crashed", order.pk)
+
         return Response(
             {
                 "ok": True,
                 "order_id": order.pk,
                 "total": order.total,
+                "delivery_fee": order.delivery_fee,
                 "payment": payment_method,
                 "invoice_sent": invoiced,
             }

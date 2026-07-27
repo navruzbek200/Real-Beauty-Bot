@@ -60,7 +60,9 @@ class WebAppOrderTests(TestCase):
         self.assertEqual(response.status_code, 200, response.content)
         order = Order.objects.get(pk=response.json()["order_id"])
         self.assertEqual(order.user, self.user)
-        self.assertEqual(order.total, 600_000)
+        # 2×250 000 + 1×100 000 goods, plus the Yandex delivery fee.
+        self.assertEqual(order.delivery_fee, 25_000)
+        self.assertEqual(order.total, 625_000)
         self.assertEqual(order.status, Order.Status.NEW)
         self.assertEqual(order.phone_number, "+998901234567")
         names = sorted(i.product_name for i in order.items.all())
@@ -72,7 +74,22 @@ class WebAppOrderTests(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         order = Order.objects.get(pk=response.json()["order_id"])
-        self.assertEqual(order.total, 250_000)
+        self.assertEqual(order.total, 250_000 + 25_000)
+
+    def test_the_bts_fee_applies_to_a_regional_order(self):
+        response = self._post(delivery="bts", items=[{"id": self.serum.pk, "qty": 1}])
+        order = Order.objects.get(pk=response.json()["order_id"])
+        self.assertEqual(order.delivery_fee, 35_000)
+        self.assertEqual(order.total, 285_000)
+
+    def test_an_unpriced_product_cannot_be_ordered(self):
+        # Otherwise the customer would be billed for delivery alone.
+        self.serum.current_price = 0
+        self.serum.save()
+        response = self._post(items=[{"id": self.serum.pk, "qty": 1}])
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["detail"], "unpriced")
+        self.assertEqual(Order.objects.count(), 0)
 
     def test_forged_init_data_is_rejected(self):
         response = self._post(init_data=make_init_data(7001, token="999:OTHER"))
@@ -91,6 +108,27 @@ class WebAppOrderTests(TestCase):
     def test_unknown_delivery_is_rejected(self):
         response = self._post(delivery="teleport")
         self.assertEqual(response.status_code, 400)
+
+    def test_a_yandex_order_asks_for_a_location_pin(self):
+        # No provider token in this class, so the ask is not deferred behind
+        # an invoice — it goes out with the confirmation.
+        self._post(delivery="yandex")
+        texts = [
+            c.args[1].get("text", "")
+            for c in self.telegram_call.call_args_list
+            if c.args[0] == "sendMessage"
+        ]
+        self.assertTrue(any("Joylashuv" in t or "joylashuv" in t for t in texts))
+
+    def test_a_bts_order_does_not_ask_for_one(self):
+        # BTS carries to a branch, so a pin buys nothing.
+        self._post(delivery="bts")
+        texts = [
+            c.args[1].get("text", "")
+            for c in self.telegram_call.call_args_list
+            if c.args[0] == "sendMessage"
+        ]
+        self.assertFalse(any("joylashuv" in t.lower() for t in texts))
 
     def test_inactive_products_do_not_make_an_order(self):
         self.serum.is_active = False
@@ -114,7 +152,8 @@ class WebAppOrderTests(TestCase):
         settings_obj.group_chat_id = -100123
         settings_obj.save()
 
-        self._post()
+        # BTS, so there is no location ask on top of the two notifications.
+        self._post(delivery="bts")
 
         chat_ids = [
             c.args[1]["chat_id"]

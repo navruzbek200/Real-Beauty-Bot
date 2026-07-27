@@ -305,6 +305,62 @@ export interface paths {
         patch: operations["message_templates_partial_update"];
         trace?: never;
     };
+    "/api/v1/orders/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description The «Buyurtmalar» page. Orders are created only by customers through the
+         *     Mini App (see WebAppOrderView) — the panel moves them through the status
+         *     flow and fixes up delivery details, nothing more. No delete either: a
+         *     cancelled order is a record, an absent one is a hole in the books.
+         */
+        get: operations["orders_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orders/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description The «Buyurtmalar» page. Orders are created only by customers through the
+         *     Mini App (see WebAppOrderView) — the panel moves them through the status
+         *     flow and fixes up delivery details, nothing more. No delete either: a
+         *     cancelled order is a record, an absent one is a hole in the books.
+         */
+        get: operations["orders_retrieve"];
+        /**
+         * @description The «Buyurtmalar» page. Orders are created only by customers through the
+         *     Mini App (see WebAppOrderView) — the panel moves them through the status
+         *     flow and fixes up delivery details, nothing more. No delete either: a
+         *     cancelled order is a record, an absent one is a hole in the books.
+         */
+        put: operations["orders_update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * @description The «Buyurtmalar» page. Orders are created only by customers through the
+         *     Mini App (see WebAppOrderView) — the panel moves them through the status
+         *     flow and fixes up delivery details, nothing more. No delete either: a
+         *     cancelled order is a record, an absent one is a hole in the books.
+         */
+        patch: operations["orders_partial_update"];
+        trace?: never;
+    };
     "/api/v1/product-tutorial-steps/": {
         parameters: {
             query?: never;
@@ -816,6 +872,53 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/webapp/lessons/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description The «Darslar» tab: products with their video-lesson steps.
+         *
+         *     Personalized to the customer's own products when a *verified* initData is
+         *     supplied; otherwise the same public fallback the in-chat browser uses
+         *     (any active product that has lessons, top ones first).
+         */
+        get: operations["webapp_lessons_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/webapp/orders/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * @description The Mini App's checkout: creates an order for a *verified* customer.
+         *
+         *     The only authentication a Mini App has is its initData HMAC, so a valid
+         *     signature is mandatory here — unlike the read-only endpoints above there
+         *     is no anonymous fallback. Prices always come from the database; the client
+         *     only says which product ids and quantities it wants.
+         */
+        post: operations["webapp_orders_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -982,6 +1085,12 @@ export interface components {
          */
         DelayUnitEnum: "minute" | "hour" | "day";
         /**
+         * @description * `yandex` - 🚕 Yandeks (Toshkent bo'ylab)
+         *     * `bts` - 📦 BTS (viloyatlarga)
+         * @enum {string}
+         */
+        DeliveryMethodEnum: "yandex" | "bts";
+        /**
          * @description Shape of a plain {"detail": "..."} response, for actions that don't
          *     return a model instance (test-sends, connection checks, bulk triggers).
          */
@@ -1043,6 +1152,16 @@ export interface components {
             youtube_url?: string;
             /** Telegram kanal havolasi */
             telegram_url?: string;
+            /**
+             * Yandeks yetkazish haqi (so'm)
+             * @description Toshkent bo'ylab. Savatchada alohida qator bo'lib qo'shiladi.
+             */
+            delivery_fee_yandex?: number;
+            /**
+             * BTS yetkazish haqi (so'm)
+             * @description Viloyatlarga pochta. Savatchada alohida qator bo'lib qo'shiladi.
+             */
+            delivery_fee_bts?: number;
         };
         /**
          * @description * `uz` - O'zbekcha
@@ -1133,6 +1252,76 @@ export interface components {
              */
             readonly updated_at: string;
         };
+        Order: {
+            readonly id: number;
+            /** Ism-familiya */
+            readonly customer_name: string;
+            /** Telefon */
+            readonly phone_number: string;
+            readonly telegram_id: number;
+            /** Yetkazish */
+            delivery_method: components["schemas"]["DeliveryMethodEnum"];
+            readonly delivery_label: string;
+            /**
+             * Manzil
+             * @description Yandeks: ko'cha va uy. BTS: viloyat, shahar va filial.
+             */
+            address: string;
+            /** Izoh */
+            comment?: string;
+            /**
+             * Kenglik
+             * Format: double
+             */
+            readonly latitude: number | null;
+            /**
+             * Uzunlik
+             * Format: double
+             */
+            readonly longitude: number | null;
+            /** Yetkazish haqi (so'm) */
+            readonly delivery_fee: number;
+            /** Holat */
+            status?: components["schemas"]["OrderStatusEnum"];
+            readonly status_label: string;
+            /** To'lov turi */
+            readonly payment_method: components["schemas"]["PaymentMethodEnum"];
+            readonly payment_label: string;
+            /** To'lov holati */
+            readonly payment_status: components["schemas"]["PaymentStatusEnum"];
+            readonly payment_status_label: string;
+            /**
+             * To'langan vaqt
+             * Format: date-time
+             */
+            readonly paid_at: string | null;
+            /** Jami (so'm) */
+            readonly total: number;
+            readonly items: components["schemas"]["OrderItem"][];
+            /** Format: date-time */
+            readonly created_at: string;
+        };
+        OrderItem: {
+            readonly id: number;
+            /** Mahsulot */
+            readonly product: number | null;
+            /** Nomi */
+            readonly product_name: string;
+            /** Narxi (so'm) */
+            readonly price: number;
+            /** Soni */
+            readonly quantity: number;
+            readonly subtotal: number;
+        };
+        /**
+         * @description * `new` - 🆕 Yangi
+         *     * `confirmed` - ☎️ Tasdiqlangan
+         *     * `shipped` - 🚚 Yo'lda
+         *     * `delivered` - ✅ Yetkazildi
+         *     * `cancelled` - ❌ Bekor qilingan
+         * @enum {string}
+         */
+        OrderStatusEnum: "new" | "confirmed" | "shipped" | "delivered" | "cancelled";
         PaginatedAppUserList: {
             /** @example 123 */
             count: number;
@@ -1207,6 +1396,21 @@ export interface components {
              */
             previous?: string | null;
             results: components["schemas"]["MessageTemplate"][];
+        };
+        PaginatedOrderList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=4
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=2
+             */
+            previous?: string | null;
+            results: components["schemas"]["Order"][];
         };
         PaginatedProductList: {
             /** @example 123 */
@@ -1555,6 +1759,16 @@ export interface components {
             youtube_url?: string;
             /** Telegram kanal havolasi */
             telegram_url?: string;
+            /**
+             * Yandeks yetkazish haqi (so'm)
+             * @description Toshkent bo'ylab. Savatchada alohida qator bo'lib qo'shiladi.
+             */
+            delivery_fee_yandex?: number;
+            /**
+             * BTS yetkazish haqi (so'm)
+             * @description Viloyatlarga pochta. Savatchada alohida qator bo'lib qo'shiladi.
+             */
+            delivery_fee_bts?: number;
         };
         PatchedLoyaltySettings: {
             /**
@@ -1624,6 +1838,55 @@ export interface components {
              * Format: date-time
              */
             readonly updated_at?: string;
+        };
+        PatchedOrder: {
+            readonly id?: number;
+            /** Ism-familiya */
+            readonly customer_name?: string;
+            /** Telefon */
+            readonly phone_number?: string;
+            readonly telegram_id?: number;
+            /** Yetkazish */
+            delivery_method?: components["schemas"]["DeliveryMethodEnum"];
+            readonly delivery_label?: string;
+            /**
+             * Manzil
+             * @description Yandeks: ko'cha va uy. BTS: viloyat, shahar va filial.
+             */
+            address?: string;
+            /** Izoh */
+            comment?: string;
+            /**
+             * Kenglik
+             * Format: double
+             */
+            readonly latitude?: number | null;
+            /**
+             * Uzunlik
+             * Format: double
+             */
+            readonly longitude?: number | null;
+            /** Yetkazish haqi (so'm) */
+            readonly delivery_fee?: number;
+            /** Holat */
+            status?: components["schemas"]["OrderStatusEnum"];
+            readonly status_label?: string;
+            /** To'lov turi */
+            readonly payment_method?: components["schemas"]["PaymentMethodEnum"];
+            readonly payment_label?: string;
+            /** To'lov holati */
+            readonly payment_status?: components["schemas"]["PaymentStatusEnum"];
+            readonly payment_status_label?: string;
+            /**
+             * To'langan vaqt
+             * Format: date-time
+             */
+            readonly paid_at?: string | null;
+            /** Jami (so'm) */
+            readonly total?: number;
+            readonly items?: components["schemas"]["OrderItem"][];
+            /** Format: date-time */
+            readonly created_at?: string;
         };
         PatchedProduct: {
             readonly id?: number;
@@ -1923,6 +2186,19 @@ export interface components {
             /** 2-hafta yuborilgan */
             readonly week2_sent?: boolean;
         };
+        /**
+         * @description * `cod` - 💵 Yetkazishda naqd
+         *     * `online` - 💳 Karta orqali (online)
+         * @enum {string}
+         */
+        PaymentMethodEnum: "cod" | "online";
+        /**
+         * @description * `unpaid` - To'lanmagan
+         *     * `pending` - To'lov kutilmoqda
+         *     * `paid` - ✅ To'langan
+         * @enum {string}
+         */
+        PaymentStatusEnum: "unpaid" | "pending" | "paid";
         Product: {
             readonly id: number;
             /** Nomi */
@@ -2136,13 +2412,6 @@ export interface components {
             seller_profile?: components["schemas"]["SellerProfile"] | null;
             password: string;
         };
-        /**
-         * @description * `new` - Yangi
-         *     * `answered` - Javob berildi
-         *     * `closed` - Yopilgan
-         * @enum {string}
-         */
-        StatusEnum: "new" | "answered" | "closed";
         SupportAdmin: {
             readonly id: number;
             /**
@@ -2215,7 +2484,7 @@ export interface components {
              */
             readonly subject: string;
             /** Holat */
-            readonly status: components["schemas"]["StatusEnum"];
+            readonly status: components["schemas"]["SupportThreadStatusEnum"];
             /**
              * Ochilgan vaqt
              * Format: date-time
@@ -2230,6 +2499,13 @@ export interface components {
             readonly awaiting_reply: boolean;
             readonly messages: components["schemas"]["SupportMessage"][];
         };
+        /**
+         * @description * `new` - Yangi
+         *     * `answered` - Javob berildi
+         *     * `closed` - Yopilgan
+         * @enum {string}
+         */
+        SupportThreadStatusEnum: "new" | "answered" | "closed";
         TelegramUser: {
             readonly id: number;
             readonly telegram_id: number | null;
@@ -3396,6 +3672,125 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MessageTemplate"];
+                };
+            };
+        };
+    };
+    orders_list: {
+        parameters: {
+            query?: {
+                /**
+                 * @description * `yandex` - 🚕 Yandeks (Toshkent bo'ylab)
+                 *     * `bts` - 📦 BTS (viloyatlarga)
+                 */
+                delivery_method?: "bts" | "yandex";
+                /** @description Which field to use when ordering the results. */
+                ordering?: string;
+                /** @description A page number within the paginated result set. */
+                page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
+                /** @description A search term. */
+                search?: string;
+                /**
+                 * @description * `new` - 🆕 Yangi
+                 *     * `confirmed` - ☎️ Tasdiqlangan
+                 *     * `shipped` - 🚚 Yo'lda
+                 *     * `delivered` - ✅ Yetkazildi
+                 *     * `cancelled` - ❌ Bekor qilingan
+                 */
+                status?: "cancelled" | "confirmed" | "delivered" | "new" | "shipped";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedOrderList"];
+                };
+            };
+        };
+    };
+    orders_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this Buyurtma. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Order"];
+                };
+            };
+        };
+    };
+    orders_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this Buyurtma. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Order"];
+                "application/x-www-form-urlencoded": components["schemas"]["Order"];
+                "multipart/form-data": components["schemas"]["Order"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Order"];
+                };
+            };
+        };
+    };
+    orders_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this Buyurtma. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedOrder"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedOrder"];
+                "multipart/form-data": components["schemas"]["PatchedOrder"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Order"];
                 };
             };
         };
@@ -4904,6 +5299,42 @@ export interface operations {
         };
     };
     webapp_catalog_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    webapp_lessons_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    webapp_orders_create: {
         parameters: {
             query?: never;
             header?: never;

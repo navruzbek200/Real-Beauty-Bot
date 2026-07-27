@@ -23,6 +23,7 @@ from bot.handlers import (  # noqa: E402
     fallback,
     loyalty,
     menu,
+    orders,
     payments,
     products,
     quiz,
@@ -70,9 +71,11 @@ async def main() -> None:
     dp.include_router(loyalty.router)
     dp.include_router(browse.router)
     dp.include_router(products.router)
-    # Before support: a successful_payment message must settle the order, not
-    # be swallowed by the support router's catch-all state handler.
+    # Both before support: a successful_payment message must settle the order
+    # and a location pin must reach its order, rather than being swallowed by
+    # the support router's catch-all state handler.
     dp.include_router(payments.router)
+    dp.include_router(orders.router)
     dp.include_router(support.router)
     dp.include_router(support_group.router)
     dp.include_router(birthday.router)

@@ -47,6 +47,20 @@ class GlobalSettings(models.Model):
         blank=True, verbose_name="Telegram kanal havolasi"
     )
 
+    # --- delivery ----------------------------------------------------------
+    # Charged to the customer as its own basket line. The shop pays the carrier
+    # and recovers it here, so these have to be editable without a deploy.
+    delivery_fee_yandex = models.PositiveIntegerField(
+        default=25_000,
+        verbose_name="Yandeks yetkazish haqi (so'm)",
+        help_text="Toshkent bo'ylab. Savatchada alohida qator bo'lib qo'shiladi.",
+    )
+    delivery_fee_bts = models.PositiveIntegerField(
+        default=35_000,
+        verbose_name="BTS yetkazish haqi (so'm)",
+        help_text="Viloyatlarga pochta. Savatchada alohida qator bo'lib qo'shiladi.",
+    )
+
     class Meta:
         verbose_name = "Umumiy sozlamalar"
         verbose_name_plural = "Umumiy sozlamalar"

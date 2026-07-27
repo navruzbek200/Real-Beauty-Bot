@@ -186,15 +186,26 @@ class CheckoutPaymentChoiceTests(OrderPaymentTestCase):
         )
 
     @override_settings(PAYMENT_PROVIDER_TOKEN=PROVIDER)
-    def test_card_checkout_raises_an_invoice(self):
+    def test_every_order_is_invoiced_by_card(self):
         response = self._checkout("online")
         self.assertEqual(response.status_code, 200, response.content)
         self.assertEqual(response.json()["payment"], "online")
         self.assertTrue(response.json()["invoice_sent"])
         self.assertEqual(len(self._invoice_calls()), 1)
 
+    @override_settings(PAYMENT_PROVIDER_TOKEN=PROVIDER)
+    def test_the_client_cannot_opt_out_of_paying(self):
+        # The app no longer offers a choice; a hand-rolled request asking for
+        # cash must not get goods shipped against a promise to pay later.
+        response = self._checkout("cod")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["payment"], "online")
+        self.assertEqual(len(self._invoice_calls()), 1)
+
     @override_settings(PAYMENT_PROVIDER_TOKEN="")
-    def test_asking_for_card_without_a_provider_falls_back_to_cash(self):
+    def test_a_broken_provider_leaves_the_operator_to_arrange_payment(self):
+        # Losing the token must not shut the shop; the order is taken and the
+        # group card flags that payment is unresolved.
         response = self._checkout("online")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["payment"], "cod")
@@ -204,28 +215,18 @@ class CheckoutPaymentChoiceTests(OrderPaymentTestCase):
         self.assertEqual(order.payment_method, Order.PaymentMethod.COD)
 
     @override_settings(PAYMENT_PROVIDER_TOKEN=PROVIDER)
-    def test_cash_checkout_raises_no_invoice(self):
-        response = self._checkout("cod")
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["payment"], "cod")
-        self.assertEqual(self._invoice_calls(), [])
-
-    @override_settings(PAYMENT_PROVIDER_TOKEN=PROVIDER)
-    def test_a_basket_below_telegrams_minimum_books_cash_instead(self):
-        # A product the shop hasn't priced yet: asking for a card would build
-        # an invoice Telegram refuses, leaving the customer with nothing.
-        self.product.current_price = 0
+    def test_a_basket_telegram_would_refuse_is_rejected_outright(self):
+        # No carrier collects cash, so there is no fallback to book: an
+        # amount that cannot be invoiced cannot be ordered either.
+        self.product.current_price = MAX_INVOICE_SOM + 1
         self.product.save()
 
         response = self._checkout("online")
 
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["payment"], "cod")
-        self.assertFalse(response.json()["invoice_sent"])
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["detail"], "amount")
+        self.assertEqual(Order.objects.count(), 0)
         self.assertEqual(self._invoice_calls(), [])
-        order = Order.objects.get(pk=response.json()["order_id"])
-        self.assertEqual(order.payment_method, Order.PaymentMethod.COD)
-        self.assertEqual(order.payment_status, Order.PaymentStatus.UNPAID)
 
 
 class CatalogFlagTests(TestCase):
