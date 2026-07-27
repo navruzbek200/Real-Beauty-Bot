@@ -23,8 +23,15 @@ async def replace_prompt(message: Message, state: FSMContext, text: str, reply_m
     await state.update_data(prompt_msg_id=msg.message_id)
 
 async def replace_prompt_callback(callback, state: FSMContext, text: str, reply_markup=None) -> None:
-    try:
-        msg = await callback.message.edit_text(text, parse_mode="HTML", reply_markup=reply_markup)
-    except Exception:
-        msg = await callback.message.answer(text, parse_mode="HTML", reply_markup=reply_markup)
+    data = await state.get_data()
+    chat_id = callback.message.chat.id
+    bot = callback.bot
+    last_id = data.get("prompt_msg_id") or callback.message.message_id
+    if last_id:
+        try:
+            await bot.delete_message(chat_id, last_id)
+        except Exception:
+            pass
+    msg = await bot.send_message(chat_id, text, parse_mode="HTML", reply_markup=reply_markup)
     await state.update_data(prompt_msg_id=msg.message_id)
+

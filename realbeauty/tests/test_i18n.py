@@ -124,7 +124,7 @@ class MainMenuKeyboardTests(SimpleTestCase):
             for row in reply.main_menu_keyboard("uz").keyboard
             for button in row
         ]
-        self.assertIn("🧪 Qaysi tarkiblarni o'rganamiz", labels)
+        self.assertIn(i18n.t("menu.ingredients", "uz"), labels)
         self.assertNotIn("📚 Qo'llanmalar", labels)
 
 

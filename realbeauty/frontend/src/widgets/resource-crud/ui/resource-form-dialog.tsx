@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Controller, useForm, type Resolver } from 'react-hook-form'
 
@@ -39,6 +40,12 @@ export function ResourceFormDialog<TFormValues extends Record<string, unknown>>(
     resolver: zodResolver(config.schema) as Resolver<TFormValues>,
     values: initialValues ?? config.defaultValues,
   })
+
+  useEffect(() => {
+    if (open) {
+      reset(initialValues ?? config.defaultValues)
+    }
+  }, [open, initialValues, reset, config.defaultValues])
 
   if (!open) return null
 

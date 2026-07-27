@@ -20,8 +20,8 @@ export type StaffFormValues = z.infer<typeof staffFormSchema>
 export const staffFormConfig: ResourceFormConfig<StaffFormValues> = {
   schema: staffFormSchema,
   fields: [
-    { name: 'username', label: 'Login', type: 'text' },
-    { name: 'password', label: 'Parol', type: 'text', help: "Tahrirlashda bo'sh qoldirsangiz o'zgarmaydi" },
+    { name: 'username', label: 'Login', type: 'text', help: 'Panelga kirish uchun. Masalan: dilnoza.' },
+    { name: 'password', label: 'Parol', type: 'text', help: "Tahrirlashda bo'sh qoldirsangiz o'zgarmaydi." },
     { name: 'first_name', label: 'Ism', type: 'text' },
     { name: 'last_name', label: 'Familiya', type: 'text' },
     {
@@ -32,10 +32,11 @@ export const staffFormConfig: ResourceFormConfig<StaffFormValues> = {
         { value: 'seller', label: 'Sotuvchi' },
         { value: 'admin', label: 'Administrator' },
       ],
+      help: 'Sotuvchi — mijoz va mahsulotlar bilan ishlaydi. Administrator — hamma narsani boshqaradi.',
     },
-    { name: 'telegram_id', label: 'Telegram ID (sotuvchi)', type: 'number' },
-    { name: 'display_name', label: "Ko'rinadigan ism", type: 'text' },
-    { name: 'is_active', label: 'Faol', type: 'checkbox' },
+    { name: 'telegram_id', label: 'Telegram ID (sotuvchi)', type: 'number', help: 'Sotuvchining shaxsiy Telegram raqamli IDsi — referal havola va bildirishnomalar uchun. IDni @userinfobot orqali bilsa bo\'ladi.' },
+    { name: 'display_name', label: "Ko'rinadigan ism", type: 'text', help: 'Mijozga botda ko\'rinadigan ism. Masalan: «Dilnoza opa».' },
+    { name: 'is_active', label: 'Faol', type: 'checkbox', help: 'O\'chirsangiz panelga kira olmaydi.' },
   ],
   defaultValues: {
     username: '',

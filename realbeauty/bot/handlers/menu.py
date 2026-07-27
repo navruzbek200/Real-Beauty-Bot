@@ -40,13 +40,23 @@ async def menu_ingredients(
     message: Message, bot: Bot, state: FSMContext, lang: str
 ) -> None:
     """
-    The ingredient lessons — a single, paged list of the products a customer
-    owns (or, for a brand-new customer, this month's top products that actually
-    have a lesson attached). Tapping one opens its lesson in place. This used to
-    fire one message per product, which flooded anyone with a full shelf.
+    The video lessons. Opens the Mini App's «Darslar» tab when configured — a
+    proper app screen with the customer's own products and their lesson steps
+    (each step deep-links back into the chat, where the protected video is
+    sent). Without a WEBAPP_URL the in-chat paged browser still answers.
     """
+    from bot.utils.webapp import webapp_url
+
     await state.clear()
     if message.from_user is None:
+        return
+    url = webapp_url(lang, tab="lessons")
+    if url:
+        await message.answer(
+            t("learn.intro", lang),
+            parse_mode="HTML",
+            reply_markup=inline.webapp_button_keyboard(t("learn.open", lang), url),
+        )
         return
     await browse.open_tutorials(bot, message, message.from_user.id, lang)
 

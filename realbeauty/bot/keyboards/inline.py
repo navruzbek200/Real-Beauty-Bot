@@ -25,6 +25,13 @@ def webapp_open_keyboard(lang: str, url: str) -> InlineKeyboardMarkup:
         ]
     )
 
+
+def webapp_button_keyboard(label: str, url: str) -> InlineKeyboardMarkup:
+    """One button that opens the Mini App at a given URL (e.g. the Darslar tab)."""
+    return InlineKeyboardMarkup(
+        inline_keyboard=[[InlineKeyboardButton(text=label, web_app=WebAppInfo(url=url))]]
+    )
+
 # --- Callback data prefixes (no magic strings in handlers) ---
 # Two distinct prefixes for what looks like "the same" language picker:
 # CB_LANGUAGE_SETUP only ever matches inside the registration FSM states, so a

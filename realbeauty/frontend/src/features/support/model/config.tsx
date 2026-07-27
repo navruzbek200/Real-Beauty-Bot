@@ -33,9 +33,9 @@ export type SupportAdminFormValues = z.infer<typeof supportAdminFormSchema>
 export const supportAdminFormConfig: ResourceFormConfig<SupportAdminFormValues> = {
   schema: supportAdminFormSchema,
   fields: [
-    { name: 'telegram_user_id', label: 'Telegram ID', type: 'number' },
-    { name: 'name', label: 'Ism', type: 'text' },
-    { name: 'enabled', label: 'Faol', type: 'checkbox' },
+    { name: 'telegram_user_id', label: 'Telegram ID', type: 'number', help: 'Xodimning shaxsiy raqamli IDsi (@userinfobot ga yozsa chiqadi). Username emas!' },
+    { name: 'name', label: 'Ism', type: 'text', help: 'Ixtiyoriy — birinchi javobidan keyin o\'zi to\'ladi.' },
+    { name: 'enabled', label: 'Faol', type: 'checkbox', help: 'O\'chirilgan admin guruhda yozsa ham mijozga bormaydi.' },
   ],
   defaultValues: { telegram_user_id: 0, name: '', enabled: true },
   toFormValues: (item) => ({
@@ -60,7 +60,15 @@ export const supportSettingsFormSchema = z.object({
 export type SupportSettingsFormValues = z.infer<typeof supportSettingsFormSchema>
 export const supportSettingsFormConfig: ResourceFormConfig<SupportSettingsFormValues> = {
   schema: supportSettingsFormSchema,
-  fields: [{ name: 'group_chat_id', label: 'Guruh Chat ID', type: 'number' }],
+  fields: [
+    {
+      name: 'group_chat_id',
+      label: 'Guruh Chat ID',
+      type: 'number',
+      help: 'Botni guruhga qo\'shing, keyin guruhga @getidsbot ni qo\'shib IDni oling. '
+        + 'Odatda minus bilan boshlanadi, masalan: -1001234567890. Saqlagach «Ulanishni tekshirish»ni bosing.',
+    },
+  ],
   defaultValues: { group_chat_id: undefined },
   toFormValues: (item) => ({ group_chat_id: (item.group_chat_id as number) ?? undefined }),
 }

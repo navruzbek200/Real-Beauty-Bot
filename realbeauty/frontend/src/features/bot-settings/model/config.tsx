@@ -16,11 +16,11 @@ export type DiscountFormValues = z.infer<typeof discountFormSchema>
 export const discountFormConfig: ResourceFormConfig<DiscountFormValues> = {
   schema: discountFormSchema,
   fields: [
-    { name: 'title', label: 'Sarlavha', type: 'text' },
-    { name: 'percent', label: 'Chegirma foizi (%)', type: 'number' },
-    { name: 'description', label: 'Tavsif', type: 'textarea' },
-    { name: 'promo_code', label: 'Promokod', type: 'text' },
-    { name: 'valid_until', label: 'Amal qilish muddati', type: 'date', help: 'Ixtiyoriy — bo\'sh qoldirsangiz muddatsiz.' },
+    { name: 'title', label: 'Sarlavha', type: 'text', help: 'Masalan: «Bahoriy aksiya». Botdagi «💣 Qaynoq chegirmalar»da ko\'rinadi.' },
+    { name: 'percent', label: 'Chegirma foizi (%)', type: 'number', help: 'Masalan: 20.' },
+    { name: 'description', label: 'Tavsif', type: 'textarea', help: 'Ixtiyoriy qo\'shimcha izoh — qaysi mahsulotlarga, qanday shart bilan.' },
+    { name: 'promo_code', label: 'Promokod', type: 'text', help: 'Ixtiyoriy. Masalan: BAHOR20 — mijoz do\'konda aytadi.' },
+    { name: 'valid_until', label: 'Amal qilish muddati', type: 'date', help: 'Ixtiyoriy — bo\'sh qoldirsangiz muddatsiz. Muddati o\'tgach botda ko\'rinmaydi.' },
     { name: 'is_active', label: 'Faol', type: 'checkbox' },
   ],
   defaultValues: {
@@ -58,7 +58,7 @@ export type GlobalSettingsFormValues = z.infer<typeof globalSettingsFormSchema>
 export const globalSettingsFormConfig: ResourceFormConfig<GlobalSettingsFormValues> = {
   schema: globalSettingsFormSchema,
   fields: [
-    { name: 'birthday_discount_percent', label: "Tug'ilgan kun chegirmasi (%)", type: 'number' },
+    { name: 'birthday_discount_percent', label: "Tug'ilgan kun chegirmasi (%)", type: 'number', help: 'Bot mijozga tug\'ilgan kunida shu foizni tabrik xabari bilan yuboradi.' },
   ],
   defaultValues: { birthday_discount_percent: 30 },
   toFormValues: (item) => ({
@@ -78,11 +78,11 @@ export type ShopSettingsFormValues = z.infer<typeof shopSettingsFormSchema>
 export const shopSettingsFormConfig: ResourceFormConfig<ShopSettingsFormValues> = {
   schema: shopSettingsFormSchema,
   fields: [
-    { name: 'shop_name', label: "Do'kon nomi", type: 'text' },
-    { name: 'shop_tagline', label: 'Shior', type: 'text' },
-    { name: 'instagram_url', label: 'Instagram havolasi', type: 'text', help: 'https://instagram.com/...' },
-    { name: 'youtube_url', label: 'YouTube havolasi', type: 'text', help: 'Bo\'sh — yashiriladi' },
-    { name: 'telegram_url', label: 'Telegram kanal havolasi', type: 'text', help: 'Bo\'sh — yashiriladi' },
+    { name: 'shop_name', label: "Do'kon nomi", type: 'text', help: 'Mini App bosh sahifasida katta harflar bilan chiqadi.' },
+    { name: 'shop_tagline', label: 'Shior', type: 'text', help: 'Nom ostidagi qisqa matn. Masalan: «Teringizga professional g\'amxo\'rlik».' },
+    { name: 'instagram_url', label: 'Instagram havolasi', type: 'text', help: 'Masalan: https://instagram.com/realbeauty — Mini App «Aloqa» bo\'limida chiqadi.' },
+    { name: 'youtube_url', label: 'YouTube havolasi', type: 'text', help: 'Bo\'sh qoldirsangiz bu tugma ko\'rinmaydi.' },
+    { name: 'telegram_url', label: 'Telegram kanal havolasi', type: 'text', help: 'Masalan: https://t.me/realbeauty_uz. Bo\'sh — ko\'rinmaydi.' },
   ],
   defaultValues: {
     shop_name: 'Real Beauty',

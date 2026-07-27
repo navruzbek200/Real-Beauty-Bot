@@ -12,11 +12,14 @@ from __future__ import annotations
 from django.conf import settings
 
 # Bump on every visible change to frontend/public/webapp/index.html.
-WEBAPP_VERSION = "5"
+WEBAPP_VERSION = "6"
 
 
-def webapp_url(lang: str = None) -> str:
-    """The https Mini App URL with a cache-busting version, or "" if unset."""
+def webapp_url(lang: str = None, tab: str = None) -> str:
+    """The https Mini App URL with a cache-busting version, or "" if unset.
+
+    `tab` picks the app's opening screen ("lessons" for the Darslar tab).
+    """
     base = (getattr(settings, "WEBAPP_URL", "") or "").strip()
     if not base.startswith("https://"):
         return ""
@@ -24,4 +27,6 @@ def webapp_url(lang: str = None) -> str:
     url = f"{base}{sep}v={WEBAPP_VERSION}"
     if lang:
         url += f"&lang={lang}"
+    if tab:
+        url += f"&tab={tab}"
     return url

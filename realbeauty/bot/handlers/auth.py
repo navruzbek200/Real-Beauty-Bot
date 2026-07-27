@@ -19,7 +19,7 @@ from bot.services import (
     template_service,
     user_service,
 )
-from bot.states.registration import AdminAssistedReg, SelfReg
+from bot.states.registration import AdminAssistedReg, SelfReg, SupportState
 from bot.utils.message import cleanup_user_msg, replace_prompt, replace_prompt_callback
 
 logger = logging.getLogger(__name__)
@@ -44,9 +44,14 @@ def face_choices(lang: str) -> list[tuple[str, str]]:
 async def start_with_payload(
     message: Message, command: CommandObject, state: FSMContext, bot: Bot, lang: str
 ) -> None:
+    payload = command.args or ""
+    # Mini App deep links must *act* for a finished customer (ask about a
+    # product, play a lesson) — checked before the "welcome back" greeting,
+    # which would otherwise swallow the tap and answer with small talk.
+    if await _handled_as_action(message, state, bot, payload):
+        return
     if await _handled_as_returning(message, state, lang):
         return
-    payload = command.args or ""
     if payload.startswith("ref_"):
         await _begin_admin_assisted(message, state, bot, payload, lang)
     elif payload.startswith("inv_"):
@@ -60,6 +65,80 @@ async def start_plain(message: Message, state: FSMContext, lang: str) -> None:
     if await _handled_as_returning(message, state, lang):
         return
     await _begin_self(message, state, lang)
+
+
+async def _handled_as_action(
+    message: Message, state: FSMContext, bot: Bot, payload: str
+) -> bool:
+    """
+    Mini App deep links: `ask_<product_id>`, `lesson_<step_id>`, `learn`.
+
+    sendData only reaches the bot when the app was opened from a reply-keyboard
+    button; opened from an inline button (or a link) the app falls back to a
+    t.me deep link, which lands here. Only a finished, active customer gets the
+    action — anyone else falls through to the normal /start flows below.
+    """
+    is_action = (
+        payload.startswith("ask_")
+        or payload.startswith("lesson_")
+        or payload in ("learn", "support")
+    )
+    if not is_action:
+        return False
+
+    user = await user_service.get_user(message.chat.id)
+    if (
+        user is None
+        or not user.is_active
+        or user.registration_status != TelegramUser.RegistrationStatus.COMPLETED
+    ):
+        return False
+
+    from core.i18n import pick
+
+    from bot.services import product_service
+    from bot.utils.video import send_protected_video
+
+    lang = normalize(user.language)
+    await state.clear()
+
+    if payload == "learn":
+        await browse.open_tutorials(bot, message, message.chat.id, lang)
+        return True
+
+    if payload == "support":
+        await state.set_state(SupportState.message)
+        await message.answer(t("support.ask", lang), parse_mode="HTML")
+        return True
+
+    if payload.startswith("lesson_"):
+        try:
+            step_id = int(payload.removeprefix("lesson_"))
+        except ValueError:
+            return False
+        step = await product_service.get_tutorial_step(step_id)
+        if step is None:
+            await message.answer(t("tutorial.step_not_found", lang))
+            return True
+        await send_protected_video(bot, message.chat.id, step, lang)
+        return True
+
+    # ask_<product_id> — drop straight into the support flow with the product
+    # named, so the seller knows what the question is about.
+    try:
+        product_id = int(payload.removeprefix("ask_"))
+    except ValueError:
+        return False
+    product = await product_service.get_product(product_id)
+    await state.set_state(SupportState.message)
+    if product is not None:
+        await message.answer(
+            t("webapp.ask_product", lang, product=html.escape(pick(product, "name", lang))),
+            parse_mode="HTML",
+        )
+    else:
+        await message.answer(t("support.ask", lang), parse_mode="HTML")
+    return True
 
 
 async def _handled_as_returning(
@@ -355,31 +434,13 @@ async def step_photo_upload(message: Message, state: FSMContext, bot: Bot) -> No
     file = await bot.get_file(photo.file_id)
     buffer = await bot.download_file(file.file_path)
     photo_bytes = buffer.read() if buffer is not None else None
-    
-    # Delete the final prompt before completing registration
-    data = await state.get_data()
-    last_id = data.get("prompt_msg_id")
-    if last_id:
-        try:
-            await bot.delete_message(message.chat.id, last_id)
-        except Exception:
-            pass
-
     await _finalize_registration(message, state, bot, photo_bytes=photo_bytes)
 
 
 @router.callback_query(SelfReg.photo, F.data == inline.CB_SKIP_PHOTO)
 async def step_photo_skip(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
-    
-    data = await state.get_data()
-    last_id = data.get("prompt_msg_id")
-    if last_id:
-        try:
-            await callback.bot.delete_message(callback.message.chat.id, last_id)
-        except Exception:
-            pass
-            
+    # _finalize_registration deletes the pending prompt itself.
     await _finalize_registration(callback.message, state, callback.bot, photo_bytes=None)
 
 
@@ -399,6 +460,13 @@ async def _finalize_registration(
     message: Message, state: FSMContext, bot: Bot, photo_bytes: bytes | None
 ) -> None:
     data = await state.get_data()
+    last_id = data.get("prompt_msg_id")
+    chat_id = message.chat.id
+    if last_id:
+        try:
+            await bot.delete_message(chat_id, last_id)
+        except Exception:
+            pass
     await state.clear()
 
     lang = normalize(data.get("language"))

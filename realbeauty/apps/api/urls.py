@@ -8,7 +8,7 @@ from apps.api.views.analytics import SkinQuizResultViewSet
 from apps.api.views.auth import LoginView, MeView, RefreshView
 from apps.api.views.bot_settings import DiscountViewSet, GlobalSettingsView
 from apps.api.views.loyalty import LoyaltySettingsView, RewardViewSet
-from apps.api.views.webapp import WebAppCatalogView
+from apps.api.views.webapp import WebAppCatalogView, WebAppLessonsView
 from apps.api.views.campaigns import (
     AutoMessageViewSet,
     BroadcastViewSet,
@@ -59,6 +59,7 @@ urlpatterns = [
         name="api_support_test_connection",
     ),
     path("webapp/catalog/", WebAppCatalogView.as_view(), name="api_webapp_catalog"),
+    path("webapp/lessons/", WebAppLessonsView.as_view(), name="api_webapp_lessons"),
     path("schema/", SpectacularAPIView.as_view(), name="api_schema"),
     path("", include(router.urls)),
 ]

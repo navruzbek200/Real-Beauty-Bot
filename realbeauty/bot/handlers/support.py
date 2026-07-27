@@ -55,9 +55,13 @@ async def open_support(message: Message, state: FSMContext, lang: str) -> None:
 @router.message(F.web_app_data)
 async def from_webapp(message: Message, state: FSMContext, lang: str) -> None:
     """
-    The Mini App's «Ask a question» button. Telegram delivers the product the
-    customer was looking at as web_app_data; we drop them straight into the
-    support flow with that product named, so the seller has context.
+    Data sent by the Mini App (only possible when it was opened from the
+    reply-keyboard button — inline launches use t.me deep links instead, see
+    auth._handled_as_action):
+
+      {"action": "ask", "id": …, "name": …}   → support flow, product named
+      {"action": "lesson", "id": <step_id>}   → play that protected lesson
+      {"action": "support"} / anything else   → plain support flow
     """
     if message.from_user is None:
         return
@@ -65,16 +69,34 @@ async def from_webapp(message: Message, state: FSMContext, lang: str) -> None:
     if user is None or not user.full_name:
         await message.answer(t("user.not_registered", lang))
         return
-    name = ""
     try:
         payload = json.loads(message.web_app_data.data)
-        name = str(payload.get("name", ""))[:128]
+        if not isinstance(payload, dict):
+            payload = {}
     except (ValueError, AttributeError):
         payload = {}
+    action = str(payload.get("action", ""))
+    name = str(payload.get("name", ""))[:128]
+
+    if action == "lesson":
+        from bot.services import product_service
+        from bot.utils.video import send_protected_video
+
+        try:
+            step_id = int(payload.get("id"))
+        except (TypeError, ValueError):
+            step_id = 0
+        step = await product_service.get_tutorial_step(step_id) if step_id else None
+        if step is None:
+            await message.answer(t("tutorial.step_not_found", lang))
+            return
+        await send_protected_video(message.bot, message.chat.id, step, lang)
+        return
+
     await state.set_state(SupportState.message)
     # "ask" carries a product; plain "support" (or anything else) is a general
     # question. Either way the customer lands in the same support flow.
-    if name and payload.get("action") != "support":
+    if name and action != "support":
         await message.answer(
             t("webapp.ask_product", lang, product=html.escape(name)),
             parse_mode="HTML",

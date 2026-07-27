@@ -18,9 +18,15 @@ export type MessageTemplateFormValues = z.infer<typeof messageTemplateFormSchema
 export const messageTemplateFormConfig: ResourceFormConfig<MessageTemplateFormValues> = {
   schema: messageTemplateFormSchema,
   fields: [
-    { name: 'name', label: 'Nomi', type: 'text' },
-    { name: 'body', label: 'Xabar matni', type: 'textarea' },
-    { name: 'is_active', label: 'Faol', type: 'checkbox' },
+    { name: 'name', label: 'Nomi', type: 'text', help: 'Faqat admin uchun ko\'rinadi — mijozga yuborilmaydi.' },
+    {
+      name: 'body',
+      label: 'Xabar matni',
+      type: 'textarea',
+      help: 'HTML ishlatsa bo\'ladi: <b>qalin</b>, <i>yotiq</i>. {{ user.full_name }} — mijoz ismi bilan almashadi. '
+        + 'Masalan: «Salom, {{ user.full_name }}! Xush kelibsiz 🌸»',
+    },
+    { name: 'is_active', label: 'Faol', type: 'checkbox', help: 'O\'chirsangiz bot bu xabarni yubormaydi.' },
   ],
   defaultValues: { name: '', body: '', is_active: true },
   toFormValues: (item) => ({
@@ -53,7 +59,7 @@ export type AutoMessageFormValues = z.infer<typeof autoMessageFormSchema>
 export const autoMessageFormConfig: ResourceFormConfig<AutoMessageFormValues> = {
   schema: autoMessageFormSchema,
   fields: [
-    { name: 'name', label: 'Nomi', type: 'text' },
+    { name: 'name', label: 'Nomi', type: 'text', help: 'Masalan: «Xariddan 7 kun keyin — natija so\'rash». Faqat admin ko\'radi.' },
     {
       name: 'trigger',
       label: 'Qachondan hisoblanadi',
@@ -62,8 +68,9 @@ export const autoMessageFormConfig: ResourceFormConfig<AutoMessageFormValues> = 
         { value: 'after_purchase', label: 'Xariddan keyin' },
         { value: 'after_registration', label: "Ro'yxatdan o'tgandan keyin" },
       ],
+      help: 'Vaqt shu voqeadan boshlab sanaladi.',
     },
-    { name: 'delay_value', label: 'Qancha vaqtdan keyin', type: 'number' },
+    { name: 'delay_value', label: 'Qancha vaqtdan keyin', type: 'number', help: 'Masalan: 7 (pastdagi birlik bilan birga o\'qiladi — «7 kun»).' },
     {
       name: 'delay_unit',
       label: 'Vaqt birligi',
@@ -74,9 +81,15 @@ export const autoMessageFormConfig: ResourceFormConfig<AutoMessageFormValues> = 
         { value: 'day', label: 'kun' },
       ],
     },
-    { name: 'body', label: 'Xabar matni', type: 'textarea' },
-    { name: 'is_active', label: 'Yoqilgan', type: 'checkbox' },
-    { name: 'is_test_mode', label: 'Sinov rejimi', type: 'checkbox' },
+    {
+      name: 'body',
+      label: 'Xabar matni',
+      type: 'textarea',
+      help: 'HTML mumkin: <b>qalin</b>, <i>yotiq</i>. {{ user.full_name }} — mijoz ismi, {{ product.name }} — mahsulot nomi. '
+        + 'Masalan: «{{ user.full_name }}, {{ product.name }} natijasi qanday? 😊»',
+    },
+    { name: 'is_active', label: 'Yoqilgan', type: 'checkbox', help: 'O\'chiq bo\'lsa hech kimga yuborilmaydi.' },
+    { name: 'is_test_mode', label: 'Sinov rejimi', type: 'checkbox', help: 'Yoqilsa xabar faqat sinov uchun belgilangan adminlarga boradi, mijozlarga emas.' },
   ],
   defaultValues: {
     name: '',
@@ -120,20 +133,39 @@ export type BroadcastFormValues = z.infer<typeof broadcastFormSchema>
 export const broadcastFormConfig: ResourceFormConfig<BroadcastFormValues> = {
   schema: broadcastFormSchema,
   fields: [
-    { name: 'title', label: 'Sarlavha', type: 'text' },
-    { name: 'body', label: 'Xabar matni', type: 'textarea' },
+    { name: 'title', label: 'Sarlavha', type: 'text', help: 'Masalan: «🌟 Bahoriy chegirmalar!». Faqat admin ro\'yxatida ko\'rinadi.' },
+    {
+      name: 'body',
+      label: 'Xabar matni',
+      type: 'textarea',
+      help: 'Mijozga boradigan matn. HTML mumkin: <b>qalin</b>, <i>yotiq</i>. '
+        + 'Masalan: «Bu hafta barcha serumlarga <b>-20%</b> 💸»',
+    },
     {
       name: 'audience',
-      label: 'Kimlarga',
+      label: 'Kimlarga yuborilsin',
       type: 'select',
       options: [
-        { value: 'all', label: 'Hamma' },
-        { value: 'by_skin', label: 'Teri turi bo\'yicha' },
-        { value: 'by_product', label: 'Mahsulot sotib olganlar' },
+        { value: 'all', label: '📢 Barcha mijozlarga' },
+        { value: 'by_skin', label: '🌿 Teri turi bo\'yicha' },
+        { value: 'by_product', label: '🧴 Ma\'lum mahsulotni olganlarga' },
       ],
+      help: 'Avval «Qoralama» saqlanadi — yuborish ro\'yxatdagi «Yuborish» tugmasi bilan.',
     },
-    { name: 'skin_condition', label: 'Teri turi', type: 'text' },
-    { name: 'product', label: 'Mahsulot ID', type: 'number' },
+    {
+      name: 'skin_condition',
+      label: 'Teri turi',
+      type: 'select',
+      options: [
+        { value: 'dry', label: 'Quruq (dry)' },
+        { value: 'oily', label: "Yog'li (oily)" },
+        { value: 'combined', label: 'Aralash (combined)' },
+        { value: 'normal', label: 'Normal' },
+        { value: 'sensitive', label: 'Sezgir (sensitive)' },
+      ],
+      help: 'Faqat «Teri turi bo\'yicha» tanlanganda kerak. Boshqa holatda bo\'sh qoldiring.',
+    },
+    { name: 'product', label: 'Mahsulot ID si', type: 'number', help: 'Faqat «Mahsulotni olganlarga» uchun. ID ni «Mahsulotlar» sahifasidan ko\'ring.' },
   ],
   defaultValues: { title: '', body: '', audience: 'all', skin_condition: '', product: undefined },
   toFormValues: (item) => ({
@@ -147,7 +179,7 @@ export const broadcastFormConfig: ResourceFormConfig<BroadcastFormValues> = {
 const BROADCAST_STATUS: Record<string, { tone: 'neutral' | 'success' | 'warning' | 'danger'; label: string }> = {
   draft: { tone: 'neutral', label: 'Qoralama — hali yuborilmagan' },
   sending: { tone: 'warning', label: 'Yuborilmoqda…' },
-  sent: { tone: 'success', label: 'Yuborildi' },
+  sent: { tone: 'success', label: 'E\'lon yuborildi' },
   failed: { tone: 'danger', label: 'Xatolik' },
 }
 

@@ -298,6 +298,12 @@ STRINGS: dict[str, str] = {
         "🛍 <b>{product}</b> haqida savolingizni yozing 👇\n"
         "Jamoamiz shu yerda javob beradi."
     ),
+    "learn.open": "🎓 Darslarni ochish",
+    "learn.intro": (
+        "🎓 <b>Video darslar</b>\n\n"
+        "Mahsulotlaringiz bo'yicha qo'llanmalar va video darslar — qulay "
+        "ilovada. Darsni tanlasangiz, video shu chatda ochiladi 👇"
+    ),
     "support.ask": (
         "✍️ Savolingiz yoki murojaatingizni yozing.\n\n"
         "Matn yoki rasm yuborishingiz mumkin — jamoamiz shu yerda javob beradi.\n"

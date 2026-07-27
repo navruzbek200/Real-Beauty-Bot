@@ -22,7 +22,7 @@ export function buildTutorialStepFormConfig(
   productOptions: { value: string; label: string }[],
 ): ResourceFormConfig<TutorialStepFormValues> {
   const fields: ResourceFormField[] = [
-    { name: 'product', label: 'Mahsulot', type: 'select', options: productOptions },
+    { name: 'product', label: 'Mahsulot', type: 'select', options: productOptions, help: 'Bu dars qaysi mahsulotga tegishli — mijoz botda va Mini Appda shu mahsulot ostida ko\'radi.' },
     {
       name: 'order',
       label: 'Ketma-ketlik',
