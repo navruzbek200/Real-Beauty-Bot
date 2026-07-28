@@ -134,3 +134,43 @@ class ProgressPhoto(models.Model):
 
     def __str__(self) -> str:
         return f"{self.user} — {self.get_label_display()}"
+
+
+class FaceAnalysisPhoto(models.Model):
+    """
+    A selfie run through the standalone «Yuz tahlili» menu button.
+
+    Unlike ProgressPhoto (thumbnail only, original stays on Telegram) or the
+    registration photo on TelegramUser, this keeps the full file on our own
+    disk under an exact, predictable name — that name is what a future Google
+    Sheets sync writes into the Image_Filename column so the sheet row and
+    this file point at each other.
+    """
+
+    user = models.ForeignKey(
+        "users.TelegramUser",
+        on_delete=models.CASCADE,
+        related_name="face_analysis_photos",
+        verbose_name="Foydalanuvchi",
+    )
+    skin_type = models.CharField(max_length=20, verbose_name="Teri turi")
+    image = models.ImageField(upload_to="face_analysis/", verbose_name="Rasm")
+    # The exact basename `image` was saved under — kept separately from
+    # `image.name` (which carries the "face_analysis/" folder prefix) since
+    # this is the literal value a Sheets row needs.
+    filename = models.CharField(
+        max_length=255, editable=False, verbose_name="Fayl nomi"
+    )
+    synced_to_sheet = models.BooleanField(
+        default=False, editable=False, verbose_name="Sheetga yozildi"
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Yuklangan vaqt")
+
+    class Meta:
+        verbose_name = "Yuz tahlili rasmi"
+        verbose_name_plural = "Yuz tahlili rasmlari"
+        ordering = ["-created_at"]
+        indexes = [models.Index(fields=["user", "-created_at"])]
+
+    def __str__(self) -> str:
+        return self.filename

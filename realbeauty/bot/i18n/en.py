@@ -13,6 +13,7 @@ STRINGS: dict[str, str] = {
     "menu.discounts": "🎁 Discounts",
     "menu.bonus": "💎 My bonuses",
     "menu.profile": "👤 Profile",
+    "menu.face_analysis": "🤳 Face analysis",
     "menu.help": "ℹ️ Help",
     "menu.legacy_tutorials": "📚 Tutorials",
     "menu.legacy_feedback": "💬 Leave feedback",
@@ -80,6 +81,19 @@ STRINGS: dict[str, str] = {
     "applogin.cancelled": "❌ Sign-in cancelled.",
     "applogin.expired": "⌛️ This link expired or is invalid. Try again in the app.",
     "applogin.error": "Something went wrong. Try again in the app.",
+    # -------------------------------------------------------- face analysis
+    "faceanalysis.ask_photo": "🤳 Send one selfie where your face is clearly visible.",
+    "faceanalysis.no_face": (
+        "😕 No face was detected in that photo (or more than one). "
+        "Please send another photo with your face clearly visible."
+    ),
+    "faceanalysis.success": (
+        "🎉 <b>{full_name}</b>, welcome to the Real Beauty family!\n\n"
+        "We've analyzed your face. Thank you for choosing Real Beauty!\n\n"
+        "If you have questions — tap the «✍️ Question / Request» button below, "
+        "our team will reply 👇"
+    ),
+    "faceanalysis.error": "Something went wrong. Please try again.",
     # ----------------------------------------------------------- skin / quiz
     "skin.know_question": (
         "🧴 <b>Do you know your skin type?</b>\n\n"

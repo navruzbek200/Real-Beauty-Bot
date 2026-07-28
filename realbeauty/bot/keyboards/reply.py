@@ -20,6 +20,7 @@ from bot.i18n import DEFAULT_LANGUAGE, t
 _MAIN_MENU_ROWS: tuple[tuple[str, ...], ...] = (
     ("menu.catalog", "menu.discounts"),
     ("menu.bonus", "menu.profile"),
+    ("menu.face_analysis",),
     ("menu.support",),
 )
 

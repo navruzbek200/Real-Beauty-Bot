@@ -18,3 +18,5 @@ drf-spectacular==0.30.0
 djangorestframework-simplejwt==5.5.1
 django-cors-headers==4.9.0
 phonenumbers==9.0.34
+opencv-python-headless==4.10.0.84
+numpy==2.1.3

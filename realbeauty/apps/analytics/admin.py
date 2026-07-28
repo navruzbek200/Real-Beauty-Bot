@@ -11,7 +11,7 @@ from core.admin import RBModelAdmin
 
 from core.telegram import TelegramError, send_message
 
-from .models import ProgressPhoto, SkinQuizResult, UserFeedback
+from .models import FaceAnalysisPhoto, ProgressPhoto, SkinQuizResult, UserFeedback
 
 logger = logging.getLogger(__name__)
 
@@ -120,3 +120,43 @@ class SkinQuizResultAdmin(RBModelAdmin):
 
     def has_change_permission(self, request: HttpRequest, obj=None) -> bool:
         return False
+
+
+@admin.register(FaceAnalysisPhoto)
+class FaceAnalysisPhotoAdmin(RBModelAdmin):
+    """
+    Read-only log of «Yuz tahlili» selfies — `filename` is the exact value a
+    future Google Sheets sync writes into Image_Filename, and `synced_to_sheet`
+    marks which rows that sync has already handled.
+    """
+
+    list_display = ["user", "skin_type_label", "filename", "synced_to_sheet", "created_at"]
+    list_display_links = ["user"]
+    list_filter = ["skin_type", "synced_to_sheet"]
+    search_fields = ["user__full_name", "user__phone_number", "filename"]
+    readonly_fields = [
+        "user",
+        "skin_type_label",
+        "image",
+        "filename",
+        "synced_to_sheet",
+        "created_at",
+    ]
+    fields = ["user", "skin_type_label", "image", "filename", "synced_to_sheet", "created_at"]
+    date_hierarchy = "created_at"
+    list_per_page = 30
+
+    def get_queryset(self, request: HttpRequest):
+        return super().get_queryset(request).select_related("user")
+
+    @admin.display(description="Teri turi", ordering="skin_type")
+    def skin_type_label(self, obj: FaceAnalysisPhoto) -> str:
+        from bot.i18n import t
+
+        return t(f"skin.type.{obj.skin_type}", "uz") if obj.skin_type != "unknown" else "—"
+
+    def has_add_permission(self, request: HttpRequest) -> bool:
+        return False
+
+    def has_change_permission(self, request: HttpRequest, obj=None) -> bool:
+        return request.method in ("GET", "HEAD")

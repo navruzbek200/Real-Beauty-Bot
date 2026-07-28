@@ -13,6 +13,7 @@ STRINGS: dict[str, str] = {
     "menu.discounts": "💣 Qaynoq chegirmalar 💥",
     "menu.bonus": "💎 Bonuslarim",
     "menu.profile": "👤 Profil",
+    "menu.face_analysis": "🤳 Yuz tahlili",
     "menu.help": "ℹ️ Yordam",
     # so labels we have already shipped must keep matching after a rename.
     "menu.legacy_tutorials": "📚 Qo'llanmalar",
@@ -85,6 +86,21 @@ STRINGS: dict[str, str] = {
         "⌛️ Havola muddati tugagan yoki noto'g'ri. Ilovada qayta urinib ko'ring."
     ),
     "applogin.error": "Xatolik yuz berdi. Ilovada qayta urinib ko'ring.",
+    # -------------------------------------------------------- face analysis
+    "faceanalysis.ask_photo": (
+        "🤳 Yuzingiz aniq ko'rinadigan bitta selfi yuboring."
+    ),
+    "faceanalysis.no_face": (
+        "😕 Rasmda yuz aniqlanmadi (yoki bir nechta yuz bor). "
+        "Iltimos, boshqa, yuzingiz aniq ko'rinadigan rasm yuboring."
+    ),
+    "faceanalysis.success": (
+        "🎉 <b>{full_name}</b>, Real Beauty oilasiga xush kelibsiz!\n\n"
+        "Yuzingizni tahlil qildik. Real Beautyni tanlaganingiz uchun rahmat!\n\n"
+        "Savolingiz bo'lsa — pastdagi «✍️ Savol / Murojaat» tugmasini bosing, "
+        "jamoamiz javob beradi 👇"
+    ),
+    "faceanalysis.error": "Xatolik yuz berdi. Iltimos, qayta urinib ko'ring.",
     # ----------------------------------------------------------- skin / quiz
     "skin.know_question": (
         "🧴 <b>Yuz turingizni bilasizmi?</b>\n\n"

@@ -50,3 +50,9 @@ class SupportState(StatesGroup):
     """FSM for free-form questions/messages to the shop."""
 
     message = State()
+
+
+class FaceAnalysisState(StatesGroup):
+    """FSM for the standalone «Yuz tahlili» menu button."""
+
+    photo = State()

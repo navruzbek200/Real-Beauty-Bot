@@ -12,9 +12,9 @@
       --bg: var(--tg-theme-bg-color, #16100f);
       --text: var(--tg-theme-text-color, #f6eef0);
       --hint: var(--tg-theme-hint-color, #a89a9e);
-      --rose: #e07a95;
-      --rose-2: #f0a8bc;
-      --rose-deep: #c2537a;
+      --rose: #7ec8e3;
+      --rose-2: #a8d8f0;
+      --rose-deep: #4a9fc9;
       --gold: #d9b06c;
       --on-rose: #fff;
       --card: color-mix(in srgb, var(--text) 5%, var(--bg));
@@ -331,7 +331,7 @@
         coSubmit: '✅ Buyurtma berish', coSending: 'Yuborilmoqda…',
         coSubtotal: 'Mahsulotlar', coDeliveryFee: 'Yetkazish',
         payNote: '💳 To‘lov karta orqali — buyurtmadan so‘ng botga to‘lov cheki keladi',
-        soon: 'Narx tez orada', askPrice: '💬 Narxni so‘rash',
+        soonPrice: 'Narx tez orada', askPrice: '💬 Narxni so‘rash',
         okPayTitle: 'To‘lovga o‘ting', okPayDesc: 'Buyurtma qabul qilindi. To‘lov cheki bot chatiga yuborildi — «To‘lash» tugmasini bosing 💳',
         errAmount: 'Buyurtma summasi juda kichik. Yana mahsulot qo‘shing.',
         errUnpriced: 'Savatda narxi belgilanmagan mahsulot bor. Uni olib tashlang.',
@@ -357,7 +357,7 @@
         coSubmit: '✅ Оформить заказ', coSending: 'Отправляем…',
         coSubtotal: 'Товары', coDeliveryFee: 'Доставка',
         payNote: '💳 Оплата картой — счёт придёт в чат с ботом после заказа',
-        soon: 'Цена скоро', askPrice: '💬 Узнать цену',
+        soonPrice: 'Цена скоро', askPrice: '💬 Узнать цену',
         okPayTitle: 'Перейдите к оплате', okPayDesc: 'Заказ принят. Счёт отправлен в чат с ботом — нажмите «Оплатить» 💳',
         errAmount: 'Сумма заказа слишком мала. Добавьте ещё товар.',
         errUnpriced: 'В корзине товар без цены. Удалите его.',
@@ -383,7 +383,7 @@
         coSubmit: '✅ Place the order', coSending: 'Sending…',
         coSubtotal: 'Products', coDeliveryFee: 'Delivery',
         payNote: '💳 Payment is by card — the invoice arrives in the bot chat after you order',
-        soon: 'Price coming soon', askPrice: '💬 Ask the price',
+        soonPrice: 'Price coming soon', askPrice: '💬 Ask the price',
         okPayTitle: 'Continue to payment', okPayDesc: 'Order received. The invoice was sent to the bot chat — tap «Pay» 💳',
         errAmount: 'The order total is too small. Please add another product.',
         errUnpriced: 'Your cart holds a product with no price. Please remove it.',
@@ -468,7 +468,7 @@
         <div class="thumb-wrap">${thumb}${badges.length ? `<div class="badges">${badges.join('')}</div>` : ''}</div>
         <div class="card-body">
           <div class="name">${esc(p.name)}</div>
-          <div class="price-row">${p.price ? `<span class="price">${money(p.price)}</span>${old}` : `<span class="soon-price">${L.soon}</span>`}</div>
+          <div class="price-row">${p.price ? `<span class="price">${money(p.price)}</span>${old}` : `<span class="soon-price">${L.soonPrice}</span>`}</div>
           <button class="buy" type="button">${L.details}</button>
         </div>
       </div>`;
