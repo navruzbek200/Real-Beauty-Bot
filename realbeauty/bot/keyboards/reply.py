@@ -11,17 +11,17 @@ from bot.i18n import DEFAULT_LANGUAGE, t
 
 # The main menu, as (i18n key) pairs per row. Kept as data so the layout is
 # read in one glance and every language renders the same shape.
-# Five buttons. Lessons live inside the Mini App's «Darslar» tab (the same app
+# Six buttons, three even rows — two stacked full-width singles (face
+# analysis, support) used to break the grid's rhythm, so they're paired
+# instead. Lessons live inside the Mini App's «Darslar» tab (the same app
 # «Mahsulotlar» opens), top products inside its TOP filter, retaking the quiz
 # in Profil — so none of those need a top-level button. Their older labels
 # keep their handlers (MenuText matches them if an old keyboard is still on
-# screen). Support gets the full-width bottom row: hearing from customers is
-# the bot's whole point.
+# screen).
 _MAIN_MENU_ROWS: tuple[tuple[str, ...], ...] = (
     ("menu.catalog", "menu.discounts"),
     ("menu.bonus", "menu.profile"),
-    ("menu.face_analysis",),
-    ("menu.support",),
+    ("menu.face_analysis", "menu.support"),
 )
 
 
