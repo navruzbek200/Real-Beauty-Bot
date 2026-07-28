@@ -69,6 +69,17 @@ STRINGS: dict[str, str] = {
         "If you have questions, please contact our shop."
     ),
     "user.not_registered": "Please press /start and register first.",
+    # -------------------------------------------------------- app login
+    "applogin.confirm_prompt": (
+        "📱 <b>{name}</b>, you're requesting to sign in to the mobile app with "
+        "this Telegram account.\n\nConfirm?"
+    ),
+    "applogin.confirm_button": "✅ Confirm",
+    "applogin.cancel_button": "❌ Cancel",
+    "applogin.confirmed": "✅ Confirmed. Go back to the app and continue.",
+    "applogin.cancelled": "❌ Sign-in cancelled.",
+    "applogin.expired": "⌛️ This link expired or is invalid. Try again in the app.",
+    "applogin.error": "Something went wrong. Try again in the app.",
     # ----------------------------------------------------------- skin / quiz
     "skin.know_question": (
         "🧴 <b>Do you know your skin type?</b>\n\n"
@@ -237,7 +248,11 @@ STRINGS: dict[str, str] = {
         "Below is the guide on how to use it. We'll ask about your result in "
         "a week 😊"
     ),
-    "product.none": "You don't have any products yet.",
+    "product.none": (
+        "🎓 <b>Video lessons are coming soon!</b>\n\n"
+        "They are being prepared right now. As soon as they are ready they "
+        "will appear here — stay tuned 🌸"
+    ),
     "tutorial.intro_fallback": "📘 Guide for <b>{product}</b>",
     "tutorial.video_soon": "⏳ The video for this step is coming soon.",
     "tutorial.no_steps": "⏳ Video lessons for this product are coming soon.",

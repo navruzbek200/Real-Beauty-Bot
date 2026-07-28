@@ -43,6 +43,20 @@ class TokenPairSerializer(serializers.Serializer):
     refresh = serializers.CharField()
 
 
+class InitSessionResponseSerializer(serializers.Serializer):
+    session_token = serializers.CharField()
+    deep_link = serializers.CharField()
+    expires_in = serializers.IntegerField(help_text="Seconds until the token expires.")
+
+
+class CheckSessionResponseSerializer(serializers.Serializer):
+    status = serializers.ChoiceField(choices=["pending", "confirmed", "not_found"])
+    custom_token = serializers.CharField(
+        required=False, help_text="Firebase custom token — only once status is confirmed."
+    )
+    is_new_user = serializers.BooleanField(required=False)
+
+
 class MeSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     username = serializers.CharField()

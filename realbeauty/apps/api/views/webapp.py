@@ -24,6 +24,7 @@ from urllib.parse import parse_qsl
 from django.conf import settings
 from django.core.cache import cache
 from django.db import transaction
+from django.db.models import Exists, OuterRef, Q
 from rest_framework import status as http_status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -35,6 +36,23 @@ from core.i18n import pick
 logger = logging.getLogger(__name__)
 
 _LANGS = {"uz", "ru", "en"}
+
+def _has_playable_lesson():
+    """Exists() over tutorial steps that carry a video.
+
+    Both conditions are stated positively — `__gt=""` is true only for a
+    non-empty string, and false for NULL. A negated Q across the step
+    relation would instead have matched products with *no steps at all*,
+    since "no step has an empty video" is vacuously true for them.
+    """
+    from apps.products.models import ProductTutorialStep
+
+    return Exists(
+        ProductTutorialStep.objects.filter(
+            Q(video_file_id__gt="") | Q(video_file__gt=""),
+            product=OuterRef("pk"),
+        )
+    )
 
 
 def _serialize(product: Product, lang: str, request) -> dict:
@@ -133,9 +151,13 @@ class WebAppCatalogView(APIView):
 class WebAppLessonsView(APIView):
     """The «Darslar» tab: products with their video-lesson steps.
 
+    Only steps that actually carry a video are listed, and only products left
+    with at least one of them. A step whose video has not been uploaded yet is
+    an empty promise — the tab says "coming soon" instead, and each lesson
+    appears by itself the moment its video is added in the panel.
+
     Personalized to the customer's own products when a *verified* initData is
-    supplied; otherwise the same public fallback the in-chat browser uses
-    (any active product that has lessons, top ones first).
+    supplied; otherwise every product that has a lesson, top ones first.
     """
 
     permission_classes = [AllowAny]
@@ -147,29 +169,28 @@ class WebAppLessonsView(APIView):
             request.query_params.get("init_data", "")
         )
 
+        playable = Product.objects.filter(is_active=True).filter(
+            _has_playable_lesson()
+        ).prefetch_related("tutorial_steps")
+
         products: list[Product] = []
         personalized = False
         if telegram_id:
             products = list(
-                Product.objects.filter(
-                    userproduct__user__telegram_id=telegram_id, is_active=True
-                )
-                .distinct()
-                .prefetch_related("tutorial_steps")
-                .order_by("name")
+                playable.filter(
+                    userproduct__user__telegram_id=telegram_id
+                ).order_by("name")
             )
             personalized = bool(products)
         if not products:
-            products = list(
-                Product.objects.filter(is_active=True, tutorial_steps__isnull=False)
-                .distinct()
-                .prefetch_related("tutorial_steps")
-                .order_by("-is_top", "top_order", "name")
-            )
+            products = list(playable.order_by("-is_top", "top_order", "name"))
 
         items = []
         for product in products:
-            steps = sorted(product.tutorial_steps.all(), key=lambda s: s.order)
+            steps = sorted(
+                (s for s in product.tutorial_steps.all() if s.has_video),
+                key=lambda s: s.order,
+            )
             items.append(
                 {
                     "id": product.pk,
@@ -183,7 +204,7 @@ class WebAppLessonsView(APIView):
                         {
                             "id": step.pk,
                             "label": pick(step, "button_label", lang),
-                            "has_video": step.has_video,
+                            "has_video": True,
                         }
                         for step in steps
                     ],

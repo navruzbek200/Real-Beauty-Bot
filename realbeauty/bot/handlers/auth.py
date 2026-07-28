@@ -45,6 +45,10 @@ async def start_with_payload(
     message: Message, command: CommandObject, state: FSMContext, bot: Bot, lang: str
 ) -> None:
     payload = command.args or ""
+    # An app-login deep link is its own thing regardless of who's tapping it
+    # — checked first so it never falls through to the generic flows below.
+    if await _handled_as_login(message, state, bot, payload, lang):
+        return
     # Mini App deep links must *act* for a finished customer (ask about a
     # product, play a lesson) — checked before the "welcome back" greeting,
     # which would otherwise swallow the tap and answer with small talk.
@@ -138,6 +142,49 @@ async def _handled_as_action(
         )
     else:
         await message.answer(t("support.ask", lang), parse_mode="HTML")
+    return True
+
+
+async def _handled_as_login(
+    message: Message, state: FSMContext, bot: Bot, payload: str, lang: str
+) -> bool:
+    """
+    `auth_<token>` — the Flutter app's "log in with Telegram" deep link.
+
+    An already-registered customer gets a confirm button; anyone else runs
+    the normal self-signup flow first, with the token carried in the FSM so
+    `_finalize_registration` can confirm it the moment registration finishes.
+    """
+    if not payload.startswith("auth_"):
+        return False
+    token = payload.removeprefix("auth_")
+
+    session = await user_service.get_login_session(token)
+    if session is None:
+        await message.answer(t("applogin.expired", lang))
+        return True
+
+    existing = await user_service.get_user(message.chat.id)
+    if (
+        existing is not None
+        and existing.is_active
+        and existing.registration_status == TelegramUser.RegistrationStatus.COMPLETED
+    ):
+        await state.clear()
+        user_lang = normalize(existing.language)
+        await message.answer(
+            t(
+                "applogin.confirm_prompt",
+                user_lang,
+                name=html.escape(existing.full_name),
+            ),
+            parse_mode="HTML",
+            reply_markup=inline.auth_confirm_keyboard(user_lang, token),
+        )
+        return True
+
+    await _begin_self(message, state, lang)
+    await state.update_data(login_token=token)
     return True
 
 
@@ -298,6 +345,35 @@ async def step_language(callback: CallbackQuery, state: FSMContext) -> None:
         await state.set_state(SelfReg.full_name)
         greeting = t("reg.greeting_self", chosen)
     await replace_prompt_callback(callback, state, greeting, reply_markup=reply.remove_keyboard())
+
+
+@router.callback_query(F.data.startswith(f"{inline.CB_AUTH_CONFIRM}{inline.SEP}"))
+async def auth_confirm(callback: CallbackQuery) -> None:
+    token = (callback.data or "").split(inline.SEP, 1)[1]
+    user = await user_service.get_user(callback.from_user.id)
+    if (
+        user is None
+        or not user.is_active
+        or user.registration_status != TelegramUser.RegistrationStatus.COMPLETED
+    ):
+        await callback.answer()
+        await callback.message.edit_text(t("applogin.error", "uz"))
+        return
+
+    lang = normalize(user.language)
+    ok = await user_service.confirm_login_session(token, user.pk)
+    await callback.answer()
+    await callback.message.edit_text(
+        t("applogin.confirmed" if ok else "applogin.expired", lang)
+    )
+
+
+@router.callback_query(F.data.startswith(f"{inline.CB_AUTH_CANCEL}{inline.SEP}"))
+async def auth_cancel(callback: CallbackQuery) -> None:
+    user = await user_service.get_user(callback.from_user.id)
+    lang = normalize(user.language) if user else "uz"
+    await callback.answer()
+    await callback.message.edit_text(t("applogin.cancelled", lang))
 
 
 # ---------------------------------------------------------------------------
@@ -499,6 +575,13 @@ async def _finalize_registration(
         logger.exception("Failed to persist registration for %s", chat.id)
         await message.answer(t("reg.error", lang))
         return
+
+    # Someone who opened the app-login deep link cold (no account yet) went
+    # through registration with the token riding along in the FSM — confirm
+    # it now that they have a completed account to confirm it with.
+    login_token = data.get("login_token")
+    if login_token:
+        await user_service.confirm_login_session(login_token, user.pk)
 
     # 1. Welcome message (template) + show persistent main menu
     text, parse_mode = await template_service.render_template(

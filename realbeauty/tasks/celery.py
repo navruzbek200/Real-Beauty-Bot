@@ -7,7 +7,9 @@ from celery.schedules import crontab
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "core.settings.prod")
 
-app = Celery("realbeauty", include=["tasks.scheduled", "tasks.broadcast"])
+app = Celery(
+    "realbeauty", include=["tasks.scheduled", "tasks.broadcast", "tasks.orders"]
+)
 app.config_from_object("django.conf:settings", namespace="CELERY")
 app.autodiscover_tasks()
 
@@ -27,6 +29,13 @@ app.conf.beat_schedule = {
     "birthday-messages": {
         "task": "tasks.scheduled.send_birthday_messages",
         "schedule": crontab(hour=9, minute=0),
+    },
+    # Unpaid orders are not sales — nobody collects cash on delivery — so
+    # they get one nudge and then expire. Quarter-hourly is plenty for
+    # windows measured in hours.
+    "chase-unpaid-orders": {
+        "task": "tasks.orders.chase_unpaid_orders",
+        "schedule": crontab(minute="*/15"),
     },
     # Housekeeping — keeps the log table and media dir from growing forever.
     "purge-campaign-logs": {

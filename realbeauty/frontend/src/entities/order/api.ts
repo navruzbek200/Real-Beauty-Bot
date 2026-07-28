@@ -25,4 +25,12 @@ export const orderApi = {
     if (error) throw error
     return data as unknown as Order
   },
+  async resendInvoice(id: number): Promise<Order> {
+    const { data, error } = await apiClient.POST(
+      '/api/v1/orders/{id}/resend_invoice/',
+      { params: { path: { id } } },
+    )
+    if (error) throw error
+    return data as unknown as Order
+  },
 }

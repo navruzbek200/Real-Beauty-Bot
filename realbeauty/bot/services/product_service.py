@@ -1,8 +1,24 @@
 from __future__ import annotations
 
 from asgiref.sync import sync_to_async
+from django.db.models import Exists, OuterRef, Q
 
 from apps.products.models import Product, ProductTutorialStep
+
+
+def _has_playable_lesson():
+    """Exists() over tutorial steps that carry a video.
+
+    Stated positively on purpose — `__gt=""` matches a non-empty string and
+    never NULL. Negating across the step relation would have matched products
+    with no steps at all, since "no step has an empty video" holds vacuously.
+    """
+    return Exists(
+        ProductTutorialStep.objects.filter(
+            Q(video_file_id__gt="") | Q(video_file__gt=""),
+            product=OuterRef("pk"),
+        )
+    )
 
 
 @sync_to_async
@@ -46,38 +62,26 @@ def get_product(product_id: int) -> Product | None:
 
 @sync_to_async
 def get_tutorial_products(telegram_id: int) -> list[Product]:
-    """Products whose lessons a customer can open from «Tarkiblar».
+    """Products with a lesson the customer can actually watch.
 
-    Order of preference, so a customer never hits a false "you have no
-    products" while real products sit in the catalogue:
+    Only products holding at least one step with an uploaded video count. A
+    step whose video is still missing would open onto "coming soon", which
+    reads as a broken section rather than an honest one — better to say
+    nothing is ready yet and let each lesson appear as its video is added.
 
-    1. their own purchases;
-    2. any active product that actually has a lesson (top ones first);
-    3. failing that, every active product — its card still opens, and the
-       detail says "video coming soon" instead of the whole section vanishing.
-
-    The old version only ever showed *top* products that *also* had a lesson,
-    so a shop that added a product without ticking "top" saw nothing at all.
+    Their own purchases come first; failing that, everything that has a
+    lesson, so a brand-new customer still has something to watch.
     """
+    playable = Product.objects.filter(is_active=True).filter(_has_playable_lesson())
+
     owned = list(
-        Product.objects.filter(
-            userproduct__user__telegram_id=telegram_id, is_active=True
-        )
+        playable.filter(userproduct__user__telegram_id=telegram_id)
         .distinct()
         .order_by("name")
     )
     if owned:
         return owned
-
-    with_lessons = list(
-        Product.objects.filter(is_active=True, tutorial_steps__isnull=False)
-        .distinct()
-        .order_by("-is_top", "top_order", "name")
-    )
-    if with_lessons:
-        return with_lessons
-
-    return list(Product.objects.filter(is_active=True).order_by("name"))
+    return list(playable.order_by("-is_top", "top_order", "name"))
 
 
 @sync_to_async

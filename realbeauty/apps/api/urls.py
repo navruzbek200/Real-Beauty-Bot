@@ -5,7 +5,13 @@ from drf_spectacular.views import SpectacularAPIView
 from rest_framework.routers import DefaultRouter
 
 from apps.api.views.analytics import SkinQuizResultViewSet
-from apps.api.views.auth import LoginView, MeView, RefreshView
+from apps.api.views.auth import (
+    CheckSessionView,
+    InitSessionView,
+    LoginView,
+    MeView,
+    RefreshView,
+)
 from apps.api.views.bot_settings import DiscountViewSet, GlobalSettingsView
 from apps.api.views.loyalty import LoyaltySettingsView, RewardViewSet
 from apps.api.views.orders import OrderViewSet
@@ -52,6 +58,12 @@ urlpatterns = [
     path("auth/login/", LoginView.as_view(), name="api_login"),
     path("auth/refresh/", RefreshView.as_view(), name="api_refresh"),
     path("auth/me/", MeView.as_view(), name="api_me"),
+    path("auth/init-session/", InitSessionView.as_view(), name="api_init_session"),
+    path(
+        "auth/check-session/<str:session_token>/",
+        CheckSessionView.as_view(),
+        name="api_check_session",
+    ),
     path("settings/global/", GlobalSettingsView.as_view(), name="api_global_settings"),
     path(
         "settings/rewards/",

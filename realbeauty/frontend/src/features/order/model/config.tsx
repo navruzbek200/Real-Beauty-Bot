@@ -72,6 +72,14 @@ export const orderColumns: ResourceColumn<Order>[] = [
               ? "💳 To'lov kutilmoqda"
               : "⚠️ To'lov kelishilmagan"}
         </p>
+        {o.provider_charge_id && (
+          <p
+            className="truncate text-[11px] text-slate-400"
+            title={`Click to'lov ID: ${o.provider_charge_id} — pulni qaytarish yoki solishtirish uchun`}
+          >
+            ID: {o.provider_charge_id}
+          </p>
+        )}
       </div>
     ),
   },

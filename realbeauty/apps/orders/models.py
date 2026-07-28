@@ -91,6 +91,11 @@ class Order(models.Model):
         verbose_name="To'lov holati",
     )
     paid_at = models.DateTimeField(null=True, blank=True, verbose_name="To'langan vaqt")
+    # Set when the "still unpaid?" nudge goes out, so the chaser task reminds
+    # once rather than every time it runs.
+    payment_reminded_at = models.DateTimeField(
+        null=True, blank=True, editable=False, verbose_name="Eslatma yuborilgan"
+    )
     # Telegram's `successful_payment.provider_payment_charge_id` — the id to
     # quote when reconciling with Click/Payme or issuing a refund.
     provider_charge_id = models.CharField(

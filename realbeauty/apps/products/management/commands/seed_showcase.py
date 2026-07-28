@@ -173,6 +173,14 @@ class Command(BaseCommand):
             action="store_true",
             help="Skip generating placeholder product images.",
         )
+        parser.add_argument(
+            "--with-lessons",
+            action="store_true",
+            help=(
+                "Also seed tutorial steps. Off by default: they carry no video, "
+                "so customers never see them and they only clutter the panel."
+            ),
+        )
 
     def handle(self, *args: Any, **opts: Any) -> None:
         for index, item in enumerate(CATALOGUE):
@@ -196,16 +204,22 @@ class Command(BaseCommand):
                     _placeholder_image(item["name"], index),
                     save=True,
                 )
-            # Rebuild this product's lessons so re-runs stay clean.
+            # Lesson rows are only seeded on request. A step with no video is
+            # invisible to customers by design (see WebAppLessonsView), so
+            # seeding them onto a live shop just puts rows in the panel that
+            # nobody can watch — exactly the "fake lessons" this command used
+            # to leave behind.
             product.tutorial_steps.all().delete()
-            for order, (label, intro) in enumerate(item["steps"], start=1):
-                ProductTutorialStep.objects.create(
-                    product=product,
-                    order=order,
-                    button_label=label,
-                    intro_text=intro,
-                )
-            steps = len(item["steps"])
+            steps = 0
+            if opts["with_lessons"]:
+                for order, (label, intro) in enumerate(item["steps"], start=1):
+                    ProductTutorialStep.objects.create(
+                        product=product,
+                        order=order,
+                        button_label=label,
+                        intro_text=intro,
+                    )
+                steps = len(item["steps"])
             top = "TOP" if item["top"] else "—"
             img = "—" if opts["no_images"] else "🖼"
             self.stdout.write(f"• {item['name']} [{top}] · {steps} dars {img}")
@@ -213,6 +227,6 @@ class Command(BaseCommand):
         self.stdout.write(
             self.style.SUCCESS(
                 f"✅ {len(CATALOGUE)} ta namuna mahsulot tayyor "
-                "(darslar + top + chegirmalar bilan)."
+                "(top + chegirmalar bilan)."
             )
         )

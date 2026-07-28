@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 
 import { ResourcePage } from '@/widgets/resource-crud'
-import { Alert, Button, Select } from '@/shared/ui'
+import { Alert, Button, ConfirmDialog, Select } from '@/shared/ui'
 import { orderApi, type Order, type OrderStatus } from '@/entities/order'
 import { ORDER_STATUS, orderColumns, orderFormConfig, type OrderFormValues } from '@/features/order'
 
@@ -21,6 +21,25 @@ export function OrdersPage() {
   const queryClient = useQueryClient()
   const [pendingId, setPendingId] = useState<number | null>(null)
   const [notice, setNotice] = useState<Notice>()
+  const [cancelling, setCancelling] = useState<Order | null>(null)
+
+  async function resendInvoice(order: Order) {
+    setPendingId(order.id)
+    setNotice(undefined)
+    try {
+      await orderApi.resendInvoice(order.id)
+      await queryClient.invalidateQueries({ queryKey: ['orders'] })
+      setNotice({
+        tone: 'success',
+        text: `Buyurtma #${order.id} — to'lov cheki mijozga qayta yuborildi.`,
+      })
+    } catch (error) {
+      const detail = (error as { detail?: string })?.detail
+      setNotice({ tone: 'error', text: detail ?? "Hisob yuborilmadi." })
+    } finally {
+      setPendingId(null)
+    }
+  }
 
   async function setStatus(order: Order, status: OrderStatus) {
     setPendingId(order.id)
@@ -76,6 +95,8 @@ export function OrdersPage() {
         )}
         rowActions={(item) => {
           const next = ORDER_STATUS[item.status]?.next
+          const awaitingPayment =
+            item.payment_status !== 'paid' && item.status !== 'cancelled'
           return (
             <>
               {next && (
@@ -87,13 +108,23 @@ export function OrdersPage() {
                   {next.action}
                 </Button>
               )}
+              {awaitingPayment && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={pendingId === item.id}
+                  onClick={() => resendInvoice(item)}
+                >
+                  💳 Hisobni qayta yuborish
+                </Button>
+              )}
               {(item.status === 'new' || item.status === 'confirmed') && (
                 <Button
                   variant="ghost"
                   size="sm"
                   className="text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-900/30"
                   disabled={pendingId === item.id}
-                  onClick={() => setStatus(item, 'cancelled')}
+                  onClick={() => setCancelling(item)}
                 >
                   Bekor
                 </Button>
@@ -101,6 +132,25 @@ export function OrdersPage() {
             </>
           )
         }}
+      />
+      <ConfirmDialog
+        open={cancelling !== null}
+        title={`Buyurtma #${cancelling?.id} ni bekor qilish`}
+        message={
+          cancelling?.payment_status === 'paid'
+            ? `Diqqat: bu buyurtma to'langan (${cancelling.provider_charge_id || "to'lov ID yo'q"}). ` +
+              "Bekor qilish pulni QAYTARMAYDI — mijozga pulni Click merchant kabinetidan " +
+              'qo\'lda qaytarishingiz kerak. Davom etasizmi?'
+            : "Mijozga xabar bermaydi. Buyurtma bekor qilingan deb belgilanadi."
+        }
+        danger
+        confirmLabel="Ha, bekor qilish"
+        pending={pendingId === cancelling?.id}
+        onConfirm={async () => {
+          if (cancelling) await setStatus(cancelling, 'cancelled')
+          setCancelling(null)
+        }}
+        onCancel={() => setCancelling(null)}
       />
     </div>
   )

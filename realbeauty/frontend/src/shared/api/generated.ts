@@ -41,6 +41,51 @@ export interface paths {
         patch: operations["app_users_partial_update"];
         trace?: never;
     };
+    "/api/v1/auth/check-session/{session_token}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description Step 2: the app polls this until the customer has confirmed in Telegram.
+         *
+         *     Confirmed and pending look identical to an attacker guessing tokens (both
+         *     just return a status), and a confirmed session is deleted the moment it's
+         *     read here — so even a token intercepted in flight is worth at most one
+         *     successful poll.
+         */
+        get: operations["auth_check_session_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/init-session/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * @description Step 1 of "log in to the app via Telegram": mint a session token and hand
+         *     back the deep link the app opens (or renders as a QR code) — the bot side
+         *     is what does the actual identity check, this just starts the clock.
+         */
+        post: operations["auth_init_session_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/login/": {
         parameters: {
             query?: never;
@@ -359,6 +404,30 @@ export interface paths {
          *     cancelled order is a record, an absent one is a hole in the books.
          */
         patch: operations["orders_partial_update"];
+        trace?: never;
+    };
+    "/api/v1/orders/{id}/resend_invoice/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * @description Send the payment invoice again.
+         *
+         *     Without this an order is stuck the moment anything happens to the
+         *     first invoice — the customer clears the chat, the message expires,
+         *     the send failed while Telegram was down — and since no courier
+         *     collects cash there is no other way for them to pay.
+         */
+        post: operations["orders_resend_invoice_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/product-tutorial-steps/": {
@@ -882,9 +951,13 @@ export interface paths {
         /**
          * @description The «Darslar» tab: products with their video-lesson steps.
          *
+         *     Only steps that actually carry a video are listed, and only products left
+         *     with at least one of them. A step whose video has not been uploaded yet is
+         *     an empty promise — the tab says "coming soon" instead, and each lesson
+         *     appears by itself the moment its video is added in the panel.
+         *
          *     Personalized to the customer's own products when a *verified* initData is
-         *     supplied; otherwise the same public fallback the in-chat browser uses
-         *     (any active product that has lessons, top ones first).
+         *     supplied; otherwise every product that has a lesson, top ones first.
          */
         get: operations["webapp_lessons_retrieve"];
         put?: never;
@@ -1077,6 +1150,19 @@ export interface components {
          * @enum {string}
          */
         ButtonActionEnum: "none" | "discounts";
+        CheckSessionResponse: {
+            status: components["schemas"]["CheckSessionResponseStatusEnum"];
+            /** @description Firebase custom token — only once status is confirmed. */
+            custom_token?: string;
+            is_new_user?: boolean;
+        };
+        /**
+         * @description * `pending` - pending
+         *     * `confirmed` - confirmed
+         *     * `not_found` - not_found
+         * @enum {string}
+         */
+        CheckSessionResponseStatusEnum: "pending" | "confirmed" | "not_found";
         /**
          * @description * `minute` - daqiqa
          *     * `hour` - soat
@@ -1162,6 +1248,12 @@ export interface components {
              * @description Viloyatlarga pochta. Savatchada alohida qator bo'lib qo'shiladi.
              */
             delivery_fee_bts?: number;
+        };
+        InitSessionResponse: {
+            session_token: string;
+            deep_link: string;
+            /** @description Seconds until the token expires. */
+            expires_in: number;
         };
         /**
          * @description * `uz` - O'zbekcha
@@ -1295,6 +1387,8 @@ export interface components {
              * Format: date-time
              */
             readonly paid_at: string | null;
+            /** To'lov ID */
+            readonly provider_charge_id: string;
             /** Jami (so'm) */
             readonly total: number;
             readonly items: components["schemas"]["OrderItem"][];
@@ -1882,6 +1976,8 @@ export interface components {
              * Format: date-time
              */
             readonly paid_at?: string | null;
+            /** To'lov ID */
+            readonly provider_charge_id?: string;
             /** Jami (so'm) */
             readonly total?: number;
             readonly items?: components["schemas"]["OrderItem"][];
@@ -2787,6 +2883,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AppUser"];
+                };
+            };
+        };
+    };
+    auth_check_session_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckSessionResponse"];
+                };
+            };
+        };
+    };
+    auth_init_session_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InitSessionResponse"];
                 };
             };
         };
@@ -3784,6 +3920,28 @@ export interface operations {
                 "multipart/form-data": components["schemas"]["PatchedOrder"];
             };
         };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Order"];
+                };
+            };
+        };
+    };
+    orders_resend_invoice_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this Buyurtma. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             200: {
                 headers: {

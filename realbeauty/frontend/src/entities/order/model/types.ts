@@ -31,6 +31,7 @@ export interface Order {
   payment_status: OrderPaymentStatus
   payment_status_label: string
   paid_at: string | null
+  provider_charge_id: string
   total: number
   items: OrderItem[]
   created_at: string

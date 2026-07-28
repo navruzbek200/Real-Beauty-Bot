@@ -151,7 +151,10 @@ class TutorialFallbackTests(TestCase):
     def test_a_non_top_product_with_a_lesson_is_shown(self):
         product = Product.objects.create(name="Serum", is_top=False)
         ProductTutorialStep.objects.create(
-            product=product, order=1, button_label="1-qadam"
+            product=product,
+            order=1,
+            button_label="1-qadam",
+            video_file_id="cached-file-id",
         )
         result = async_to_sync(
             __import__("bot.services.product_service", fromlist=["get_tutorial_products"])
@@ -159,12 +162,26 @@ class TutorialFallbackTests(TestCase):
         )(999001)
         self.assertEqual([p.name for p in result], ["Serum"])
 
-    def test_products_without_lessons_still_appear_rather_than_empty(self):
+    def test_a_product_without_a_lesson_is_not_listed(self):
+        # The section used to fall back to the whole catalogue, so every
+        # product opened onto "video coming soon". That reads as broken; an
+        # honest "lessons are being prepared" is better, and each product
+        # appears the moment its video is uploaded.
         Product.objects.create(name="Krem", is_top=False)
         from bot.services import product_service
 
         result = async_to_sync(product_service.get_tutorial_products)(999002)
-        self.assertEqual([p.name for p in result], ["Krem"])
+        self.assertEqual(result, [])
+
+    def test_a_lesson_whose_video_is_not_uploaded_yet_does_not_count(self):
+        product = Product.objects.create(name="Krem")
+        ProductTutorialStep.objects.create(
+            product=product, order=1, button_label="1-qadam"
+        )
+        from bot.services import product_service
+
+        result = async_to_sync(product_service.get_tutorial_products)(999003)
+        self.assertEqual(result, [])
 
     def test_intro_text_is_optional_on_a_step(self):
         product = Product.objects.create(name="Toner")

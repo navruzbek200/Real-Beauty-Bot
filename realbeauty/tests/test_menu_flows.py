@@ -85,7 +85,11 @@ class MenuIngredientsFallbackTests(TestCase):
     def test_a_top_products_video_reaches_a_customer_with_no_purchases(self):
         top = Product.objects.create(name="Top serum", is_top=True, top_order=1)
         ProductTutorialStep.objects.create(
-            product=top, order=1, button_label="1-qadam", intro_text="Intro"
+            product=top,
+            order=1,
+            button_label="1-qadam",
+            intro_text="Intro",
+            video_file_id="cached-file-id",
         )
 
         msg, bot = self._run()
@@ -101,12 +105,18 @@ class MenuIngredientsFallbackTests(TestCase):
         msg, bot = self._run()
 
         self.assertEqual(bot.sent, [])
-        self.assertIn("mahsulot", msg.sent[0]["text"].lower())
+        # An honest "being prepared", not a list of products that all open
+        # onto "video coming soon".
+        self.assertIn("tez orada", msg.sent[0]["text"].lower())
 
     def test_owned_products_are_used_before_the_top_list_fallback(self):
         owned = Product.objects.create(name="Sotib olingan")
         ProductTutorialStep.objects.create(
-            product=owned, order=1, button_label="1-qadam", intro_text="Intro"
+            product=owned,
+            order=1,
+            button_label="1-qadam",
+            intro_text="Intro",
+            video_file_id="cached-file-id",
         )
         Product.objects.create(name="Top serum", is_top=True, top_order=1)
         UserProduct.objects.create(user=self.user, product=owned)

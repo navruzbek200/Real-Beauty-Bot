@@ -49,6 +49,9 @@ class OrderSerializer(serializers.ModelSerializer):
             "payment_status",
             "payment_status_label",
             "paid_at",
+            # Quoted to Click when reconciling or refunding — the operator has
+            # no other handle on the transaction.
+            "provider_charge_id",
             "total",
             "items",
             "created_at",
@@ -72,6 +75,7 @@ class OrderSerializer(serializers.ModelSerializer):
             "payment_status",
             "payment_status_label",
             "paid_at",
+            "provider_charge_id",
             "total",
             "items",
             "created_at",

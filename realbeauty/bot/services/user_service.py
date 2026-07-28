@@ -8,6 +8,7 @@ from asgiref.sync import sync_to_async
 from django.db import transaction
 
 from apps.users.models import SellerProfile, TelegramUser, UserProduct
+from apps.users import services as user_services
 
 logger = logging.getLogger(__name__)
 
@@ -233,3 +234,13 @@ def get_user_products(telegram_id: int) -> list[UserProduct]:
             user__telegram_id=telegram_id
         )
     )
+
+
+@sync_to_async
+def get_login_session(token: str):
+    return user_services.get_login_session(token)
+
+
+@sync_to_async
+def confirm_login_session(token: str, user_id: int) -> bool:
+    return user_services.confirm_login_session(token, user_id)

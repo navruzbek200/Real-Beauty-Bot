@@ -54,6 +54,8 @@ CB_SUPPORT_REPLY = "support_reply"  # attached to admin replies in the bot
 CB_OPEN_DISCOUNTS = "open_discounts"
 CB_OPEN_REWARDS = "open_rewards"
 CB_REDEEM_REWARD = "redeem"         # redeem:<reward_id>
+CB_AUTH_CONFIRM = "authconf"        # authconf:<login_token>
+CB_AUTH_CANCEL = "authcancel"       # authcancel:<login_token>
 
 # Paginated product browser. One prefix, three "kinds" (catalogue / top /
 # tutorials) so the whole shop window is one list message you page through
@@ -85,6 +87,24 @@ def language_keyboard() -> InlineKeyboardMarkup:
         builder.button(text=label, callback_data=f"{CB_LANGUAGE}{SEP}{code}")
     builder.adjust(1)
     return builder.as_markup()
+
+
+def auth_confirm_keyboard(lang: str, token: str) -> InlineKeyboardMarkup:
+    """Approve/reject a Flutter-app login initiated from this Telegram account."""
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text=t("applogin.confirm_button", lang),
+                    callback_data=f"{CB_AUTH_CONFIRM}{SEP}{token}",
+                ),
+                InlineKeyboardButton(
+                    text=t("applogin.cancel_button", lang),
+                    callback_data=f"{CB_AUTH_CANCEL}{SEP}{token}",
+                ),
+            ]
+        ]
+    )
 
 
 def know_skin_keyboard(lang: str) -> InlineKeyboardMarkup:

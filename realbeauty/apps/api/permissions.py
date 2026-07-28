@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from django.conf import settings
 from rest_framework.permissions import BasePermission, DjangoModelPermissions
 
 
@@ -26,3 +27,16 @@ class IsSuperUser(BasePermission):
 
     def has_permission(self, request, view) -> bool:
         return bool(request.user and request.user.is_superuser)
+
+
+class HasAppApiKey(BasePermission):
+    """
+    Same shared-secret model as apps.users.api's phone-OTP endpoints: a mobile
+    client has no Django session/CSRF, so the X-Api-Key header stands in for
+    both. Used for the Telegram-login-session endpoints, which sit on the DRF
+    side rather than the plain Django views phone-OTP uses.
+    """
+
+    def has_permission(self, request, view) -> bool:
+        api_key = request.headers.get("X-Api-Key", "")
+        return bool(settings.APP_API_KEY) and api_key == settings.APP_API_KEY

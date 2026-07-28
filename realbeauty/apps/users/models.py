@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import secrets
+from datetime import timedelta
+
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models
@@ -305,3 +308,70 @@ class UserProduct(models.Model):
 
     def __str__(self) -> str:
         return f"{self.user.full_name} — {self.product.name}"
+
+
+def _generate_login_token() -> str:
+    # url-safe, no "=" padding — this string is embedded verbatim in a
+    # Telegram deep link (t.me/<bot>?start=auth_<token>), whose payload only
+    # allows [A-Za-z0-9_-] and 64 chars total.
+    return secrets.token_urlsafe(24)
+
+
+def _default_login_session_expiry():
+    return timezone.now() + timedelta(minutes=TelegramLoginSession.EXPIRY_MINUTES)
+
+
+class TelegramLoginSession(models.Model):
+    """
+    A single "log in to the Flutter app via Telegram" attempt.
+
+    The app calls /api/auth/init-session/ to get a token and builds the deep
+    link itself; the customer taps it, Telegram opens the bot, and the bot
+    either shows a confirm button (existing account) or runs registration and
+    confirms automatically once it finishes. The app polls
+    /api/auth/check-session/<token>/ until it sees CONFIRMED, then gets a
+    Firebase custom token for the same account — the same identity the
+    phone-OTP flow already mints, so a customer who used both ends up on one
+    Firebase user either way.
+
+    Single-use: check-session deletes the row once it has handed the result
+    back, so a leaked token is only ever worth one sign-in.
+    """
+
+    class Status(models.TextChoices):
+        PENDING = "pending", "Kutilmoqda"
+        CONFIRMED = "confirmed", "Tasdiqlangan"
+
+    EXPIRY_MINUTES = 5
+
+    token = models.CharField(
+        max_length=64,
+        unique=True,
+        db_index=True,
+        editable=False,
+        default=_generate_login_token,
+    )
+    status = models.CharField(
+        max_length=10, choices=Status.choices, default=Status.PENDING
+    )
+    user = models.ForeignKey(
+        TelegramUser,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="login_sessions",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(default=_default_login_session_expiry)
+    confirmed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Ilova kirish sessiyasi"
+        verbose_name_plural = "Ilova kirish sessiyalari"
+
+    def __str__(self) -> str:
+        return f"{self.token[:8]}… ({self.status})"
+
+    @property
+    def is_expired(self) -> bool:
+        return timezone.now() >= self.expires_at

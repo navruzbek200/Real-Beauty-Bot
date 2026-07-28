@@ -72,6 +72,19 @@ STRINGS: dict[str, str] = {
         "Savolingiz bo'lsa, do'konimizga murojaat qiling."
     ),
     "user.not_registered": "Iltimos, avval /start bosib ro'yxatdan o'ting.",
+    # -------------------------------------------------------- app login
+    "applogin.confirm_prompt": (
+        "📱 <b>{name}</b>, mobil ilovaga shu Telegram hisobingiz orqali "
+        "kirishni so'rayapsiz.\n\nTasdiqlaysizmi?"
+    ),
+    "applogin.confirm_button": "✅ Tasdiqlash",
+    "applogin.cancel_button": "❌ Bekor qilish",
+    "applogin.confirmed": "✅ Tasdiqlandi. Ilovaga qaytib, davom eting.",
+    "applogin.cancelled": "❌ Kirish bekor qilindi.",
+    "applogin.expired": (
+        "⌛️ Havola muddati tugagan yoki noto'g'ri. Ilovada qayta urinib ko'ring."
+    ),
+    "applogin.error": "Xatolik yuz berdi. Ilovada qayta urinib ko'ring.",
     # ----------------------------------------------------------- skin / quiz
     "skin.know_question": (
         "🧴 <b>Yuz turingizni bilasizmi?</b>\n\n"
@@ -246,7 +259,11 @@ STRINGS: dict[str, str] = {
         "Quyida mahsulotdan qanday foydalanish bo'yicha qo'llanma. "
         "Bir haftadan so'ng natijangizni so'raymiz 😊"
     ),
-    "product.none": "Sizda hozircha mahsulotlar yo'q.",
+    "product.none": (
+        "🎓 <b>Video darslar tez orada!</b>\n\n"
+        "Hozircha darslar tayyorlanmoqda. Tayyor bo'lishi bilan shu yerda "
+        "paydo bo'ladi — kuzatib boring 🌸"
+    ),
     "tutorial.intro_fallback": "📘 <b>{product}</b> uchun qo'llanma",
     "tutorial.video_soon": "⏳ Ushbu bosqich uchun video tez orada qo'shiladi.",
     "tutorial.no_steps": "⏳ Bu mahsulot uchun video darslar tez orada qo'shiladi.",
