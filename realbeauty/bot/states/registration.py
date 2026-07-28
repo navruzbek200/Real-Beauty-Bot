@@ -11,7 +11,6 @@ class SelfReg(StatesGroup):
     birth_date = State()
     phone = State()
     face_condition = State()
-    photo = State()
 
 
 class AdminAssistedReg(StatesGroup):
@@ -22,7 +21,6 @@ class AdminAssistedReg(StatesGroup):
     birth_date = State()
     phone = State()
     face_condition = State()
-    photo = State()
 
 
 class SkinQuizState(StatesGroup):

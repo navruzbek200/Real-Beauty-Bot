@@ -22,6 +22,7 @@ from bot.i18n import t
 from bot.keyboards import inline, reply
 from bot.services import quiz_service, user_service
 from bot.states.registration import AdminAssistedReg, SelfReg, SkinQuizState
+from bot.utils.message import replace_prompt_callback
 
 logger = logging.getLogger(__name__)
 router = Router(name="quiz")
@@ -90,9 +91,9 @@ async def knows_skin_type(callback: CallbackQuery, state: FSMContext, lang: str)
 
     await callback.answer()
     lang = await _language(state, lang)
-    await _strip_keyboard(callback)
-    await callback.message.answer(
-        t("skin.pick", lang), reply_markup=inline.face_condition_keyboard(face_choices(lang))
+    await replace_prompt_callback(
+        callback, state, t("skin.pick", lang),
+        reply_markup=inline.face_condition_keyboard(face_choices(lang)),
     )
 
 

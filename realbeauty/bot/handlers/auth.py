@@ -491,42 +491,10 @@ async def continue_after_skin(message: Message, state: FSMContext, bot: Bot) -> 
     Next step once the skin type is settled — however it was settled.
 
     Both the "I know it" branch and the quiz land here, which is why it lives
-    in this module rather than in either of them.
+    in this module rather than in either of them. Registration has no photo
+    step, so this is also the last one — straight to finalizing.
     """
-    lang = await _reg_language(state)
-    data = await state.get_data()
-    if "seller_id" in data:
-        # Admin-assisted: photo filled by admin from CRM — finish now
-        await _finalize_registration(message, state, bot, photo_bytes=None)
-        return
-    await state.set_state(SelfReg.photo)
-    await replace_prompt(message, state, t("reg.ask_photo", lang), reply_markup=inline.skip_photo_keyboard(lang))
-
-
-@router.message(SelfReg.photo, F.photo)
-async def step_photo_upload(message: Message, state: FSMContext, bot: Bot) -> None:
-    await cleanup_user_msg(message)
-    photo = message.photo[-1]
-    file = await bot.get_file(photo.file_id)
-    buffer = await bot.download_file(file.file_path)
-    photo_bytes = buffer.read() if buffer is not None else None
-    await _finalize_registration(message, state, bot, photo_bytes=photo_bytes)
-
-
-@router.callback_query(SelfReg.photo, F.data == inline.CB_SKIP_PHOTO)
-async def step_photo_skip(callback: CallbackQuery, state: FSMContext) -> None:
-    await callback.answer()
-    # _finalize_registration deletes the pending prompt itself.
-    await _finalize_registration(callback.message, state, callback.bot, photo_bytes=None)
-
-
-@router.message(SelfReg.photo)
-async def step_photo_not_a_photo(message: Message, state: FSMContext) -> None:
-    await cleanup_user_msg(message)
-    # Without this the last step of registration answers nothing at all when
-    # the customer types instead of attaching.
-    lang = await _reg_language(state)
-    await replace_prompt(message, state, t("reg.ask_photo", lang), reply_markup=inline.skip_photo_keyboard(lang))
+    await _finalize_registration(message, state, bot, photo_bytes=None)
 
 
 # ---------------------------------------------------------------------------

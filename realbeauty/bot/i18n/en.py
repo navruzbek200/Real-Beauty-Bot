@@ -13,7 +13,7 @@ STRINGS: dict[str, str] = {
     "menu.discounts": "🎁 Discounts",
     "menu.bonus": "💎 My bonuses",
     "menu.profile": "👤 Profile",
-    "menu.face_analysis": "🤳 Face analysis",
+    "menu.face_analysis": "Face analysis",
     "menu.help": "ℹ️ Help",
     "menu.legacy_tutorials": "📚 Tutorials",
     "menu.legacy_feedback": "💬 Leave feedback",
@@ -55,8 +55,6 @@ STRINGS: dict[str, str] = {
         "❌ That's somebody else's contact. Please send your own number."
     ),
     "reg.share_contact": "📱 Share contact",
-    "reg.ask_photo": "📷 Send a photo of yourself (optional).",
-    "reg.skip": "⏭ Skip",
     "reg.saved_fallback": "✅ Registration complete! Welcome to Real Beauty.",
     "reg.error": "Something went wrong while saving. Please press /start again.",
     "reg.invalid_ref": "That referral link is invalid. You can register on your own.",

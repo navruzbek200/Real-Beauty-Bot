@@ -48,7 +48,6 @@ CB_QUIZ_START = "quiz_start"
 CB_QUIZ_ANSWER = "quiz_ans"         # quiz_ans:<question_id>:<0..5>
 CB_QUIZ_BACK = "quiz_back"
 CB_QUIZ_RETAKE = "quiz_retake"
-CB_SKIP_PHOTO = "skip_photo"
 CB_TUTORIAL_STEP = "tutorial_step"  # tutorial_step:<product_id>:<step_id>
 CB_SUPPORT_REPLY = "support_reply"  # attached to admin replies in the bot
 CB_OPEN_DISCOUNTS = "open_discounts"
@@ -301,18 +300,6 @@ def support_reply_keyboard(lang: str = "uz") -> InlineKeyboardMarkup:
                 InlineKeyboardButton(
                     text=t("support.reply_btn", lang),
                     callback_data=CB_SUPPORT_REPLY,
-                )
-            ]
-        ]
-    )
-
-
-def skip_photo_keyboard(lang: str) -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text=t("reg.skip", lang), callback_data=CB_SKIP_PHOTO
                 )
             ]
         ]

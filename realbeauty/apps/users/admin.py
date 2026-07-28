@@ -184,7 +184,7 @@ class TelegramUserAdmin(RBModelAdmin):
             )
             return
         for product in new_products:
-            if self._send_purchase_message(user, product):
+            if self._send_purchase_message(user, product, greet=change):
                 messages.success(
                     request,
                     f"«{product.name}» uchun tabrik va qo'llanma mijozga "
@@ -199,11 +199,15 @@ class TelegramUserAdmin(RBModelAdmin):
                 )
 
     @staticmethod
-    def _send_purchase_message(user: TelegramUser, product) -> bool:
+    def _send_purchase_message(user: TelegramUser, product, greet: bool = True) -> bool:
         """
         Thank the customer for the purchase and hand them the tutorial, the
         moment the seller records it — the same content the bot sends after
         self-registration, so both entry paths feel identical.
+
+        `greet=False` when the product is assigned in the very same save that
+        creates the customer: that is registration, not a purchase, so the
+        "thanks for buying" line does not apply — only the tutorial does.
         """
         from apps.campaigns.models import MessageTemplate
         from bot.i18n import t
@@ -243,7 +247,8 @@ class TelegramUserAdmin(RBModelAdmin):
                 ]
             }
         try:
-            send_message(user.telegram_id, t("purchase.thanks", lang))
+            if greet:
+                send_message(user.telegram_id, t("purchase.thanks", lang))
             send_message(
                 user.telegram_id, intro, parse_mode=parse_mode, reply_markup=keyboard
             )

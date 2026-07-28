@@ -13,7 +13,7 @@ STRINGS: dict[str, str] = {
     "menu.discounts": "💣 Qaynoq chegirmalar 💥",
     "menu.bonus": "💎 Bonuslarim",
     "menu.profile": "👤 Profil",
-    "menu.face_analysis": "🤳 Yuz tahlili",
+    "menu.face_analysis": "Yuzni tahlil qilish",
     "menu.help": "ℹ️ Yordam",
     # so labels we have already shipped must keep matching after a rename.
     "menu.legacy_tutorials": "📚 Qo'llanmalar",
@@ -56,8 +56,6 @@ STRINGS: dict[str, str] = {
         "❌ Bu boshqa odamning kontakti. O'z raqamingizni yuboring yoki yozing."
     ),
     "reg.share_contact": "📱 Kontaktni ulashish",
-    "reg.ask_photo": "📷 Rasmingizni yuboring (ixtiyoriy).",
-    "reg.skip": "⏭ O'tkazib yuborish",
     "reg.saved_fallback": (
         "✅ Ro'yxatdan o'tish yakunlandi! Real Beauty'ga xush kelibsiz."
     ),

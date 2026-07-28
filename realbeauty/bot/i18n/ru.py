@@ -13,7 +13,7 @@ STRINGS: dict[str, str] = {
     "menu.discounts": "🎁 Скидки",
     "menu.bonus": "💎 Мои бонусы",
     "menu.profile": "👤 Профиль",
-    "menu.face_analysis": "🤳 Анализ лица",
+    "menu.face_analysis": "Анализ лица",
     "menu.help": "ℹ️ Помощь",
     "menu.legacy_tutorials": "📚 Руководства",
     "menu.legacy_feedback": "💬 Оставить отзыв",
@@ -55,8 +55,6 @@ STRINGS: dict[str, str] = {
         "❌ Это контакт другого человека. Отправьте или напишите свой номер."
     ),
     "reg.share_contact": "📱 Поделиться контактом",
-    "reg.ask_photo": "📷 Отправьте своё фото (необязательно).",
-    "reg.skip": "⏭ Пропустить",
     "reg.saved_fallback": "✅ Регистрация завершена! Добро пожаловать в Real Beauty.",
     "reg.error": "Произошла ошибка при сохранении. Пожалуйста, нажмите /start заново.",
     "reg.invalid_ref": (
