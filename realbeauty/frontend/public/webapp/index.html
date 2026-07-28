@@ -7,15 +7,19 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
-      /* Base follows the Telegram theme; the accent is a fixed dusty-rose +
-         soft gold pair so the app reads as a beauty brand, not a messenger. */
-      --bg: var(--tg-theme-bg-color, #16100f);
-      --text: var(--tg-theme-text-color, #f6eef0);
-      --hint: var(--tg-theme-hint-color, #a89a9e);
-      --rose: #7ec8e3;
-      --rose-2: #a8d8f0;
-      --rose-deep: #4a9fc9;
-      --gold: #d9b06c;
+      /* Base follows the Telegram theme; the accent is a fixed sky-blue +
+         warm champagne-gold pair so the app reads as a beauty brand, not a
+         messenger. The dark fallback (used when Telegram sends no theme,
+         e.g. previewing outside the client) is a cool navy-charcoal to match
+         the blue accent — the old fallback was a warm near-black left over
+         from the original dusty-rose palette. */
+      --bg: var(--tg-theme-bg-color, #0e141a);
+      --text: var(--tg-theme-text-color, #eef3f6);
+      --hint: var(--tg-theme-hint-color, #93a4ad);
+      --rose: #3796c2;
+      --rose-2: #a9ddf2;
+      --rose-deep: #1f5f80;
+      --gold: #e3bd6e;
       --on-rose: #fff;
       --card: color-mix(in srgb, var(--text) 5%, var(--bg));
       --line: color-mix(in srgb, var(--text) 11%, transparent);
