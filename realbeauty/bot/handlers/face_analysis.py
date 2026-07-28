@@ -9,8 +9,9 @@ from aiogram.types import Message
 
 from bot.filters.menu import MenuText
 from bot.i18n import normalize, t
+from bot.keyboards import inline
 from bot.services import analytics_service, user_service
-from bot.states.registration import FaceAnalysisState
+from bot.states.registration import FaceAnalysisState, SkinQuizState
 
 logger = logging.getLogger(__name__)
 router = Router(name="face_analysis")
@@ -19,6 +20,8 @@ router.message.filter(F.chat.type == "private")
 
 @router.message(MenuText("menu.face_analysis"))
 async def start_face_analysis(message: Message, state: FSMContext, lang: str) -> None:
+    """«Yuz tahlili» drops straight into the same skin-type quiz as retake —
+    no separate selfie step."""
     if message.from_user is None:
         return
     user = await user_service.get_user(message.from_user.id)
@@ -26,8 +29,13 @@ async def start_face_analysis(message: Message, state: FSMContext, lang: str) ->
         await message.answer(t("user.not_registered", lang))
         return
     await state.clear()
-    await state.set_state(FaceAnalysisState.photo)
-    await message.answer(t("faceanalysis.ask_photo", normalize(user.language)))
+    await state.set_state(SkinQuizState.intro)
+    await state.update_data(language=user.language)
+    await message.answer(
+        t("quiz.intro", normalize(user.language)),
+        parse_mode="HTML",
+        reply_markup=inline.quiz_start_keyboard(normalize(user.language)),
+    )
 
 
 @router.message(FaceAnalysisState.photo, F.photo)
