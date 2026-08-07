@@ -7,6 +7,8 @@ MERIKIT: list[dict] = [
     {
         "photo": "o2_mask_cleanser",
         "name": "Merikit O2 Mask Cleanser — kislorodli tozalovchi niqob",
+        "name_ru": "Merikit O2 Mask Cleanser — кислородная очищающая маска",
+        "name_en": "Merikit O2 Mask Cleanser — oxygen cleansing mask",
         "uz": (
             "Kislorod pufakchalari asosidagi tozalovchi niqob: terini chuqur "
             "tozalaydi, yog' va changni eritib, hujayralarni kislorod bilan "
@@ -46,6 +48,8 @@ MERIKIT: list[dict] = [
     {
         "photo": None,  # the shop's own shot is already uploaded
         "name": "Merikit Double Peeling Gel — ikki bosqichli peeling",
+        "name_ru": "Merikit Double Peeling Gel — двухступенчатый пилинг",
+        "name_en": "Merikit Double Peeling Gel — two-step peeling",
         "ru": (
             "Деликатный пилинг-гель: мягко снимает омертвевшие клетки, "
             "обновляет и разглаживает кожу. Двухступенчатое действие "
@@ -74,6 +78,8 @@ MERIKIT: list[dict] = [
     {
         "photo": None,
         "name": "Merikit One Point Cleansing Oil — tozalovchi yog'",
+        "name_ru": "Merikit One Point Cleansing Oil — очищающее масло",
+        "name_en": "Merikit One Point Cleansing Oil",
         "ru": (
             "Мягкое очищающее масло: растворяет макияж, SPF и глубокие "
             "загрязнения одним движением, не нарушая жиро-водный баланс "
@@ -155,6 +161,8 @@ MERIKIT: list[dict] = [
     {
         "photo": None,
         "name": "Merikit Grain Rice Foam — guruchli tozalovchi penka",
+        "name_ru": "Merikit Grain Rice Foam — рисовая очищающая пенка",
+        "name_en": "Merikit Grain Rice Foam — rice cleansing foam",
         "ru": (
             "Пенка с экстрактом риса и натуральными зерновыми компонентами: "
             "мягко очищает и питает кожу.\n\n"
@@ -226,6 +234,8 @@ MERIKIT: list[dict] = [
     {
         "photo": "multi_protection_balm",
         "name": "Merikit Multi Protection Balm SPF37/PA++ (BB krem)",
+        "name_ru": "Merikit Multi Protection Balm SPF37/PA++ (BB-крем)",
+        "name_en": "Merikit Multi Protection Balm SPF37/PA++ (BB cream)",
         "ru": (
             "Защита и естественный тон в одном средстве. Лёгкая текстура "
             "идеально ложится, выравнивает тон, увлажняет и защищает "
@@ -433,6 +443,8 @@ MERIKIT: list[dict] = [
     {
         "photo": "vita_c13_ampule",
         "name": "Merikit Vita-C 13 Ampoule (5 ml × 10 flakon)",
+        "name_ru": "Merikit Vita-C 13 Ampoule (5 мл × 10 флаконов)",
+        "name_en": "Merikit Vita-C 13 Ampoule (5 ml × 10 vials)",
         "ru": (
             "Мощная ампула с 13% чистого витамина C: подавляет выработку "
             "меланина, уменьшает тусклость и пятна, выравнивает тон.\n\n"
@@ -461,6 +473,8 @@ MERIKIT: list[dict] = [
     {
         "photo": "vita_mask",
         "name": "Merikit Vita C 13 Mask (5 dona)",
+        "name_ru": "Merikit Vita C 13 Mask (5 шт.)",
+        "name_en": "Merikit Vita C 13 Mask (5 sheets)",
         "ru": (
             "Премиальная маска с 13% чистого витамина C: работает глубоко на "
             "пигментированной, тусклой коже, осветляет тон и обновляет "
@@ -492,6 +506,8 @@ MERIKIT: list[dict] = [
     {
         "photo": "brightening_mask",
         "name": "Merikit Brightening Sheet Mask (10 dona)",
+        "name_ru": "Merikit Brightening Sheet Mask (10 шт.)",
+        "name_en": "Merikit Brightening Sheet Mask (10 sheets)",
         "ru": (
             "Премиальная тканевая маска для сияния и прозрачности: для "
             "тусклой, неровной по тону или пигментированной кожи. Заметный "
@@ -614,6 +630,8 @@ MERIKIT: list[dict] = [
     {
         "photo": "revital_mask",
         "name": "Merikit Revital Mask (1 dona)",
+        "name_ru": "Merikit Revital Mask (1 шт.)",
+        "name_en": "Merikit Revital Mask (1 sheet)",
         "ru": (
             "Премиальная восстанавливающая тканевая маска с интенсивным "
             "увлажнением: для уставшей, тусклой кожи с ослабленной "

@@ -367,6 +367,8 @@ DOCLAB: list[dict] = [
     {
         "photo": "9c",
         "name": "DocLab −9°C Cooling Mask (5 dona)",
+        "name_ru": "DocLab −9°C Cooling Mask (5 шт.)",
+        "name_en": "DocLab −9°C Cooling Mask (5 sheets)",
         "uz": (
             "Sovutuvchi to'qimali niqob: yuzga qo'yilishi bilan salqinlik "
             "beradi, qizarish va shishni tinchlantiradi. Yozda, quyoshdan "

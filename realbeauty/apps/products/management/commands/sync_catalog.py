@@ -70,6 +70,11 @@ class Command(BaseCommand):
                 ("uz", "description"),
                 ("ru", "description_ru"),
                 ("en", "description_en"),
+                # Only for names that carry an Uzbek word ("5 dona", "BB krem");
+                # a plain Latin product name reads the same in all three and is
+                # left without a translation on purpose.
+                ("name_ru", "name_ru"),
+                ("name_en", "name_en"),
             ):
                 text = entry.get(lang_key)
                 if text and not getattr(product, field):
