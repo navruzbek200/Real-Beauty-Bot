@@ -130,7 +130,10 @@ class WebAppCatalogView(APIView):
         ]
         return Response(
             {
-                "shop": {"name": conf.shop_name, "tagline": conf.shop_tagline},
+                "shop": {
+                    "name": conf.shop_name,
+                    "tagline": pick(conf, "shop_tagline", lang),
+                },
                 # The Mini App builds t.me deep links (ask a question / open a
                 # lesson in the chat) with this — sendData only works for
                 # reply-keyboard launches, deep links work from anywhere.

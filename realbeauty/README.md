@@ -75,6 +75,34 @@ parallel ishlaydi (pastdagi "API va React SPA" bo'limiga qarang).
   `.po` o'zgartirilsa `python scripts/compile_messages.py` yuritiladi
   (gettext talab qilinmaydi).
 
+## Katalog (mahsulotlar, rasmlar, tavsiflar)
+
+Do'konning haqiqiy mahsulot ro'yxati kodda turadi:
+
+| Nima                         | Qayerda                              |
+| ---------------------------- | ------------------------------------ |
+| Ma'lumot (nom, uz/ru/en matn)| `apps/products/catalog/` (brend bo'yicha) |
+| Studiya rasmlari             | `apps/products/assets/catalog/*.jpg` (1000×1000, kvadratga to'ldirilgan) |
+| Bazaga yozadigan buyruq      | `manage.py sync_catalog`             |
+
+```bash
+python manage.py sync_catalog --dry-run     # nima o'zgarishini ko'rsatadi
+python manage.py sync_catalog               # qo'llaydi
+python manage.py sync_catalog --force-photo # rasmlarni ham qayta yuklaydi
+```
+
+Buyruq **faqat to'ldiradi**: bazada bo'sh bo'lgan tavsif yoki rasmni yozadi,
+adminda yozilgan matnni va **narxlarni hech qachon o'zgartirmaydi**. Shuning
+uchun uni har deploydan keyin yuritish xavfsiz — do'konning o'z tahrirlari
+saqlanib qoladi. Mahsulot `name` bo'yicha topiladi: adminda nomni
+o'zgartirsangiz, bu yerda ham o'zgartiring, aks holda keyingi yuritishda
+dublikat paydo bo'ladi.
+
+Yangi mahsulot qo'shish: rasmni `assets/catalog/`ga (kvadrat JPEG) qo'ying,
+`catalog/<brend>.py`ga `photo`/`name`/`uz`/`ru`/`en` bilan qator qo'shing va
+buyruqni yuriting. Narxni admin panelda belgilaysiz — narxsiz mahsulot Mini
+App'da «Narx tez orada» bo'lib chiqadi va sotib olinmaydi.
+
 ## Lokal ishga tushirish
 
 ```bash

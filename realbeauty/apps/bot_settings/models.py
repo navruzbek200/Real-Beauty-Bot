@@ -37,6 +37,21 @@ class GlobalSettings(models.Model):
         default="Teringizga professional g'amxo'rlik",
         verbose_name="Do'kon shiori",
     )
+    # The Mini App header is the one piece of shop-written copy a Russian or
+    # English customer sees before anything else; without these it greeted
+    # them in Uzbek. Blank still falls back to Uzbek (`core.i18n.pick`).
+    shop_tagline_ru = models.CharField(
+        max_length=120,
+        blank=True,
+        default="Профессиональный уход за вашей кожей",
+        verbose_name="Do'kon shiori (ruscha)",
+    )
+    shop_tagline_en = models.CharField(
+        max_length=120,
+        blank=True,
+        default="Professional care for your skin",
+        verbose_name="Do'kon shiori (inglizcha)",
+    )
     instagram_url = models.URLField(
         blank=True,
         default="https://instagram.com/realbeauty_uz",

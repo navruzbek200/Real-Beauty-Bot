@@ -99,13 +99,14 @@ class MenuMatchingTests(SimpleTestCase):
 
 class MainMenuKeyboardTests(SimpleTestCase):
     def test_renders_in_each_language(self):
-        # Five buttons: catalogue, discounts, bonuses, profile, support.
-        # Lessons live in the Mini App's «Darslar» tab, top products in its
-        # TOP filter, retaking the quiz in Profil — none of those needs a
-        # top-level button (their old labels still route via MenuText).
+        # Six buttons in three even rows: catalogue, discounts, bonuses,
+        # profile, face analysis, support. Lessons live in the Mini App's
+        # «Darslar» tab, top products in its TOP filter, retaking the quiz in
+        # Profil — none of those needs a top-level button (their old labels
+        # still route via MenuText).
         expected = [
             "menu.catalog", "menu.discounts", "menu.bonus",
-            "menu.profile", "menu.support",
+            "menu.profile", "menu.face_analysis", "menu.support",
         ]
         for code in i18n.LANGUAGES:
             with self.subTest(language=code):
@@ -114,7 +115,7 @@ class MainMenuKeyboardTests(SimpleTestCase):
                     for row in reply.main_menu_keyboard(code).keyboard
                     for button in row
                 ]
-                self.assertEqual(len(labels), 5)
+                self.assertEqual(len(labels), 6)
                 for key in expected:
                     self.assertIn(i18n.t(key, code), labels)
                 self.assertNotIn(i18n.t("menu.top", code), labels)

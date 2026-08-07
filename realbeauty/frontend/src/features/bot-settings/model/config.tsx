@@ -98,6 +98,8 @@ const url = z.string().url('To\'g\'ri havola kiriting').or(z.literal('')).option
 export const shopSettingsFormSchema = z.object({
   shop_name: z.string().min(1, 'Nomi shart'),
   shop_tagline: z.string().optional(),
+  shop_tagline_ru: z.string().optional(),
+  shop_tagline_en: z.string().optional(),
   instagram_url: url,
   youtube_url: url,
   telegram_url: url,
@@ -108,6 +110,8 @@ export const shopSettingsFormConfig: ResourceFormConfig<ShopSettingsFormValues> 
   fields: [
     { name: 'shop_name', label: "Do'kon nomi", type: 'text', help: 'Mini App bosh sahifasida katta harflar bilan chiqadi.' },
     { name: 'shop_tagline', label: 'Shior', type: 'text', help: 'Nom ostidagi qisqa matn. Masalan: «Teringizga professional g\'amxo\'rlik».' },
+    { name: 'shop_tagline_ru', label: 'Shior (ruscha)', type: 'text', help: 'Bo\'sh qoldirsangiz o\'zbekchasi ko\'rsatiladi.' },
+    { name: 'shop_tagline_en', label: 'Shior (inglizcha)', type: 'text', help: 'Bo\'sh qoldirsangiz o\'zbekchasi ko\'rsatiladi.' },
     { name: 'instagram_url', label: 'Instagram havolasi', type: 'text', help: 'Masalan: https://instagram.com/realbeauty — Mini App «Aloqa» bo\'limida chiqadi.' },
     { name: 'youtube_url', label: 'YouTube havolasi', type: 'text', help: 'Bo\'sh qoldirsangiz bu tugma ko\'rinmaydi.' },
     { name: 'telegram_url', label: 'Telegram kanal havolasi', type: 'text', help: 'Masalan: https://t.me/realbeauty_uz. Bo\'sh — ko\'rinmaydi.' },
@@ -115,6 +119,8 @@ export const shopSettingsFormConfig: ResourceFormConfig<ShopSettingsFormValues> 
   defaultValues: {
     shop_name: 'Real Beauty',
     shop_tagline: '',
+    shop_tagline_ru: '',
+    shop_tagline_en: '',
     instagram_url: '',
     youtube_url: '',
     telegram_url: '',
@@ -122,6 +128,8 @@ export const shopSettingsFormConfig: ResourceFormConfig<ShopSettingsFormValues> 
   toFormValues: (item) => ({
     shop_name: (item.shop_name as string) ?? 'Real Beauty',
     shop_tagline: (item.shop_tagline as string) ?? '',
+    shop_tagline_ru: (item.shop_tagline_ru as string) ?? '',
+    shop_tagline_en: (item.shop_tagline_en as string) ?? '',
     instagram_url: (item.instagram_url as string) ?? '',
     youtube_url: (item.youtube_url as string) ?? '',
     telegram_url: (item.telegram_url as string) ?? '',

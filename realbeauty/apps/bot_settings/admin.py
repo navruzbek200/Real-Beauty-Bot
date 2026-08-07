@@ -35,6 +35,8 @@ class GlobalSettingsAdmin(RBModelAdmin):
                 "fields": [
                     "shop_name",
                     "shop_tagline",
+                    "shop_tagline_ru",
+                    "shop_tagline_en",
                     "instagram_url",
                     "youtube_url",
                     "telegram_url",
